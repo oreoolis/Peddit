@@ -1,9 +1,14 @@
-<script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+<script>
 </script>
 
 <template>
-  <main>
-    <TheWelcome />
-  </main>
+  <div class="container-fluid">
+    <div class="home">
+      <h1>This is an home page</h1>
+    </div>
+  </div>
+
 </template>
+
+<style>
+</style>
