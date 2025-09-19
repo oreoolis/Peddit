@@ -1,6 +1,22 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import HelloWorld from './components/HelloWorld.vue';
+import TheWelcome from './components/TheWelcome.vue';
+
+// Supabase stuff
+import { ref, onMounted } from 'vue';
+import { supabase } from './lib/supabaseClient';
+
+const instruments = ref([]);
+
+async function getInstruments(){
+  const { data } = await supabase.from('instruments').select();
+  instruments.value = data;
+}
+
+onMounted(() => {
+  getInstruments()
+})
+// End Supabase stuff
 </script>
 
 <template>
@@ -14,6 +30,9 @@ import TheWelcome from './components/TheWelcome.vue'
 
   <main>
     <TheWelcome />
+    <ul>
+      <li v-for="instrument in instruments" :key="instrument.id">{{ instrument.name }}</li>
+    </ul>
   </main>
 </template>
 
