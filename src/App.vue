@@ -1,6 +1,6 @@
 <script setup>
 import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import { RouterLink, RouterView } from 'vue-router';
 </script>
 
 <template>
@@ -9,12 +9,13 @@ import TheWelcome from './components/TheWelcome.vue'
 
     <div class="wrapper">
       <HelloWorld msg="You did it!" />
+      <nav>
+        <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/about">About</RouterLink>
+      </nav>
     </div>
   </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  <RouterView/>
 </template>
 
 <style scoped>
