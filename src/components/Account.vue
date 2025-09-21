@@ -2,6 +2,8 @@
     import { supabase } from '@/lib/supabaseClient';
     import { onMounted, ref, toRefs } from 'vue';
 
+    import Avatar from './Avatar.vue';
+
     const props = defineProps(['session']);
     const { session } = toRefs(props)
 
@@ -112,6 +114,13 @@
                 v-model="website"
             />
         </div>
+
+        <!-- Upload avatar -->
+        <Avatar  
+            v-model:path="avatar_url"
+            @upload ="updateProfile"
+            size="10"
+        />
 
         <!-- Update button -->
         <div class="d-grid mb-2">
