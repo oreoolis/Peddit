@@ -39,9 +39,10 @@
         }
     }
 
-    async function updateProfile(params) {
+    async function updateProfile() {
         try {
             loading.value = true
+            const { user } = session.value;
 
             const updates = {
                 id: user.id,
@@ -77,7 +78,7 @@
 </script>
 
 <template>
-    <form class="p-3 border rounded" @submit.prevent="updateProfile">
+    <form class="p-3 border rounded container" @submit.prevent="updateProfile">
         <!-- Email -->
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
@@ -137,6 +138,6 @@
     </form>
 </template>
 
-<style lang="scss" scoped>
+<style>
 
 </style>
