@@ -1,6 +1,8 @@
 <script setup>
 import PetProfileCard from './PetProfileCard.vue';
 import goldenImage from '../assets/golden.jpg'
+import persianImage from '../assets/persian.jpg';
+import ragdollImage from '../assets/ragdoll.jpg';
 </script>
 
 <template>
@@ -8,7 +10,7 @@ import goldenImage from '../assets/golden.jpg'
         <!-- Profile -->
         <div class="row justify-content-center pb-4">
             <div class="col-12 text-center position-relative">
-                <div class="position-relative d-inline-block">
+                <div class="position-relative d-inline-block mb-1">
                     <img 
                         class="rounded-circle profile-image"
                         src="../assets/logo.svg" 
@@ -65,16 +67,16 @@ import goldenImage from '../assets/golden.jpg'
             </div>
             <div class="col-4 mb-4">
                 <PetProfileCard 
-                    pet-name="Alberto"
-                    pet-breed="Golden Retriver"
-                    :pet-image="goldenImage"
+                    pet-name="Butter"
+                    pet-breed="Persian"
+                    :pet-image="persianImage"
                 />
             </div>
             <div class="col-4 mb-4">
                 <PetProfileCard 
-                    pet-name="Alberto"
-                    pet-breed="Golden Retriver"
-                    :pet-image="goldenImage"
+                    pet-name="Toastie"
+                    pet-breed="Ragdoll"
+                    :pet-image="ragdollImage"
                 />
             </div>
         </div>
