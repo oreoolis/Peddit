@@ -1,6 +1,8 @@
 <template>
-  <div class="container-fluid about">
-    <h1>This is an about page</h1>
+  <div class="container-fluid">
+    <div class="homed-flex align-items-start">
+      <h1>This is an about page</h1>
+    </div>
   </div>
 </template>
 

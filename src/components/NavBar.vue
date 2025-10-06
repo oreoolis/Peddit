@@ -15,9 +15,14 @@ import { RouterLink, RouterView } from 'vue-router';
                         <li class="nav-item">
                             <RouterLink class="nav-link active text-light" to="/about">About</RouterLink>
                         </li>
+                        <li class="nav-item">
+                            <RouterLink class="nav-link active text-light" to="/about">Test</RouterLink>
+                        </li>
                     </ul>
                 </div>
             </div>
         </nav>
     </div>
 </template>
+<style>
+</style>
