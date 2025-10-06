@@ -13,7 +13,7 @@ import ragdollImage from '../assets/ragdoll.jpg';
                 <div class="position-relative d-inline-block mb-1">
                     <img 
                         class="rounded-circle profile-image"
-                        src="../assets/logo.svg" 
+                        src="../assets/person.jpg" 
                         alt="Profile Image"
                     >
                     <button class="btn btn-light position-absolute bottom-0 end-0 settings-btn">
