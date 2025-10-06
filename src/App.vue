@@ -52,6 +52,8 @@ onMounted(() => {
         <RouterLink to="/profile">Profile</RouterLink>
         <!-- Dwayne-->
         <RouterLink to="/meal">Meal</RouterLink>
+        <!-- Dwayne-->
+        <RouterLink to="/pet">Pet</RouterLink>
         <!-- Wei Lin -->
         <RouterLink to="/chatbot">Chatbot</RouterLink>
         <!-- Jereme -->

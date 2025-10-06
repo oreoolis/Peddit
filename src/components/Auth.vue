@@ -26,7 +26,7 @@ const handleLogin = async () => {
 <template>
     <div class="container">
         <div class="row justify-content-center align-items-center min-vh-100">
-            <div class="col-md-5 col-lg-4">
+            <div class="col-md-5">
                 <div class="card shadow-sm">
                     <div class="card-body p-4">
                         <h2 class="card-title text-center mb-4">Peddit</h2>
@@ -78,8 +78,8 @@ const handleLogin = async () => {
                         </button>
 
                         <div class="text-center mt-3">
-                            <!-- TODO: implement forget password stuff if doing normal login -->
-                            <a href="#" class="text-decoration-none small">Forgot password?</a>
+                            <!-- TODO: implement forget password stuff if doing normal login or send email by username -->
+                            <a href="#" class="text-decoration-none small">Forgot account?</a>
                         </div>
                     </div>
                 </div>

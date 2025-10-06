@@ -40,6 +40,10 @@ const router = createRouter({
       path: '/social',
       name: 'social',
       component: () => import('@/views/SocialView.vue'),
+    },{
+      path: '/pet',
+      name: 'pet',
+      component: () => import('@/views/PetView.vue'),
     },
   ],
 })
