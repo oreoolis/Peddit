@@ -1,5 +1,4 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
 import { RouterLink, RouterView } from 'vue-router';
 import HelloWorld from './components/HelloWorld.vue';
 import TheWelcome from './components/TheWelcome.vue';
@@ -24,7 +23,7 @@ import Account from './components/Account.vue';
 const session = ref();
 onMounted(() => {
   supabase.auth.getSession().then(({ data }) => {
-     session.value = data.session;
+      session.value = data.session;
   });
 
   supabase.auth.onAuthStateChange((_, _session) => {
@@ -43,22 +42,35 @@ onMounted(() => {
       <HelloWorld msg="You did it!" />
       <nav>
         <RouterLink to="/">Home</RouterLink>
+        <!-- Nicholas -->
         <RouterLink to="/about">About</RouterLink>
+        <!-- Bernard -->
+        <RouterLink to="/login">Login</RouterLink>
+        <!-- Bernard -->
+        <RouterLink to="/health">Health</RouterLink>
+        <!-- Bernard / Dwayne-->
+        <RouterLink to="/profile">Profile</RouterLink>
+        <!-- Dwayne-->
+        <RouterLink to="/meal">Meal</RouterLink>
+        <!-- Wei Lin -->
+        <RouterLink to="/chatbot">Chatbot</RouterLink>
+        <!-- Jereme -->
+        <RouterLink to="/social">Social</RouterLink>
       </nav>
     </div>
   </header>
   <RouterView/>
 
-  <main>
+  <!-- <main>
     <div class="container pt-2 pb-4">
       <Account v-if="session" :session="session" />
       <Auth v-else />
     </div>
     <TheWelcome />
-    <!-- <ul>
+    <ul>
       <li v-for="instrument in instruments" :key="instrument.id">{{ instrument.name }}</li>
-    </ul> -->
-  </main>
+    </ul>
+  </main> -->
 </template>
 
 <style scoped>

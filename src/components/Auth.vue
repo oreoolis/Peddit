@@ -69,6 +69,7 @@ const handleLogin = async () => {
                             <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted">OR</span>
                         </div>
 
+                        <!-- TODO: implement OAuth -->
                         <button @click="handleGoogleLogin"
                             class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center">
                             <img src="https://www.google.com/favicon.ico" alt="Google" class="me-2"
