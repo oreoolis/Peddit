@@ -27,11 +27,11 @@ import goldenImage from '../assets/golden.jpg'
         </div>
         <!-- Follow Counts -->
         <div class="row justify-content-center mb-4">
-            <div class="col col-3 text-center">
+            <div class="col-3 text-center">
                 <h4>56.5k</h4>
                 <h4>Following</h4>
             </div>
-            <div class="col col-3 text-center">
+            <div class="col-3 text-center">
                 <h4>10.5k</h4>
                 <h4>Followers</h4>
             </div>
@@ -46,31 +46,31 @@ import goldenImage from '../assets/golden.jpg'
         <!-- Pet display -->
         <!-- Change to view component, vue-for to loop through all pets -->
         <div class="row justify-content-between">
-            <div class="col col-12 text-center">
+            <div class="col-12 text-center">
                 <h2>Pets</h2>
             </div>
-            <div class="col col-4 mb-4">
+            <div class="col-4 mb-4">
                 <PetProfileCard 
                     pet-name="Alberto"
                     pet-breed="Golden Retriver"
                     :pet-image="goldenImage"
                 />
             </div>
-            <div class="col col-4 mb-4">
+            <div class="col-4 mb-4">
                 <PetProfileCard 
                     pet-name="Alfredo"
                     pet-breed="Golden Retriver"
                     :pet-image="goldenImage"
                 />
             </div>
-            <div class="col col-4 mb-4">
+            <div class="col-4 mb-4">
                 <PetProfileCard 
                     pet-name="Alberto"
                     pet-breed="Golden Retriver"
                     :pet-image="goldenImage"
                 />
             </div>
-            <div class="col col-4 mb-4">
+            <div class="col-4 mb-4">
                 <PetProfileCard 
                     pet-name="Alberto"
                     pet-breed="Golden Retriver"

@@ -16,9 +16,9 @@
 </script>
 
 <template>
-    <div class="pet-profile-card text-center bg-secondary">
+    <div class="text-center bg-secondary w-100 py-3">
         <!-- Circular Pet Image -->
-        <div class="position-relative d-inline-block">
+        <div class="d-inline-block">
             <img 
                 :src="petImage"
                 :alt="petName" 
@@ -27,22 +27,20 @@
         </div>
 
         <!-- Pet Info -->
-        <div class="pet-info mt-2">
+        <div class="mt-2">
             <h5 class="pet-name mb-1">{{ petName }}</h5>
-            <p class="pet-breed text-muted mb-0">{{ petBreed }}</p>
+            <!-- text-truncate to truncate long breed names? -->
+            <p class="text-muted mb-0 small">{{ petBreed }}</p>
         </div>
     </div>
 </template>
 
 <style scoped>
-    .pet-profile-card {
-        max-width: 150px;
-        padding: 1rem;
-    }
-
     .pet-image {
-        width: 100px;
-        height: 100px;
+        width: 100%;
+        max-width: 100px;
+        height: auto;
+        aspect-ratio: 1 / 1;
         object-fit: cover;
         border: 1px solid #f8f9fa;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -52,9 +50,5 @@
         font-weight: 600;
         color: #1a1a1a;
         font-size: 1rem;
-    }
-
-    .pet-breed {
-        font-size: 0.875rem;
     }
 </style>
