@@ -60,6 +60,9 @@
                             <li class="nav-item">
                                 <RouterLink class="nav-link active primary" to="/social">Social</RouterLink>
                             </li>
+                            <li class="nav-item">
+                                <RouterLink class="nav-link active primary" to="/map">Map</RouterLink>
+                            </li>
                         </ul>
                     </div>
                 </div>
