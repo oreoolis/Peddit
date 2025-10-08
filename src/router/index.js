@@ -56,6 +56,11 @@ const router = createRouter({
       name: 'welcomeTest',
       component: TheWelcome,
     },
+        {
+      path: '/temp',
+      name: 'temp',
+      component: () => import('@/views/TempView.vue'),
+    },
     // {
     //   // route level code-splitting
     //   // this generates a separate chunk (About.[hash].js) for this route
