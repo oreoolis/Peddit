@@ -52,6 +52,11 @@ const router = createRouter({
       component: () => import('@/views/PetView.vue'),
     },
     {
+      path: '/map',
+      name: 'map',
+      component: () => import('@/views/MapView.vue'),
+    },
+    {
       path: '/test',
       name: 'welcomeTest',
       component: TheWelcome,
