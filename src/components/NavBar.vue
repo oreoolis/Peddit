@@ -3,12 +3,6 @@
     </script>
 
     <template>
-<<<<<<< Updated upstream
-        <div>
-            <nav class="navbar navbar-expand-lg bg-primary">
-                <div class="container-fluid">
-                    <a class="navbar-brand text-light" href="#">Peddit</a>
-=======
         <div >
             <nav class="navbar fixed-bottom bg-white headingFont" >
                 <div class="container-fluid">
@@ -41,7 +35,6 @@
                 <nav class="navbar navbar-expand-sm bg-white headingFont">
                 <div class="container-fluid" >
                     <a class="navbar-brand primary brandFont" href="/home">Peddit</a>
->>>>>>> Stashed changes
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                             <li class="nav-item">
