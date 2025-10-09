@@ -69,3 +69,41 @@
 
 
 }
+
+
+/* === Peddit theme tokens (Bootstrap 5.3 CSS vars) === */
+:root{
+  --bs-primary: #247BA0;
+  --bs-primary-rgb: 36, 123, 160;
+  --bs-success: #3EDA60;
+  --bs-success-rgb: 62, 218, 96;
+  --bs-danger: #DA3E52;
+  --bs-danger-rgb: 218, 62, 82;
+  --bs-body-bg: #FFFFFF;  /* app background; keep white for readability in chat */
+  --bs-body-color: #141414;
+
+  /* Peddit custom tokens */
+  --peddit-radius: 16px;
+  --peddit-shadow: 0 12px 30px rgba(0,0,0,.12);
+}
+
+/* Rounded, friendly look across the app */
+.card, .btn, .form-control, .alert, .badge { border-radius: var(--peddit-radius) !important; }
+
+/* Primary button polish */
+.btn-primary {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+}
+.btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+/* Optional: brand header/footer bars */
+.bg-primary-soft { background: color-mix(in srgb, var(--bs-primary) 10%, white); }
+.text-primary-strong { color: var(--bs-primary); }
+
+/* Typography helpers wired to your imported fonts */
+.headingFont { font-family: "Roboto", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+.bodyFont    { font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+.brandFont   { font-family: "Titan One", cursive; }
