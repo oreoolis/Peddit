@@ -29,19 +29,19 @@ const handleLogin = async () => {
             <div class="col-md-5">
                 <div class="card shadow-sm">
                     <div class="card-body p-4">
-                        <h2 class="card-title text-center mb-4">Peddit</h2>
-                        <img src="../assets/logo.svg" class="img-fluid float-start" alt="Description">
+                        <h2 class="card-title text-center mb-4 brandFont">Peddit</h2>
+                        <img src="../assets/Main_Logo.png" class="img-fluid float-start" alt="Description">
                         <form @submit.prevent="handleLogin">
                             <div class="mb-3">
-                                <label for="email" class="form-label">Login with email</label>
+                                <label for="email" class="form-label mb-1 ms-1">Login with email</label>
                                 <input type="email" class="form-control" id="email" v-model="email"
                                     placeholder="Enter your email" required />
                             </div>
 
                             <!-- Handle with supabase.auth.setSession(persistSession: true) -->
                             <!-- supabase.auth.removeSession() -->
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="remember" v-model="rememberMe" />
+                            <div class="mb-3 form-check d-flex align-items-center">
+                                <input type="checkbox" class="form-check-input me-1" id="remember" v-model="rememberMe" />
                                 <label class="form-check-label" for="remember">
                                     Remember me
                                 </label>
@@ -54,8 +54,7 @@ const handleLogin = async () => {
 
                         <div class="position-relative text-center">
                             <hr class="my-4">
-                            <span
-                                class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted">OR</span>
+                            <span class="hror position-absolute top-50 start-50 translate-middle px-2 text-muted">OR</span>
                         </div>
 
                         <!-- TODO: implement OAuth -->
@@ -112,4 +111,8 @@ const handleLogin = async () => {
     </form>
 </template> -->
 
-<style lang="scss" scoped></style>
+<style scoped>
+    .hror {
+        background-color: white;
+    }
+</style>
