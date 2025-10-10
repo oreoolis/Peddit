@@ -3,6 +3,8 @@ import PetProfileCard from './PetProfileCard.vue';
 import goldenImage from '../assets/golden.jpg'
 import persianImage from '../assets/persian.jpg';
 import ragdollImage from '../assets/ragdoll.jpg';
+
+
 </script>
 
 <template>

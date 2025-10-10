@@ -1,7 +1,5 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router';
-import HelloWorld from './components/HelloWorld.vue';
-import TheWelcome from './components/TheWelcome.vue';
+import { RouterView } from 'vue-router';
 import NavBar from './components/NavBar.vue';
 
 // Supabase stuff
