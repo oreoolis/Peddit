@@ -3,8 +3,20 @@ import PetProfileCard from './PetProfileCard.vue';
 import goldenImage from '../assets/golden.jpg'
 import persianImage from '../assets/persian.jpg';
 import ragdollImage from '../assets/ragdoll.jpg';
+import { supabase } from '@/lib/supabaseClient';
+import router from '@/router';
 
+const signOut = async () => {
+    try {
+        const {error} = await supabase.auth.signOut();
+        if (error) throw error;
 
+        // Redirect to login after loggin out
+        router.push('/login');
+    } catch (error) {
+        // Error logging out
+    }
+};
 </script>
 
 <template>
@@ -44,7 +56,7 @@ import ragdollImage from '../assets/ragdoll.jpg';
         <div class="row mb-4">
             <div class="btn-group" role="group">
                 <button type="button" class="btn btn-secondary">Edit profile</button>
-                <button type="button" class="btn btn-danger">Logout</button>
+                <button @click="signOut" type="button" class="btn btn-danger">Logout</button>
             </div>
         </div>
         <!-- Pet display -->
