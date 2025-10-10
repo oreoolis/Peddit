@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
-import TheWelcome from '@/components/TheWelcome.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -57,10 +56,18 @@ const router = createRouter({
       component: () => import('@/views/MapView.vue'),
     },
     {
-      path: '/test',
-      name: 'welcomeTest',
-      component: TheWelcome,
+      path: '/create-pet',
+      name: 'create-pet',
+      component: () => import('@/views/CreatePet.vue'),
     },
+    {
+      path: '/add-meal-plan',
+      name: 'add-meal-plan',
+      component: () => import('@/views/AddMealPlan.vue'),
+    }
+    
+
+
     // {
     //   // route level code-splitting
     //   // this generates a separate chunk (About.[hash].js) for this route
