@@ -6,7 +6,8 @@ import NavBar from './components/NavBar.vue';
 
 // Chatbot widget import + flag
 import ChatbotWidget from '@/components/ChatbotWidget.vue';
-const SHOW_CHATBOT = import.meta.env.VITE_CHATBOT_ENABLED !== 'false';
+const SHOW_CHATBOT = import.meta.env.VITE_CHATBOT_ENABLED === 'true' // STRICT: only show when explicitly 'true'
+
 
 // Supabase stuff
 import { ref, onMounted } from 'vue';
