@@ -26,7 +26,7 @@ const handleLogin = async () => {
 <template>
     <div class="container">
         <div class="row justify-content-center align-items-center min-vh-100">
-            <div class="col-md-5">
+            <div class="col-6">
                 <div class="card shadow-sm">
                     <div class="card-body p-4">
                         <h2 class="card-title text-center mb-4 brandFont">Peddit</h2>
