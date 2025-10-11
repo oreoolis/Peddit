@@ -21,6 +21,7 @@ const avatarUrl = ref('');
 const isUploading = ref(false);
 
 const isLoading = ref(true);
+
 watch([authLoading, profileLoading], ([authLoad, profileLoad]) => {
     isLoading.value = authLoad || profileLoad;
 }, { immediate: true });
@@ -68,13 +69,13 @@ const handleSignOut = async () => {
 </script>
 
 <template>
-    <div class="container">
-        <!-- Loading State -->
-        <div v-if="loading" class="text-center py-5">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
+    <!-- Loading State -->
+    <div v-if="isLoading" class="text-center py-5">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
+    </div>
+    <div v-else class="container">
         <!-- Profile -->
         <div class="row justify-content-center pb-4">
             <div class="col-12 text-center position-relative">
