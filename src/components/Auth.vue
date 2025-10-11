@@ -4,34 +4,6 @@ import { ref } from 'vue';
 
 const { signInWithOAuth, signInWithEmail } = useAuth();
 
-
-// import { ref } from 'vue';
-// import { supabase } from '@/lib/supabaseClient';
-
-// const loading = ref(false);
-// const email = ref('');
-
-// const handleLogin = async () => {
-//     try {
-//         loading.value = true;
-//         const { error } = await supabase.auth.signInWithOtp({
-//             email: email.value,
-//         })
-//         if (error) throw error;
-//         alert('Check your email for the login link!');
-//     } catch (error) {
-//         if (error instanceof Error) {
-//             alert(error.message);
-//         }
-//     } finally {
-//         loading.value = false;
-//     }
-// };
-
-// const handleForgetPW = async () => {
-//     alert("Hellow");
-// };
-
 const email = ref('');
 const rememberMe = ref(false);
 
