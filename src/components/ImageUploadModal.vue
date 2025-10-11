@@ -125,78 +125,78 @@ onUnmounted(() => {
 
 <template>
     <div v-if="show" class="modal-backdrop" @click="closeModal">
-        <div class="modal-content" @click.stop>
-        <div class="modal-header d-flex">
-            <h5 class="modal-title">Upload Profile Picture</h5>
-            <button type="button" class="btn-close ms-auto" @click="closeModal"></button>
-        </div>
-        
-        <div class="modal-body">
-            <!-- File Input -->
-            <div class="mb-3">
-            <label for="image-upload" class="form-label">Choose an image</label>
-            <input 
-                type="file" 
-                id="image-upload"
-                class="form-control" 
-                accept="image/*"
-                @change="handleFileSelect"
-                :disabled="uploading"
-            >
-            <div class="form-text">
-                Supported formats: JPG, PNG, GIF. Max size: 5MB
+        <div class="modal-content bg-white" @click.stop>
+            <div class="modal-header d-flex">
+                <h5 class="modal-title primary">Upload Profile Picture</h5>
+                <button type="button" class="btn-close ms-auto" @click="closeModal"></button>
             </div>
+            
+            <div class="modal-body">
+                <!-- File Input -->
+                <div class="mb-3">
+                <label for="image-upload" class="form-label">Choose an image</label>
+                <input 
+                    type="file" 
+                    id="image-upload"
+                    class="form-control" 
+                    accept="image/*"
+                    @change="handleFileSelect"
+                    :disabled="uploading"
+                >
+                <div class="form-text">
+                    Supported formats: JPG, PNG, GIF. Max size: 5MB
+                </div>
+                </div>
+
+                <!-- Image Preview -->
+                <div v-if="previewUrl" class="image-preview-container text-center mb-3">
+                <h6>Preview</h6>
+                <img 
+                    :src="previewUrl" 
+                    alt="Preview" 
+                    class="image-preview"
+                >
+                <p class="text-muted small mt-2">
+                    {{ selectedFile?.name }} ({{ formatFileSize(selectedFile?.size) }})
+                </p>
+                </div>
+
+                <!-- Upload Progress -->
+                <div v-if="uploading" class="progress mb-3">
+                <div 
+                    class="progress-bar progress-bar-striped progress-bar-animated" 
+                    role="progressbar" 
+                    :style="{ width: uploadProgress + '%' }"
+                >
+                    {{ uploadProgress }}%
+                </div>
+                </div>
+
+                <!-- Error Message -->
+                <div v-if="error" class="alert alert-danger">
+                {{ error }}
+                </div>
             </div>
 
-            <!-- Image Preview -->
-            <div v-if="previewUrl" class="image-preview-container text-center mb-3">
-            <h6>Preview</h6>
-            <img 
-                :src="previewUrl" 
-                alt="Preview" 
-                class="image-preview"
-            >
-            <p class="text-muted small mt-2">
-                {{ selectedFile?.name }} ({{ formatFileSize(selectedFile?.size) }})
-            </p>
+            <div class="modal-footer">
+                <button 
+                    type="button" 
+                    class="btn bg-primary white" 
+                    @click="handleUpload"
+                    :disabled="!selectedFile || uploading"
+                >
+                    <span v-if="uploading" class="spinner-border spinner-border-sm me-2"></span>
+                    {{ uploading ? 'Uploading...' : 'Upload' }}
+                </button>
+                <button 
+                    type="button" 
+                    class="btn btn-secondary" 
+                    @click="closeModal"
+                    :disabled="uploading"
+                >
+                    Cancel
+                </button>
             </div>
-
-            <!-- Upload Progress -->
-            <div v-if="uploading" class="progress mb-3">
-            <div 
-                class="progress-bar progress-bar-striped progress-bar-animated" 
-                role="progressbar" 
-                :style="{ width: uploadProgress + '%' }"
-            >
-                {{ uploadProgress }}%
-            </div>
-            </div>
-
-            <!-- Error Message -->
-            <div v-if="error" class="alert alert-danger">
-            {{ error }}
-            </div>
-        </div>
-
-        <div class="modal-footer">
-            <button 
-                type="button" 
-                class="btn btn-primary" 
-                @click="handleUpload"
-                :disabled="!selectedFile || uploading"
-            >
-                <span v-if="uploading" class="spinner-border spinner-border-sm me-2"></span>
-                {{ uploading ? 'Uploading...' : 'Upload' }}
-            </button>
-            <button 
-                type="button" 
-                class="btn btn-secondary" 
-                @click="closeModal"
-                :disabled="uploading"
-            >
-                Cancel
-            </button>
-        </div>
         </div>
     </div>
 </template>
@@ -216,7 +216,6 @@ onUnmounted(() => {
     }
 
     .modal-content {
-        background: white;
         border-radius: 8px;
         width: 90%;
         max-width: 500px;
