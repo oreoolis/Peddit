@@ -20,6 +20,9 @@ const { downloadImage, uploadImage } = useStorage();
 
 const avatarUrl = ref('');
 const isUploading = ref(false);
+const username = computed(() => profile.value?.username || user.value?.email?.split('@')[0] || 'user');
+const follows = computed(() => profile.value?.following_count || 0);
+const followers = computed(() => profile.value?.follower_count || 0);
 
 const isLoading = ref(true);
 
@@ -47,13 +50,6 @@ watch(profile, async (newProfile) => {
         avatarUrl.value = personImage; // Fallback
     }
 }, { immediate: true });
-
-
-onMounted(async () => {
-    if (profile.value?.avatar_url) {
-        avatarUrl.value = await getImageUrl(profile.value.avatar_url);
-    }
-});
 
 const defaultAvatar = personImage;
 
@@ -120,17 +116,17 @@ const openUploadModal = () => {
                         >
                     </button>
                 </div>
-                <p class="">@bernardcks</p>
+                <p class="">@{{ username }}</p>
             </div>
         </div>
         <!-- Follow Counts -->
         <div class="row justify-content-center mb-4">
             <div class="col-3 text-center">
-                <h4>56.5k</h4>
+                <h4>{{ follows }}</h4>
                 <h4>Following</h4>
             </div>
             <div class="col-3 text-center">
-                <h4>10.5k</h4>
+                <h4>{{ followers }}</h4>
                 <h4>Followers</h4>
             </div>
         </div>
