@@ -1,30 +1,65 @@
 <script setup>
+import { useAuth } from '@/composables/useAuth';
 import { ref } from 'vue';
-import { supabase } from '@/lib/supabaseClient';
 
-const loading = ref(false);
+const { signInWithOAuth, signInWithEmail } = useAuth();
+
+
+// import { ref } from 'vue';
+// import { supabase } from '@/lib/supabaseClient';
+
+// const loading = ref(false);
+// const email = ref('');
+
+// const handleLogin = async () => {
+//     try {
+//         loading.value = true;
+//         const { error } = await supabase.auth.signInWithOtp({
+//             email: email.value,
+//         })
+//         if (error) throw error;
+//         alert('Check your email for the login link!');
+//     } catch (error) {
+//         if (error instanceof Error) {
+//             alert(error.message);
+//         }
+//     } finally {
+//         loading.value = false;
+//     }
+// };
+
+// const handleForgetPW = async () => {
+//     alert("Hellow");
+// };
+
 const email = ref('');
+const rememberMe = ref(false);
 
 const handleLogin = async () => {
-    try {
-        loading.value = true;
-        const { error } = await supabase.auth.signInWithOtp({
-            email: email.value,
-        })
-        if (error) throw error;
+    // options:{} can be added for extra supabase stuff
+    const result = await signInWithEmail(email.value, {});
+
+    if(result.success){
         alert('Check your email for the login link!');
-    } catch (error) {
-        if (error instanceof Error) {
-            alert(error.message);
-        }
-    } finally {
-        loading.value = false;
+        email.value = '';
+    }
+    else{
+        alert(result.error.message);
     }
 };
 
+const handleOAuthLogin = async () => {
+    const result = await signInWithOAuth();
+
+    if(!result.success){
+        alert(result.error.message);
+    }
+}
+
 const handleForgetPW = async () => {
-    alert("Hellow");
-};
+    alert('Coming soon!');
+}
+
 </script>
 
 <template>
@@ -62,7 +97,7 @@ const handleForgetPW = async () => {
                         </div>
 
                         <!-- TODO: implement OAuth -->
-                        <button @click="handleGoogleLogin"
+                        <button @click="handleOAuthLogin"
                             class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center">
                             <img src="https://www.google.com/favicon.ico" alt="Google" class="me-2"
                                 style="width: 18px; height: 18px;" />
