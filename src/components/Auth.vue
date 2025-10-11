@@ -20,17 +20,21 @@ const handleLogin = async () => {
     } finally {
         loading.value = false;
     }
-}
+};
+
+const handleForgetPW = async () => {
+    alert("Hellow");
+};
 </script>
 
 <template>
     <div class="container">
-        <div class="row justify-content-center align-items-center min-vh-100">
-            <div class="col-6">
+        <div class="row justify-content-center align-items-center min-vh-100 mt-4">
+            <div class="col-12 col-md-6 col-lg-5 col-xl-4">
                 <div class="card shadow-sm">
                     <div class="card-body p-4">
                         <h2 class="card-title text-center mb-4 brandFont">Peddit</h2>
-                        <img src="../assets/Main_Logo.png" class="img-fluid float-start" alt="Description">
+                        <img src="../assets/Main_Logo.png" class="img-fluid d-block mx-auto w-50" alt="Description">
                         <form @submit.prevent="handleLogin">
                             <div class="mb-3">
                                 <label for="email" class="form-label mb-1 ms-1">Login with email</label>
@@ -67,7 +71,7 @@ const handleLogin = async () => {
 
                         <div class="text-center mt-3">
                             <!-- TODO: implement forget password stuff if doing normal login or send email by username -->
-                            <a href="#" class="text-decoration-none small">Forgot account?</a>
+                            <a @click="handleForgetPW" class="text-decoration-none small">Forgot account?</a>
                         </div>
                     </div>
                 </div>
@@ -76,42 +80,10 @@ const handleLogin = async () => {
     </div>
 </template>
 
-<!-- <template>
-    <form class="row justify-content-center bg-secondary p-2 border rounded-2" @submit.prevent="handleLogin">
-        <div class="col-md-6">
-            <h1 class="h3 mb-3">Peddit Login</h1>
-            <hr>
-            <img
-                src="../assets/logo.svg"
-                class="img-fluid rounded-top"
-                alt=""
-            />
-            <p class="text-muted">Sign in via magic link using your email below</p>
-
-            <div class="mb-3">
-                <input 
-                    type="email" 
-                    class="form-control"
-                    placeholder="Enter your email here"
-                    v-model="email"
-                    required
-                />
-            </div>
-
-            <div class="d-grid">
-                <button 
-                    type="submit"
-                    class="btn btn-dark"
-                    :disabled="loading"
-                >
-                    {{ loading ? "Loading..." : "Send magic link" }}
-                </button>
-            </div>
-        </div>
-    </form>
-</template> -->
-
 <style scoped>
+    .container{
+        padding-bottom: 110px;
+    }
     .hror {
         background-color: white;
     }
