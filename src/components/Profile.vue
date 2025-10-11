@@ -99,7 +99,7 @@ const openUploadModal = () => {
             <span class="visually-hidden">Loading...</span>
         </div>
     </div>
-    <div v-else class="container">
+    <div v-else class="container mx-auto">
         <!-- Profile -->
         <div class="row justify-content-center pb-4">
             <div class="col-12 text-center position-relative">

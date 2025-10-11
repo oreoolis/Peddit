@@ -43,35 +43,33 @@ export function useUserData(userId) {
         
         if (!id || typeof id !== 'string') {
             return { success: false, error: 'No valid user ID' };
-            }
+        }
 
-            try {
-                loading.value = true;
-                error.value = null;
-                
-                const upsertData = {
-                    id: id,
+        try {
+            loading.value = true;
+            error.value = null;
+            
+            const { data, error: updateError } = await supabase
+                .from('profiles')
+                .update({
                     ...updates,
                     updated_at: new Date().toISOString()
-                }
+                })
+                .eq('id', id) 
+                .select()
+                .single();
 
-                const { data, error: upsertError } = await supabase
-                    .from('profiles')
-                    .upsert(upsertData)
-                    .select()
-                    .single();
-
-                if (upsertError) throw upsertError;
-                
-                profile.value = data;
-                return { success: true, data };
-            } catch (err) {
-                console.error('Error updating profile:', err);
-                error.value = err.message;
-                return { success: false, error: err };
-            } finally {
-                loading.value = false;
-            }
+            if (updateError) throw updateError;
+            
+            profile.value = data;
+            return { success: true, data };
+        } catch (err) {
+            console.error('Error updating profile:', err);
+            error.value = err.message;
+            return { success: false, error: err };
+        } finally {
+            loading.value = false;
+        }
     }
 
     // Watch for userId changes
