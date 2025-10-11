@@ -62,9 +62,9 @@ const router = createRouter({
       component: TheWelcome,
     },
         {
-      path: '/temp',
-      name: 'temp',
-      component: () => import('@/views/TempView.vue'),
+      path: '/viewpost',
+      name: 'viewpost',
+      component: () => import('@/views/ViewPost.vue'),
     },
     // {
     //   // route level code-splitting

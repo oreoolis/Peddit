@@ -25,7 +25,7 @@
                         </li>
                         <li class="nav-item">
                             <!-- INSERT IMAGE HERE -->
-                             <h4>Img here</h4>
+                            <h4>Img here</h4>
                             <RouterLink class="nav-link active primary" to="/profile">Profile</RouterLink>
                         </li>
 
@@ -67,11 +67,7 @@
                             </li>
                             <li class="nav-item">
                                 <RouterLink class="nav-link active primary" to="/temp">Temp</RouterLink>
-                            </li>                           
-                            </li>
-                            <li class="nav-item">
-                                <RouterLink class="nav-link active primary" to="/temp">Temp</RouterLink>
-                            </li>                           
+                            </li>                                                  
                         </ul>
                     </div>
                 </div>
