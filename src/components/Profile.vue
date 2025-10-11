@@ -9,6 +9,7 @@ import { useAuth } from '@/composables/useAuth';
 import { useUserData } from '@/composables/useUserData';
 import { useStorage } from '@/composables/useStorage';
 import { computed, onMounted, ref, watch } from 'vue';
+import ImageUploadModal from '@/components/ImageUploadModal.vue'
 
 
 const { user, loading: authLoading, signOut } = useAuth();
@@ -54,8 +55,26 @@ onMounted(async () => {
     }
 });
 
-
 const defaultAvatar = personImage;
+
+const handleImageUpload = async (file) => {
+    try {
+        const filePath = `avatars/${user.value.id}/${Date.now()}-${file.name}`;
+        const { data, error } = await uploadImage(file, filePath);
+        
+        if (error) throw error;
+
+        const updateResult = await updateProfile({
+            avatar_url: filePath
+        });
+
+        if (!updateResult.success) throw updateResult.error;
+
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('Failed to upload image');
+    }
+}
 
 const handleSignOut = async () => {
     try {
@@ -64,6 +83,11 @@ const handleSignOut = async () => {
     } catch (error) {
         console.error('Error signing out:', error)
     }
+}
+
+const showUploadModal = ref(false);
+const openUploadModal = () => {
+    showUploadModal.value = true
 }
 
 </script>
@@ -85,7 +109,10 @@ const handleSignOut = async () => {
                         :src="avatarUrl || defaultAvatar" 
                         alt="Profile Image"
                     >
-                    <button class="btn btn-light position-absolute bottom-0 end-0 settings-btn">
+                    <button 
+                        class="btn btn-light position-absolute bottom-0 end-0 settings-btn"
+                        @click="openUploadModal"    
+                    >
                         <img 
                             class="gear-icon"
                             src="../assets/gear.png" 
@@ -150,6 +177,13 @@ const handleSignOut = async () => {
             </div>
         </div>
     </div>
+    <!-- Image Upload Modal -->
+    <ImageUploadModal 
+        v-model:show="showUploadModal"
+        :current-avatar="profile?.avatar_url"
+        @uploaded="handleImageUpload"
+        @error="console.error"
+    />
 </template>
 
 <style scoped>

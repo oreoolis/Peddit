@@ -5,14 +5,14 @@ export function useStorage() {
         if (!path) return null;
         
         try {
-        const { data, error } = await supabase.storage
-            .from('avatars')
-            .download(path);
+            const { data, error } = await supabase.storage
+                .from('avatars')
+                .download(path);
 
-        if (error) throw error;
-        
-        // Create object URL from blob
-        return URL.createObjectURL(data);
+            if (error) throw error;
+            
+            // Create object URL from blob
+            return URL.createObjectURL(data);
         } catch (error) {
             console.error('Error downloading image:', error.message);
             return null;

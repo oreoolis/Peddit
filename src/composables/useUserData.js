@@ -38,28 +38,40 @@ export function useUserData(userId) {
     }
 
     const updateProfile = async (updates) => {
-        if (!userId) return;
+        const id = unref(userId);
+        console.log('Updating profile for user ID:', id);
+        
+        if (!id || typeof id !== 'string') {
+            return { success: false, error: 'No valid user ID' };
+            }
 
-        try {
-            loading.value = true;
-            error.value = null;
+            try {
+                loading.value = true;
+                error.value = null;
+                
+                const upsertData = {
+                    id: id,
+                    ...updates,
+                    updated_at: new Date().toISOString()
+                }
 
-            const { data, error: updateError } = await supabase
-                .from('profiles')
-                .update(updates)
-                .eq('id', userId)
-                .select()
-                .single();
+                const { data, error: upsertError } = await supabase
+                    .from('profiles')
+                    .upsert(upsertData)
+                    .select()
+                    .single();
 
-            if(updateError) throw updateError;
-            profile.value = data;
-            return { success: true, data };
-        } catch (err) {
-            error.value = err.message;
-            return { success: false, error: err };
-        } finally{
-            loading.value = false;
-        }
+                if (upsertError) throw upsertError;
+                
+                profile.value = data;
+                return { success: true, data };
+            } catch (err) {
+                console.error('Error updating profile:', err);
+                error.value = err.message;
+                return { success: false, error: err };
+            } finally {
+                loading.value = false;
+            }
     }
 
     // Watch for userId changes
