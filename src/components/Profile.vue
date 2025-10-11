@@ -3,31 +3,85 @@ import PetProfileCard from './PetProfileCard.vue';
 import goldenImage from '../assets/golden.jpg'
 import persianImage from '../assets/persian.jpg';
 import ragdollImage from '../assets/ragdoll.jpg';
-import { supabase } from '@/lib/supabaseClient';
+import personImage from '../assets/person.jpg';
 import router from '@/router';
+import { useAuth } from '@/composables/useAuth';
+import { useUserData } from '@/composables/useUserData';
+import { useStorage } from '@/composables/useStorage';
+import { computed, onMounted, ref, watch } from 'vue';
 
-const signOut = async () => {
-    try {
-        const {error} = await supabase.auth.signOut();
-        if (error) throw error;
 
-        // Redirect to login after loggin out
-        router.push('/login');
-    } catch (error) {
-        // Error logging out
+const { user, loading: authLoading, signOut } = useAuth();
+
+const userId = computed(() => user.value?.id);
+const { profile, loading: profileLoading, updateProfile } = useUserData(userId);
+const { downloadImage, uploadImage } = useStorage();
+
+const avatarUrl = ref('');
+const isUploading = ref(false);
+
+const isLoading = ref(true);
+watch([authLoading, profileLoading], ([authLoad, profileLoad]) => {
+    isLoading.value = authLoad || profileLoad;
+}, { immediate: true });
+
+watch(user, async (newUser) => {
+    if (newUser) {
+        console.log('User loaded:', newUser);
     }
-};
+});
+
+watch(profile, async (newProfile) => {
+    console.log('Profile updated:', newProfile);
+    if (newProfile?.avatar_url) {
+        try {
+            const url = await downloadImage(newProfile.avatar_url);
+            avatarUrl.value = url;
+        } catch (error) {
+            console.error('Error loading avatar:', error);
+            avatarUrl.value = personImage; // Fallback
+        }
+    } else {
+        avatarUrl.value = personImage; // Fallback
+    }
+}, { immediate: true });
+
+
+onMounted(async () => {
+    if (profile.value?.avatar_url) {
+        avatarUrl.value = await getImageUrl(profile.value.avatar_url);
+    }
+});
+
+
+const defaultAvatar = personImage;
+
+const handleSignOut = async () => {
+    try {
+        await signOut()
+        router.push('/login')
+    } catch (error) {
+        console.error('Error signing out:', error)
+    }
+}
+
 </script>
 
 <template>
     <div class="container">
+        <!-- Loading State -->
+        <div v-if="loading" class="text-center py-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
         <!-- Profile -->
         <div class="row justify-content-center pb-4">
             <div class="col-12 text-center position-relative">
                 <div class="position-relative d-inline-block mb-1">
                     <img 
                         class="rounded-circle profile-image"
-                        src="../assets/person.jpg" 
+                        :src="avatarUrl || defaultAvatar" 
                         alt="Profile Image"
                     >
                     <button class="btn btn-light position-absolute bottom-0 end-0 settings-btn">
@@ -56,7 +110,7 @@ const signOut = async () => {
         <div class="row mb-4">
             <div class="btn-group" role="group">
                 <button type="button" class="btn btn-secondary">Edit profile</button>
-                <button @click="signOut" type="button" class="btn btn-danger">Logout</button>
+                <button @click="handleSignOut" type="button" class="btn btn-danger">Logout</button>
             </div>
         </div>
         <!-- Pet display -->
