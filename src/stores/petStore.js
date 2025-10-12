@@ -150,6 +150,107 @@ export const usePetStore = defineStore('pets', () => {
         }
     }
 
+    const uploadPetImage = async (petId, file) => {
+        try {
+            loading.value = true;
+            error.value = null;
+
+            const filePath = `pets/${petId}/${Date.now()}-${file.name}`;
+            
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('pet-images')  // You'll need to create this bucket
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: true
+                });
+
+            if (uploadError) throw uploadError;
+
+            // Get public URL for the image
+            const { data: urlData } = await supabase.storage
+                .from('pet-images')
+                .getPublicUrl(filePath);
+
+            // Update pet with the new image URL
+            const { data: petData, error: updateError } = await supabase
+                .from('pets')
+                .update({
+                    photo_url: urlData.publicUrl,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', petId)
+                .select()
+                .single();
+
+            if (updateError) throw updateError;
+
+            // Update local state
+            const index = pets.value.findIndex(pet => pet.id === petId);
+            if (index !== -1) {
+                pets.value[index] = petData;
+            }
+
+            return { success: true, data: petData };
+
+        } catch (err) {
+            error.value = err.message;
+            console.error('Error uploading pet image:', err);
+            return { success: false, error: err.message };
+        } finally {
+            loading.value = false;
+        }
+    }
+
+    const deletePetImage = async (petId) => {
+        try {
+            const pet = pets.value.find(p => p.id === petId);
+            if (!pet?.photo_url) return { success: true };
+
+            // Extract file path from URL or store it separately
+            const filePath = extractFilePathFromUrl(pet.photo_url);
+            
+            if (filePath) {
+                const { error: deleteError } = await supabase.storage
+                    .from('pet-images')
+                    .remove([filePath]);
+
+                if (deleteError) throw deleteError;
+            }
+
+            // Remove photo_url from pet
+            const { data: petData, error: updateError } = await supabase
+                .from('pets')
+                .update({
+                    photo_url: null,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', petId)
+                .select()
+                .single();
+
+            if (updateError) throw updateError;
+
+            // Update local state
+            const index = pets.value.findIndex(pet => pet.id === petId);
+            if (index !== -1) {
+                pets.value[index] = petData;
+            }
+
+            return { success: true, data: petData };
+
+        } catch (err) {
+            error.value = err.message;
+            return { success: false, error: err.message };
+        }
+    }
+
+    // Helper function to extract file path from URL
+    const extractFilePathFromUrl = (url) => {
+        if (!url) return null;
+        const matches = url.match(/pet-images\/(.+)$/);
+        return matches ? matches[1] : null;
+    }
+
     const setCurrentPet = (pet) => {
         currentPet.value = pet;
     }
@@ -191,6 +292,8 @@ export const usePetStore = defineStore('pets', () => {
         clearCurrentPet,
         getPetById,
         clearError,
-        clearPets
+        clearPets,
+        uploadPetImage,
+        deletePetImage
     }
 })
