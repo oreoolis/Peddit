@@ -3,8 +3,9 @@ import { RouterView } from 'vue-router';
 import NavBar from './components/NavBar.vue';
 
 // Supabase stuff
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useAuthStore } from './stores/authStore';
+import { useUserStore } from './stores/userStore';
 
 // Database example use
 // const instruments = ref([]);
@@ -29,13 +30,30 @@ import { useAuthStore } from './stores/authStore';
 // })
 
 const authStore = useAuthStore();
+const userStore = useUserStore();
+
 onMounted(async () => {
   await authStore.initAuth();
+
+  if(authStore.userId) {
+    await userStore.fetchProfile(authStore.userId);
+  }
 });
 
 onUnmounted(() => {
   authStore.cleanup();
 });
+
+watch(
+  () => authStore.userId,
+  (userId) => {
+    if(userId){
+      userStore.fetchProfile(userId);
+    } else {
+      userStore.clearProfile();
+    }
+  }
+);
 // End Supabase stuff
 
 </script>
