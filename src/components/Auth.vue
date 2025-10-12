@@ -1,9 +1,11 @@
 <script setup>
-import { useAuth } from '@/composables/useAuth';
+import { useAuthStore } from '@/stores/authStore';
+import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 
-const { signInWithOAuth, signInWithEmail } = useAuth();
-
+const authStore = useAuthStore();
+const { loading } = storeToRefs(authStore);
+const { signInWithEmail, signInWithOAuth } = authStore;
 const email = ref('');
 const rememberMe = ref(false);
 
