@@ -1,36 +1,35 @@
 <script setup>
-import PetProfileCard from './PetProfileCard.vue';
+// Assets
 import goldenImage from '../assets/golden.jpg'
 import persianImage from '../assets/persian.jpg';
 import ragdollImage from '../assets/ragdoll.jpg';
 import personImage from '../assets/person.jpg';
-import router from '@/router';
-import { useAuth } from '@/composables/useAuth';
+// Components
+import PetProfileCard from './PetProfileCard.vue';
+import ImageUploadModal from '@/components/ImageUploadModal.vue'
+// Stores
+import { storeToRefs } from 'pinia';
 import { useAuthStore } from '@/stores/authStore';
-import { useUserData } from '@/composables/useUserData';
+import { useUserStore } from '@/stores/userStore';
+// Others
 import { useStorage } from '@/composables/useStorage';
 import { computed, onMounted, ref, watch } from 'vue';
-import ImageUploadModal from '@/components/ImageUploadModal.vue'
+import { useRouter } from 'vue-router';
 
-
-const { user, loading: authLoading, signOut } = useAuth();
-//const { userId }
-
-const userId = computed(() => user.value?.id);
-const { profile, loading: profileLoading, updateProfile } = useUserData(userId);
+// Global states
+const authStore = useAuthStore();
+const userStore = useUserStore();
 const { downloadImage, uploadImage } = useStorage();
+const router = useRouter();
 
-const avatarUrl = ref('');
-const isUploading = ref(false);
-const username = computed(() => profile.value?.username || user.value?.email?.split('@')[0] || 'user');
-const follows = computed(() => profile.value?.following_count || 0);
-const followers = computed(() => profile.value?.follower_count || 0);
-
-const isLoading = ref(true);
-
-watch([authLoading, profileLoading], ([authLoad, profileLoad]) => {
-    isLoading.value = authLoad || profileLoad;
-}, { immediate: true });
+// Component states
+const { user, loading: authLoading } = storeToRefs(authStore);
+const { profile, loading: profileLoading, username, follows, followers, avatarUrl } = storeToRefs(userStore);
+const defaultAvatar = personImage;
+const downloadedAvatarUrl = ref('');
+const showUploadModal = ref(false);
+const isLoading = computed(() => authLoading.value || profileLoading.value);
+const displayAvatar = computed(() => downloadedAvatarUrl.value || defaultAvatar);
 
 watch(user, async (newUser) => {
     if (newUser) {
@@ -38,55 +37,100 @@ watch(user, async (newUser) => {
     }
 });
 
-watch(profile, async (newProfile) => {
-    console.log('Profile updated:', newProfile);
-    if (newProfile?.avatar_url) {
-        try {
-            const url = await downloadImage(newProfile.avatar_url);
-            avatarUrl.value = url;
-        } catch (error) {
-            console.error('Error loading avatar:', error);
-            avatarUrl.value = personImage; // Fallback
+watch(
+    avatarUrl,
+    async (path) => {
+        if (path) {
+            try {
+                const url = await downloadImage(path);
+                downloadedAvatarUrl.value = url;
+            } catch (error) {
+                console.error('Error loading avatar:', error);
+                downloadedAvatarUrl.value = '';
+            }
+        } else {
+            downloadedAvatarUrl.value = '';
         }
-    } else {
-        avatarUrl.value = personImage; // Fallback
-    }
-}, { immediate: true });
+    },
+    { immediate: true }
+);
 
-const defaultAvatar = personImage;
+// watch(profile, async (newProfile) => {
+//     console.log('Profile updated:', newProfile);
+//     if (newProfile?.avatar_url) {
+//         try {
+//             const url = await downloadImage(newProfile.avatar_url);
+//             avatarUrl.value = url;
+//         } catch (error) {
+//             console.error('Error loading avatar:', error);
+//             avatarUrl.value = personImage; // Fallback
+//         }
+//     } else {
+//         avatarUrl.value = personImage; // Fallback
+//     }
+// }, { immediate: true });
+
+// const handleImageUpload = async (file) => {
+//     try {
+//         const filePath = `avatars/${user.value.id}/${Date.now()}-${file.name}`;
+//         const { data, error } = await uploadImage(file, filePath);
+        
+//         if (error) throw error;
+
+//         const updateResult = await updateProfile({
+//             avatar_url: filePath
+//         });
+
+//         if (!updateResult.success) throw updateResult.error;
+
+//     } catch (error) {
+//         console.error('Error uploading image:', error);
+//         alert('Failed to upload image');
+//     }
+// }
 
 const handleImageUpload = async (file) => {
+    if (!user.value?.id) {
+        alert('User not authenticated');
+        return;
+    }
+
     try {
         const filePath = `avatars/${user.value.id}/${Date.now()}-${file.name}`;
-        const { data, error } = await uploadImage(file, filePath);
+        const { error: uploadError } = await uploadImage(file, filePath);
         
-        if (error) throw error;
+        if (uploadError) throw uploadError;
 
-        const updateResult = await updateProfile({
+        // Update profile with new avatar path
+        const updateResult = await userStore.updateProfile(user.value.id, {
             avatar_url: filePath
         });
 
-        if (!updateResult.success) throw updateResult.error;
+        if (!updateResult.success) {
+            throw new Error(updateResult.error);
+        }
 
+        console.log('Avatar updated successfully');
     } catch (error) {
         console.error('Error uploading image:', error);
         alert('Failed to upload image');
     }
-}
+};
 
 const handleSignOut = async () => {
     try {
-        await signOut()
-        router.push('/login')
+        const result = await authStore.signOut();
+        if (result.success) {
+            router.push('/login');
+        }
     } catch (error) {
-        console.error('Error signing out:', error)
+        console.error('Error signing out:', error);
     }
-}
+};
 
-const showUploadModal = ref(false);
 const openUploadModal = () => {
-    showUploadModal.value = true
-}
+    showUploadModal.value = true;
+};
 
 </script>
 
@@ -104,7 +148,7 @@ const openUploadModal = () => {
                 <div class="position-relative d-inline-block mb-1">
                     <img 
                         class="rounded-circle profile-image"
-                        :src="avatarUrl || defaultAvatar" 
+                        :src="displayAvatar" 
                         alt="Profile Image"
                     >
                     <button 

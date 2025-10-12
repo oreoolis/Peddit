@@ -11,10 +11,10 @@ export const useUserStore = defineStore('user', () => {
 
     // Getters
     const hasProfile = computed(() => !!profile.value);
-    const displayName = computed(() => 
-        profile.value?.display_name || profile.value?.email || 'Anonymous'
-    );
     const avatarUrl = computed(() => profile.value?.avatar_url || null);
+    const username = computed(() => profile.value?.display_name || 'user');
+    const follows = computed(() => profile.value?.following_count || 0);
+    const followers = computed(() => profile.value?.follower_count || 0);
 
     // Primary Action: Fetch any user's profile
     const fetchProfile = async (userId) => {
@@ -103,8 +103,10 @@ export const useUserStore = defineStore('user', () => {
 
         // Getters
         hasProfile,
-        displayName,
+        username,
         avatarUrl,
+        follows,
+        followers,
 
         // Actions 
         fetchProfile,
