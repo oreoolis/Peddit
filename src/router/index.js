@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import TheWelcome from '@/components/TheWelcome.vue';
-import { supabase } from '@/lib/supabaseClient';
 
 // meta tags requiresAuth for route protection
 // requiresAuth: true(private), false(public)
@@ -86,16 +85,22 @@ const router = createRouter({
   ],
 })
 
+import { useAuthStore } from '@/stores/authStore';
+
 // Route protection
 router.beforeEach(async (to, from, next) => {
-	const { data: { session } } = await supabase.auth.getSession();
+	const authStore = useAuthStore();
+
+  if(!authStore.initialized){
+    await authStore.initAuth();
+  }
 
 	// Redirect to login if destination page requires auth and no session is found
-	if(to.meta.requiresAuth && !session){
+	if(to.meta.requiresAuth && !authStore.isAuthenticated){
 		next('/login');
 	}
 	// Redirect to profile if trying to access auth pages when already authed
-	else if (to.meta.hideWhenAuth && session){
+	else if (to.meta.hideWhenAuth && authStore.isAuthenticated){
 		next('/profile');
 	}
 	else{

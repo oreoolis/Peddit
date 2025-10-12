@@ -3,10 +3,8 @@ import { RouterView } from 'vue-router';
 import NavBar from './components/NavBar.vue';
 
 // Supabase stuff
-import { ref, onMounted } from 'vue';
-import { supabase } from './lib/supabaseClient';
-import Auth from './components/Auth.vue';
-import Account from './components/Account.vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useAuthStore } from './stores/authStore';
 
 // Database example use
 // const instruments = ref([]);
@@ -19,16 +17,25 @@ import Account from './components/Account.vue';
 // })
 
 // Auth example
-const session = ref();
-onMounted(() => {
-  supabase.auth.getSession().then(({ data }) => {
-    session.value = data.session;
-  });
+// const session = ref();
+// onMounted(() => {
+//   supabase.auth.getSession().then(({ data }) => {
+//     session.value = data.session;
+//   });
 
-  supabase.auth.onAuthStateChange((_, _session) => {
-    session.value = _session;
-  });
-})
+//   supabase.auth.onAuthStateChange((_, _session) => {
+//     session.value = _session;
+//   });
+// })
+
+const authStore = useAuthStore();
+onMounted(async () => {
+  await authStore.initAuth();
+});
+
+onUnmounted(() => {
+  authStore.cleanup();
+});
 // End Supabase stuff
 
 </script>

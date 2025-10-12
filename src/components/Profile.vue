@@ -6,6 +6,7 @@ import ragdollImage from '../assets/ragdoll.jpg';
 import personImage from '../assets/person.jpg';
 import router from '@/router';
 import { useAuth } from '@/composables/useAuth';
+import { useAuthStore } from '@/stores/authStore';
 import { useUserData } from '@/composables/useUserData';
 import { useStorage } from '@/composables/useStorage';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -13,6 +14,7 @@ import ImageUploadModal from '@/components/ImageUploadModal.vue'
 
 
 const { user, loading: authLoading, signOut } = useAuth();
+//const { userId }
 
 const userId = computed(() => user.value?.id);
 const { profile, loading: profileLoading, updateProfile } = useUserData(userId);
