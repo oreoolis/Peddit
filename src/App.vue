@@ -60,15 +60,16 @@ watch(
 
 <template>
   <!-- <header> -->
-    <!-- <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" /> -->
+  <!-- <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" /> -->
 
-    <div id="app">
-      <NavBar />
-      <div class="router-view">
-        <RouterView />
-      </div>
+  <!-- LG breakpoint, Desktop -->
+  <div id="app" class="min-vh-100 d-flex flex-column bg-white">
+    <NavBar />
+    <div class="router-view flex-grow-1 pb-4 pb-sm-5">
+      <RouterView />
     </div>
-    <!-- <main>
+  </div>
+  <!-- <main>
     <div class="container pt-2 pb-4">
       <Account v-if="session" :session="session" />
       <Auth v-else />

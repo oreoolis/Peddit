@@ -46,9 +46,10 @@ watch(
 
 <template>
     <div >
-        <nav class="navbar fixed-bottom bg-white headingFont" >
+        <!-- Bottom navbar: xs–md -->
+        <nav class="navbar fixed-bottom bg-white headingFont d-block d-lg-none shadow" >
             <div class="container-fluid">
-                <ul class="navbar-nav w-100 d-flex justify-content-around flex-row text-center">
+                <ul class="navbar-nav w-100 d-flex justify-content-around flex-row text-center mb-0">
                     <li class="nav-item">
                         <img src="../assets/Sprite/HomeIcons/Paw.png" alt="">
                         <RouterLink class="nav-link active black" to="/pet">Pet</RouterLink>
@@ -77,41 +78,41 @@ watch(
                 </ul>
             </div>
         </nav>
-        
-        <nav class="navbar navbar-expand-sm bg-white headingFont">
+        <!-- Top navbar: lg+ -->
+        <nav class="navbar navbar-expand-lg bg-primary headingFont d-none d-lg-block shadow">
             <div class="container-fluid" >
-                <a class="navbar-brand primary brandFont" href="/home">Peddit</a>
+                <a class="navbar-brand white brandFont" href="/home">Peddit</a>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 mx-3">
                         <li class="nav-item ">
-                            <RouterLink class="nav-link active primary " to="/home">Home</RouterLink>
+                            <RouterLink class="nav-link active white bodyFont " to="/home">Home</RouterLink>
                         </li>
                         <li class="nav-item ">
-                            <RouterLink class="nav-link active primary" to="/about">About</RouterLink>
+                            <RouterLink class="nav-link active white bodyFont" to="/about">About</RouterLink>
                         </li>
                         <li class="nav-item">
-                            <RouterLink class="nav-link active primary" to="/login">Login</RouterLink>
+                            <RouterLink class="nav-link active white bodyFont" to="/login">Login</RouterLink>
                         </li>
                         <li class="nav-item">
-                            <RouterLink class="nav-link active primary" to="/health">Health</RouterLink>
+                            <RouterLink class="nav-link active white bodyFont" to="/health">Health</RouterLink>
                         </li>
                         <li class="nav-item">
-                            <RouterLink class="nav-link active primary" to="/profile">Profile</RouterLink>
+                            <RouterLink class="nav-link active white bodyFont" to="/profile">Profile</RouterLink>
                         </li>
                         <li class="nav-item">
-                            <RouterLink class="nav-link active primary" to="/meal">Meal</RouterLink>
+                            <RouterLink class="nav-link active white bodyFont" to="/meal">Meal</RouterLink>
                         </li>
                         <li class="nav-item">
-                            <RouterLink class="nav-link active primary" to="/pet">Pet</RouterLink>
+                            <RouterLink class="nav-link active white bodyFont" to="/pet">Pet</RouterLink>
                         </li>
                         <li class="nav-item">
-                            <RouterLink class="nav-link active primary" to="/social">Social</RouterLink>
+                            <RouterLink class="nav-link active white bodyFont" to="/social">Social</RouterLink>
                         </li>
                         <li class="nav-item">
-                            <RouterLink class="nav-link active primary" to="/map">Map</RouterLink>
+                            <RouterLink class="nav-link active white bodyFont" to="/map">Map</RouterLink>
                         </li>
                         <li class="nav-item">
-                            <RouterLink class="nav-link active primary" to="/temp">Temp</RouterLink>
+                            <RouterLink class="nav-link active white bodyFont" to="/temp">Temp</RouterLink>
                         </li>                                                  
                     </ul>
                 </div>

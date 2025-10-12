@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
-import TheWelcome from '@/components/TheWelcome.vue';
 
 // meta tags requiresAuth for route protection
 // requiresAuth: true(private), false(public)
@@ -71,9 +70,9 @@ const router = createRouter({
 	  meta: { requiresAuth: false } 
     },
     {
-      path: '/test',
-      name: 'welcomeTest',
-      component: TheWelcome,
+      path: '/create-pet',
+      name: 'create-pet',
+      component: () => import('@/views/CreatePet.vue'),
 	  meta: { requiresAuth: false } 
     },
         {
@@ -81,6 +80,14 @@ const router = createRouter({
       name: 'viewpost',
       component: () => import('@/views/ViewPost.vue'),
     },
+    {
+      path: '/add-meal-plan',
+      name: 'add-meal-plan',
+      component: () => import('@/views/AddMealPlan.vue'),
+    }
+    
+
+
     // {
     //   // route level code-splitting
     //   // this generates a separate chunk (About.[hash].js) for this route
