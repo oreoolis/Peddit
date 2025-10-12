@@ -3,6 +3,7 @@ import { usePetStore } from '@/stores/petStore';
 import { storeToRefs } from 'pinia';
 import { onMounted, ref, watch } from 'vue';
 import PetCreateForm from '@/components/PetCreateFormTest.vue';
+import SocialTest from '@/components/SocialTest.vue';
 import { useAuthStore } from '@/stores/authStore';
 
 const petStore = usePetStore();
@@ -43,6 +44,7 @@ watch(() => authStore.userId, (newUserId) => {
 <template>
     <div class="d-flex flex-column justify-content-center pb-5">
         <h2>Test stuff here</h2>
+		<SocialTest />
 		<!-- Pets Section -->
 		<div class="pets-section">
 			<div class="section-header">
