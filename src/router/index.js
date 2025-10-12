@@ -76,6 +76,11 @@ const router = createRouter({
       component: TheWelcome,
 	  meta: { requiresAuth: false } 
     },
+        {
+      path: '/viewpost',
+      name: 'viewpost',
+      component: () => import('@/views/ViewPost.vue'),
+    },
     // {
     //   // route level code-splitting
     //   // this generates a separate chunk (About.[hash].js) for this route
