@@ -21,7 +21,7 @@ export function useStorage() {
     }
 
     // For getting image from public buckets
-    const getPublicUrl = (bucket, path) => {
+    const getPublicImage = (bucket, path) => {
         if (!path) return null
         const { data } = supabase.storage
         .from(bucket)
@@ -58,7 +58,7 @@ export function useStorage() {
 
     return {
         downloadImage,
-        getPublicUrl,
+        getPublicImage,
         uploadImage,
         deleteImage
     }

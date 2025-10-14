@@ -34,13 +34,6 @@ const handleImageSelect = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Validate file
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-        alert('Please select a valid image file');
-        return;
-    }
-
     imageFile.value = file;
     imagePreview.value = URL.createObjectURL(file);
 }
@@ -66,7 +59,7 @@ const handleSubmit = async () => {
 
         // If image was selected, upload it
         if (imageFile.value) {
-            const imageResult = await petStore.uploadPetImage(result.data.id, imageFile.value);
+            const imageResult = await petStore.uploadPetImage(authStore.userId, result.data.id, imageFile.value);
             if (!imageResult.success) {
                 console.error('Failed to upload image:', imageResult.error);
             }
