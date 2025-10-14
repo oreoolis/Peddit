@@ -4,6 +4,6 @@ import Auth from '../components/Auth.vue';
 
 <template>
     <main>
-        <Auth />
+        <Auth class="mx-auto"/>
     </main>
 </template>

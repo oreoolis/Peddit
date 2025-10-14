@@ -1,22 +1,100 @@
 <script setup>
-import PetProfileCard from './PetProfileCard.vue';
+// Assets
 import goldenImage from '../assets/golden.jpg'
 import persianImage from '../assets/persian.jpg';
 import ragdollImage from '../assets/ragdoll.jpg';
+import personImage from '../assets/person.jpg';
+// Components
+import PetProfileCard from './PetProfileCard.vue';
+import ImageUploadModal from '@/components/ImageUploadModal.vue'
+// Stores
+import { storeToRefs } from 'pinia';
+import { useAuthStore } from '@/stores/authStore';
+import { useUserStore } from '@/stores/userStore';
+// Others
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+
+// Global states
+const authStore = useAuthStore();
+const userStore = useUserStore();
+const router = useRouter();
+
+// Component states
+const { user, loading: authLoading } = storeToRefs(authStore);
+const { profile, loading: profileLoading, username, follows, followers, avatarUrl } = storeToRefs(userStore);
+const defaultAvatar = personImage;
+const downloadedAvatarUrl = ref('');
+const showUploadModal = ref(false);
+const isLoading = computed(() => authLoading.value || profileLoading.value);
+const displayAvatar = computed(() => downloadedAvatarUrl.value || defaultAvatar);
+
+watch(user, async (newUser) => {
+    if (newUser) {
+        console.log('User loaded:', newUser);
+    }
+});
+
+watch(
+    avatarUrl,
+    async (path) => {
+        if (path) {
+            try {
+                const url = await userStore.downloadProfileImage();
+                downloadedAvatarUrl.value = url;
+            } catch (error) {
+                console.error('Error loading avatar:', error);
+                downloadedAvatarUrl.value = '';
+            }
+            } else {
+                downloadedAvatarUrl.value = '';
+        }
+    },
+    { immediate: true }
+);
+
+const handleImageUpload = async (file) => {
+    const result = await userStore.uploadProfileImage(file);
+};
+
+const handleSignOut = async () => {
+    try {
+        const result = await authStore.signOut();
+        if (result.success) {
+            router.push('/login');
+        }
+    } catch (error) {
+        console.error('Error signing out:', error);
+    }
+};
+
+const openUploadModal = () => {
+    showUploadModal.value = true;
+};
+
 </script>
 
 <template>
-    <div class="container">
+    <!-- Loading State -->
+    <div v-if="isLoading" class="text-center py-5">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    <div v-else class="container mx-auto">
         <!-- Profile -->
         <div class="row justify-content-center pb-4">
             <div class="col-12 text-center position-relative">
                 <div class="position-relative d-inline-block mb-1">
                     <img 
                         class="rounded-circle profile-image"
-                        src="../assets/person.jpg" 
+                        :src="displayAvatar" 
                         alt="Profile Image"
                     >
-                    <button class="btn btn-light position-absolute bottom-0 end-0 settings-btn">
+                    <button 
+                        class="btn btn-light position-absolute bottom-0 end-0 settings-btn"
+                        @click="openUploadModal"    
+                    >
                         <img 
                             class="gear-icon"
                             src="../assets/gear.png" 
@@ -24,17 +102,17 @@ import ragdollImage from '../assets/ragdoll.jpg';
                         >
                     </button>
                 </div>
-                <p class="">@bernardcks</p>
+                <p class="">@{{ username }}</p>
             </div>
         </div>
         <!-- Follow Counts -->
         <div class="row justify-content-center mb-4">
             <div class="col-3 text-center">
-                <h4>56.5k</h4>
+                <h4>{{ follows }}</h4>
                 <h4>Following</h4>
             </div>
             <div class="col-3 text-center">
-                <h4>10.5k</h4>
+                <h4>{{ followers }}</h4>
                 <h4>Followers</h4>
             </div>
         </div>
@@ -42,7 +120,7 @@ import ragdollImage from '../assets/ragdoll.jpg';
         <div class="row mb-4">
             <div class="btn-group" role="group">
                 <button type="button" class="btn btn-secondary">Edit profile</button>
-                <button type="button" class="btn btn-danger">Logout</button>
+                <button @click="handleSignOut" type="button" class="btn btn-danger">Logout</button>
             </div>
         </div>
         <!-- Pet display -->
@@ -81,6 +159,13 @@ import ragdollImage from '../assets/ragdoll.jpg';
             </div>
         </div>
     </div>
+    <!-- Image Upload Modal -->
+    <ImageUploadModal 
+        v-model:show="showUploadModal"
+        :current-avatar="profile?.avatar_url"
+        @uploaded="handleImageUpload"
+        @error="console.error"
+    />
 </template>
 
 <style scoped>
