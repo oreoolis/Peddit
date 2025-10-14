@@ -32,20 +32,6 @@ const handleFileSelect = (event) => {
     const file = event.target.files[0]
     if (!file) return;
 
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-        error.value = 'Please select a valid image file (JPG, PNG, GIF, WebP)';
-        return;
-    }
-
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-        error.value = 'File size must be less than 5MB';
-        return;
-    }
-
     error.value = null;
     selectedFile.value = file;
 

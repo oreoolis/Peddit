@@ -12,14 +12,12 @@ import { storeToRefs } from 'pinia';
 import { useAuthStore } from '@/stores/authStore';
 import { useUserStore } from '@/stores/userStore';
 // Others
-import { useStorage } from '@/composables/useStorage';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 // Global states
 const authStore = useAuthStore();
 const userStore = useUserStore();
-const { downloadImage, uploadImage } = useStorage();
 const router = useRouter();
 
 // Component states
@@ -42,79 +40,21 @@ watch(
     async (path) => {
         if (path) {
             try {
-                const url = await downloadImage(path);
+                const url = await userStore.downloadProfileImage();
                 downloadedAvatarUrl.value = url;
             } catch (error) {
                 console.error('Error loading avatar:', error);
                 downloadedAvatarUrl.value = '';
             }
-        } else {
-            downloadedAvatarUrl.value = '';
+            } else {
+                downloadedAvatarUrl.value = '';
         }
     },
     { immediate: true }
 );
 
-// watch(profile, async (newProfile) => {
-//     console.log('Profile updated:', newProfile);
-//     if (newProfile?.avatar_url) {
-//         try {
-//             const url = await downloadImage(newProfile.avatar_url);
-//             avatarUrl.value = url;
-//         } catch (error) {
-//             console.error('Error loading avatar:', error);
-//             avatarUrl.value = personImage; // Fallback
-//         }
-//     } else {
-//         avatarUrl.value = personImage; // Fallback
-//     }
-// }, { immediate: true });
-
-// const handleImageUpload = async (file) => {
-//     try {
-//         const filePath = `avatars/${user.value.id}/${Date.now()}-${file.name}`;
-//         const { data, error } = await uploadImage(file, filePath);
-        
-//         if (error) throw error;
-
-//         const updateResult = await updateProfile({
-//             avatar_url: filePath
-//         });
-
-//         if (!updateResult.success) throw updateResult.error;
-
-//     } catch (error) {
-//         console.error('Error uploading image:', error);
-//         alert('Failed to upload image');
-//     }
-// }
-
 const handleImageUpload = async (file) => {
-    if (!user.value?.id) {
-        alert('User not authenticated');
-        return;
-    }
-
-    try {
-        const filePath = `avatars/${user.value.id}/${Date.now()}-${file.name}`;
-        const { error: uploadError } = await uploadImage(file, filePath);
-        
-        if (uploadError) throw uploadError;
-
-        // Update profile with new avatar path
-        const updateResult = await userStore.updateProfile(user.value.id, {
-            avatar_url: filePath
-        });
-
-        if (!updateResult.success) {
-            throw new Error(updateResult.error);
-        }
-
-        console.log('Avatar updated successfully');
-    } catch (error) {
-        console.error('Error uploading image:', error);
-        alert('Failed to upload image');
-    }
+    const result = await userStore.uploadProfileImage(file);
 };
 
 const handleSignOut = async () => {

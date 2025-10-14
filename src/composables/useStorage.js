@@ -1,12 +1,13 @@
 import { supabase } from "@/lib/supabaseClient"
 
 export function useStorage() {
-    const downloadImage = async (path) => {
-        if (!path) return null;
+    // For getting imagae from private buckets
+    const downloadImage = async (bucket, path) => {
+        if (!path || !bucket) return null;
         
         try {
             const { data, error } = await supabase.storage
-                .from('avatars')
+                .from(bucket)
                 .download(path);
 
             if (error) throw error;
@@ -14,15 +15,24 @@ export function useStorage() {
             // Create object URL from blob
             return URL.createObjectURL(data);
         } catch (error) {
-            console.error('Error downloading image:', error.message);
+            console.error(`Error downloading image from ${bucket}:`, error.message);
             return null;
         }
     }
 
-    const uploadImage = async (file, path) => {
+    // For getting image from public buckets
+    const getPublicUrl = (bucket, path) => {
+        if (!path) return null
+        const { data } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(path)
+        return data.publicUrl
+    }
+
+    const uploadImage = async (bucket, file, path) => {
         try {
             const { data, error } = await supabase.storage
-                .from('avatars')
+                .from(bucket)
                 .upload(path, file, {
                     cacheControl: '3600',
                     upsert: true
@@ -34,10 +44,10 @@ export function useStorage() {
         }
     }
 
-    const deleteImage = async (path) => {
+    const deleteImage = async (bucket, path) => {
         try {
             const { data, error } = await supabase.storage
-                .from('avatars')
+                .from(bucket)
                 .remove([path]);
 
         return { data, error }
@@ -48,6 +58,7 @@ export function useStorage() {
 
     return {
         downloadImage,
+        getPublicUrl,
         uploadImage,
         deleteImage
     }

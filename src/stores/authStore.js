@@ -91,6 +91,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
+    // WIP: DO NOT USE
     const signInWithOAuth = async (provider = 'google', options = {}) => {
         try {
             loading.value = true;
@@ -143,12 +144,11 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Clear user-specific data from other stores
     const clearUserData = () => {
-        // Example: Clear pet store when user signs out
         // const petStore = usePetStore();
         // petStore.resetStore();
     };
 
-    // Cleanup subscription when store is disposed (rare, but good practice)
+    // Cleanup subscription when store is disposed
     const cleanup = () => {
         if (authSubscription) {
             authSubscription.unsubscribe();

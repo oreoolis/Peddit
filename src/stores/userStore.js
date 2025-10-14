@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
+import { validateImageFile } from '@/utils/imageFileValidation';
+import { useStorage } from '@/composables/useStorage';
+
+const { uploadImage, downloadImage, deleteImage } = useStorage();
 
 export const useUserStore = defineStore('user', () => {
     // State
@@ -89,6 +93,72 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
+    // Image Action: Download
+    const downloadProfileImage = async () => {
+        if (!profile.value?.avatar_url) return null;
+        
+        try {
+            return await downloadImage('avatars', profile.value.avatar_url);
+        } 
+        catch (error) {
+            console.error('Error loading avatar:', error);
+            return null;
+        }
+    }
+
+    // Image Action: Upload
+    const uploadProfileImage = async (file) => {
+        try {
+            if (!profile.value) {
+                throw new Error('No user profile found');
+            }
+
+            validateImageFile(file);
+
+            // Delete old profile image if exists
+            if (profile.value.avatar_url) {
+                await deleteImage('avatars', profile.value.avatar_url);
+            }
+
+            // Upload new profile image
+            const storagePath = `${profile.value.id}/${Date.now()}-${file.name}`;
+            const { error: uploadError } = await uploadImage('avatars', file, storagePath);
+            if (uploadError) throw uploadError;
+
+            // Update profile image url
+            const result = await updateProfile(profile.value.id, {
+                avatar_url: storagePath
+            });
+
+            return result;
+
+        } catch (err) {
+            error.value = err.message;
+            return { success: false, error: err.message };
+        }
+    }
+
+    // Image Action: Delete
+    const deleteProfileImage = async () => {
+        try {
+            if (!profile.value?.avatar_url) return { success: true };
+
+            // Delete from storage
+            const { error: deleteError } = await deleteImage('avatars', profile.value.avatar_url);
+            if (deleteError) throw deleteError;
+
+            const result = await updateProfile(profile.value.id, {
+                avatar_url: null
+            });
+
+            return result;
+
+        } catch (err) {
+            error.value = err.message;
+            return { success: false, error: err.message };
+        }
+    }
+
     const clearProfile = () => {
         profile.value = null;
         lastFetchedUserId.value = null;
@@ -112,5 +182,10 @@ export const useUserStore = defineStore('user', () => {
         fetchProfile,
         updateProfile,
         clearProfile,
+
+        // Image Actions
+        downloadProfileImage,
+        uploadProfileImage,
+        deleteProfileImage
     };
 });
