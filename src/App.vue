@@ -2,6 +2,11 @@
 import { RouterView } from 'vue-router';
 import NavBar from './components/NavBar.vue';
 
+// Chatbot widget import + flag
+import ChatbotWidget from '@/components/ChatbotWidget.vue';
+const SHOW_CHATBOT = import.meta.env.VITE_CHATBOT_ENABLED === 'true' // STRICT: only show when explicitly 'true'
+
+
 // Supabase stuff
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useAuthStore } from './stores/authStore';
@@ -68,15 +73,21 @@ watch(
     <div class="router-view flex-grow-1 pb-4 pb-sm-5">
       <RouterView />
     </div>
+
+    <!-- NEW: floating chat bubble/panel -->
+    <ChatbotWidget v-if="SHOW_CHATBOT" />
   </div>
-  <!-- <main>
-    <div class="container pt-2 pb-4">
-      <Account v-if="session" :session="session" />
-      <Auth v-else />
-    </div>
-    <TheWelcome />
-    <ul>
-      <li v-for="instrument in instruments" :key="instrument.id">{{ instrument.name }}</li>
-    </ul>
-  </main> -->
+
+  <!-- 
+    <main>
+      <div class="container pt-2 pb-4">
+        <Account v-if="session" :session="session" />
+        <Auth v-else />
+      </div>
+      <TheWelcome />
+      <ul>
+        <li v-for="instrument in instruments" :key="instrument.id">{{ instrument.name }}</li>
+      </ul>
+    </main> 
+    -->
 </template>
