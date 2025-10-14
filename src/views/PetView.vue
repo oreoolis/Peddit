@@ -1,4 +1,7 @@
-<script setup lang="ts">
+<script setup>
+import ItemsChecklist from '@/components/PetViewComponents/ItemsChecklist.vue';
+import MealPlanCards from '@/components/PetViewComponents/MealPlanCards.vue';
+import PetCards from '@/components/PetViewComponents/PetCards.vue';
 import router from '@/router';
 import { RouterLink } from 'vue-router';
 
@@ -10,101 +13,22 @@ import { RouterLink } from 'vue-router';
 <template>
     <div class="pet-view container-fluid">
         <div class="pet-card-container">
-            <h1 class="text-center px-5 py-5 headingFont ">My Pets</h1>
+            <h1 class="text-center px-5 py-5 headingFont fw-semibold">My Pets</h1>
             <!-- To do v-if if there is no pets rendered from DB, else show current screen -->
             <div class="row justify-content-center g-3">
                 <div class="col-lg-5 d-flex justify-content-center">
-                    <div class="card overflow-hidden shadow p-3 mb-5 bg-body-tertiary rounded-4"
-                        style="width: 40rem; height: 40rem; ">
-                        <div class="card-header text-center">
-                            <div class="row d-flex justify-content-between">
-                                <div class="col-lg-3">
-                                    <h3 class="bodyFont">Cat 1</h3>
-                                </div>
-                                <div class="col-lg-3">
-                                    <h3 class="bodyFont">Male</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <img src="../assets/ragdoll.jpg" style="height: 60%; object-fit:cover;"
-                            class="card-img-top rounded-5 px-3 py-3" alt="...">
-                        <div class="card-body">
-                            <div class="card-text">
-                                <section class="pet-info headingFont">
-                                    <h5 class="fw-bold">Status: Good</h5>
-                                    <h5 class="mb-0 d-inline-block fw-bold">Score:</h5>
-                                    <div class="d-inline-block">
-                                        <div class="progress ms-2" role="progressbar" aria-label="Success example"
-                                            aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"
-                                            style="width: 150px;">
-                                            <div class="progress-bar bg-success" style="width: 75%"></div>
-                                        </div>
-                                    </div>
-                                    <h5 class="fw-bold">Meal:
-                                        <p class="meal-tooltip bodyFont">Salmon</p>
-                                    </h5>
-                                </section>
-                            </div>
-                            <!-- size: none -->
-                            <div class=" containertext-end px-3 py-3">
-                                <button type="button" class="btn btn-primary btn-lg w-100 bg-primary bodyFont">
-                                    Summary
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <PetCards />
                 </div>
                 <div class="col-lg-5 d-flex justify-content-center">
-                    <div class="card overflow-hidden shadow p-3 mb-5 bg-body-tertiary rounded-4"
-                        style="width: 40rem; height: 40rem; ">
-                        <div class="card-header text-center">
-                            <div class="row d-flex justify-content-between">
-                                <div class="col-lg-3">
-                                    <h3 class="bodyFont">Cat 1</h3>
-                                </div>
-                                <div class="col-lg-3">
-                                    <h3 class="bodyFont">Male</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <img src="../assets/ragdoll.jpg" style="height: 60%; object-fit:cover;"
-                            class="card-img-top rounded-5 px-3 py-3" alt="...">
-                        <div class="card-body">
-                            <div class="card-text">
-                                <section class="pet-info headingFont">
-                                    <h5 class="fw-bold">Status: Good</h5>
-                                    <h5 class="mb-0 d-inline-block fw-bold">Score:</h5>
-                                    <div class="d-inline-block">
-                                        <div class="progress ms-2" role="progressbar" aria-label="Success example"
-                                            aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"
-                                            style="width: 150px;">
-                                            <div class="progress-bar bg-success" style="width: 75%"></div>
-                                        </div>
-                                    </div>
-                                    <h5 class="fw-bold">Meal:
-                                        <p class="meal-tooltip bodyFont">Salmon</p>
-                                    </h5>
-                                </section>
-                            </div>
-                            <!-- size: none -->
-                            <div class="container-fluid text-end px-3 py-3">
-                                <!-- size: btn-lg -->
-                                <button type="button" class="btn btn-primary btn-lg w-100 bg-primary bodyFont">
-                                    Summary
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <PetCards />
                 </div>
             </div>
         </div>
-        <div class="container px-3 py-3">
-            <div class="row justify-content-center g-3">
-                <div class="col-lg-5 d-flex justify-content-center"></div>
-                <div class="col-lg-5 d-flex justify-content-center">
+        <div class="container-fluid px-5 py-2">
+            <div class="row g-3">
+                <div class="col-lg-12 col-sm-12 d-flex justify-content-lg-end justify-content-sm-center">
                     <router-link to="/create-pet" custom v-slot="{ href, navigate }">
-                        <button class="btn bg-primary bodyFont text-light w-25 rounded-5 shadow" :href="href"
-                            role="link" @click="navigate">
+                        <button class="button-add-pet" :href = "href" role = "link" @click = "navigate">
                             + Add Pet
                         </button>
                     </router-link>
@@ -113,85 +37,40 @@ import { RouterLink } from 'vue-router';
         </div>
 
         <div class="grocery-checklist">
-            <h1 class="text-center px-5 py-5 headingFont">Weekly Grocery Checklist</h1>
+            <h1 class="text-center px-5 py-5 headingFont fw-semibold">Weekly Grocery Checklist</h1>
             <div class="container-fluid bg-light bodyFont fw-bold rounded-3 shadow p-3 mb-5">
-                <!-- Max number of cols per row: 3 (col-lg-4) -->
+                <!--Use v-for to loop through list of grocery items, Max number of cols per row: 3 (col-lg-4) -->
                 <div class="row px-3 py-3 justify-evenly ">
                     <div class="col-lg-4">
-                        <div class="custom-checkbox-container">
-                            <input class="custom-checkbox-input" id="modernCheckbox1" type="checkbox" />
-                            <label class="custom-checkbox-label" for="modernCheckbox1">
-                                <span class="custom-checkbox-text">HealthyFood1</span>
-                            </label>
-                        </div>
+                        <ItemsChecklist />
                     </div>
                     <div class="col-lg-4">
-                        <div class="custom-checkbox-container">
-                            <input class="custom-checkbox-input" id="modernCheckbox2" type="checkbox" />
-                            <label class="custom-checkbox-label" for="modernCheckbox2">
-                                <span class="custom-checkbox-text">Rectange</span>
-                            </label>
-                        </div>
+                        <ItemsChecklist />
                     </div>
                     <div class="col-lg-4">
-                        <div class="custom-checkbox-container">
-                            <input class="custom-checkbox-input" id="modernCheckbox3" type="checkbox" />
-                            <label class="custom-checkbox-label" for="modernCheckbox3">
-                                <span class="custom-checkbox-text">Triangle</span>
-                            </label>
-                        </div>
+                        <ItemsChecklist />
                     </div>
                 </div>
                 <div class="row px-3 py-3 justify-evenly">
                     <div class="col-lg-4">
-                        <div class="custom-checkbox-container">
-                            <input class="custom-checkbox-input" id="modernCheckbox4" type="checkbox" />
-                            <label class="custom-checkbox-label" for="modernCheckbox4">
-                                <span class="custom-checkbox-text">Circle</span>
-                            </label>
-                        </div>
+                        <ItemsChecklist />
                     </div>
                     <div class="col-lg-4">
-                        <div class="custom-checkbox-container">
-                            <input class="custom-checkbox-input" id="modernCheckbox5" type="checkbox" />
-                            <label class="custom-checkbox-label" for="modernCheckbox5">
-                                <span class="custom-checkbox-text">Square</span>
-                            </label>
-                        </div>
+                        <ItemsChecklist />
                     </div>
                     <div class="col-lg-4">
-                        <div class="custom-checkbox-container">
-                            <input class="custom-checkbox-input" id="modernCheckbox6" type="checkbox" />
-                            <label class="custom-checkbox-label" for="modernCheckbox6">
-                                <span class="custom-checkbox-text">Banana</span>
-                            </label>
-                        </div>
+                        <ItemsChecklist />
                     </div>
                 </div>
                 <div class="row px-3 py-3 justify-evenly">
                     <div class="col-lg-4">
-                        <div class="custom-checkbox-container">
-                            <input class="custom-checkbox-input" id="modernCheckbox7" type="checkbox" />
-                            <label class="custom-checkbox-label" for="modernCheckbox7">
-                                <span class="custom-checkbox-text">Pear</span>
-                            </label>
-                        </div>
+                        <ItemsChecklist />
                     </div>
                     <div class="col-lg-4">
-                        <div class="custom-checkbox-container">
-                            <input class="custom-checkbox-input" id="modernCheckbox8" type="checkbox" />
-                            <label class="custom-checkbox-label" for="modernCheckbox8">
-                                <span class="custom-checkbox-text">Orange</span>
-                            </label>
-                        </div>
+                        <ItemsChecklist />
                     </div>
                     <div class="col-lg-4">
-                        <div class="custom-checkbox-container">
-                            <input class="custom-checkbox-input" id="modernCheckbox9" type="checkbox" />
-                            <label class="custom-checkbox-label" for="modernCheckbox9">
-                                <span class="custom-checkbox-text">Apple</span>
-                            </label>
-                        </div>
+                        <ItemsChecklist />
                     </div>
                 </div>
                 <div class="text-end px-1 py-1">
@@ -204,55 +83,17 @@ import { RouterLink } from 'vue-router';
         </div>
 
         <div class="meal-plans-container">
-            <h1 class="text-center px-5 py-5 headingFont">My Meal Plans</h1>
+            <h1 class="text-center px-5 py-5 headingFont fw-semibold">My Meal Plans</h1>
             <div class="row justify-content-center px-5 py-5 g-1">
                 <div class="col-lg-3 d-flex justify-content-center">
-                    <div class="card bg-primary shadow" style="width: 18rem;">
-                        <img src="../assets/Sprite/Food/Set3-Meat/11.png" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <div class="card-text text-center">
-                                <h3 class="headingFont text-light">Recipe</h3>
-                                <p class="bodyFont text-light">Breed type</p>
-                                <div class="container-fluid px-3 py-3">
-                                    <button type="button" class="btn btn-light btn-lg w-100">
-                                        View Info
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <MealPlanCards />
                 </div>
                 <div class="col-lg-3 d-flex justify-content-center">
-                    <div class="card bg-primary shadow" style="width: 18rem;">
-                        <img src="../assets/Sprite/Food/Set3-Meat/11.png" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <div class="card-text text-center">
-                                <h3 class="headingFont text-light">Recipe</h3>
-                                <p class="bodyFont text-light">Breed type</p>
-                                <div class="container-fluid px-3 py-3">
-                                    <button type="button" class="btn btn-light btn-lg w-100">
-                                        View Info
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <MealPlanCards />
+
                 </div>
                 <div class="col-lg-3 d-flex justify-content-center">
-                    <div class="card bg-primary shadow" style="width: 18rem;">
-                        <img src="../assets/Sprite/Food/Set3-Meat/11.png" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <div class="card-text text-center">
-                                <h3 class="headingFont text-light">Recipe</h3>
-                                <p class="bodyFont text-light">Breed type</p>
-                                <div class="container-fluid px-3 py-3">
-                                    <button type="button" class="btn btn-light btn-lg w-100">
-                                        View Info
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <MealPlanCards />
                 </div>
                 <div class="col-lg-3 d-flex justify-content-center pt-5">
                     <router-link to="/add-meal-plan" custom v-slot="{ href, navigate }">
@@ -268,20 +109,75 @@ import { RouterLink } from 'vue-router';
 </template>
 
 <style>
-.pet-info {
-    display: block;
+
+/* Add Pet */
+.button-add-pet {
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+  padding-block: 0.5rem;
+  padding-inline: 1.25rem;
+  background-color: rgb(0 107 179);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ffff;
+  gap: 10px;
+  font-weight: bold;
+  border: 3px solid #ffffff4d;
+  outline: none;
+  overflow: hidden;
+  font-size: 15px;
 }
 
-.meal-tooltip {
-    display: inline-block;
-    background-color: #237b9f;
-    border-radius: 10px;
-    color: white;
-    padding: 5px 5px 5px 5px;
-    font-weight: 100;
+.button-add-pet:hover {
+  transform: scale(1.05);
+  border-color: #fff9;
 }
 
-/* From Uiverse.io by mrhyddenn */
+.button-add-pet:hover .icon {
+  transform: translate(4px);
+}
+
+.button-add-pet:hover::before {
+  animation: shine 1.5s ease-out infinite;
+}
+
+.button-add-pet::before {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100%;
+  background-image: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.8),
+    rgba(255, 255, 255, 0) 70%
+  );
+  top: 0;
+  left: -100px;
+  opacity: 0.6;
+}
+
+@keyframes shine {
+  0% {
+    left: -100px;
+  }
+
+  60% {
+    left: 100%;
+  }
+
+  to {
+    left: 100%;
+  }
+}
+
+
+
+/* Add Meal Plan */
 .icon-btn {
     width: 50px;
     height: 50px;
@@ -377,148 +273,4 @@ import { RouterLink } from 'vue-router';
     height: 4px;
     top: calc(50% - 2px);
 }
-
-/* CSS (updated with faster focus ring transition) */
-.custom-checkbox-container {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-  padding: 8px;
-}
-
-.custom-checkbox-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.custom-checkbox-label {
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding-left: 32px;
-  transition: all 0.2s ease;
-}
-
-/* Checkbox box */
-.custom-checkbox-label:before {
-  content: "";
-  position: absolute;
-  left: 0;
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
-  border: 2px solid #ccc;
-  transition: all 0.3s ease;
-  z-index: 1;
-}
-
-/* Checkmark */
-.custom-checkbox-label:after {
-  content: "";
-  position: absolute;
-  left: 6px;
-  top: 3px;
-  width: 8px;
-  height: 12px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg) scale(0);
-  opacity: 0;
-  transition: all 0.2s ease;
-  z-index: 3;
-}
-
-/* Checked state */
-.custom-checkbox-input:checked + .custom-checkbox-label:before {
-  background: linear-gradient(135deg, #00b7ff 0%, #00b7ff 100%);
-  border-color: #00b7ff;
-  overflow: hidden;
-}
-
-/* Shine effect */
-.custom-checkbox-label span.custom-checkbox-shine {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 20px;
-  height: 20px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.custom-checkbox-input:checked
-  + .custom-checkbox-label
-  span.custom-checkbox-shine:after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 20px;
-  height: 100px;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.8) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: rotate(45deg);
-  animation: shine 0.6s ease-in-out infinite;
-}
-
-/* Checkmark animation */
-.custom-checkbox-input:checked + .custom-checkbox-label:after {
-  transform: rotate(45deg) scale(1);
-  opacity: 1;
-}
-
-/* Hover effect */
-.custom-checkbox-container:hover .custom-checkbox-label:before {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transform: scale(1.05);
-}
-
-/* Text styling */
-.custom-checkbox-text {
-  color: #333;
-  font-family: Arial, sans-serif;
-  font-size: 16px;
-  transition: color 0.2s ease;
-  position: relative;
-  z-index: 4;
-}
-
-.custom-checkbox-container:hover .custom-checkbox-text {
-  color: #00b7ff;
-}
-
-/* Focus state with transition */
-.custom-checkbox-input:focus + .custom-checkbox-label:before {
-  outline: 2px solid #00b7ff;
-  outline-offset: 2px;
-  transition: outline 0.1s ease-in-out; /* Added fast transition for outline */
-}
-
-/* Ensure outline is initially off with transition readiness */
-.custom-checkbox-label:before {
-  outline: 0 solid transparent; /* Initial state for smooth transition */
-}
-
-/* Shine animation keyframes */
-@keyframes shine {
-  0% {
-    left: -100%;
-  }
-  40% {
-    left: 100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-
 </style>
