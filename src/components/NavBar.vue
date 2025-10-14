@@ -9,7 +9,6 @@ import { useAuthStore } from '@/stores/authStore';
 const defaultAvatar = personImage;
 const userStore = useUserStore();
 const authStore = useAuthStore();
-const { downloadImage } = useStorage();
 
 const displayAvatar = ref(defaultAvatar);
 const isLoggedIn = computed(() => !!authStore.user);
@@ -18,7 +17,7 @@ const isLoggedIn = computed(() => !!authStore.user);
 watch(() => authStore.user, async (user) => {
     if (user && userStore.profile?.avatar_url) {
         try {
-            const url = await downloadImage(userStore.profile.avatar_url);
+            const url = await userStore.downloadProfileImage(userStore.profile.avatar_url);
             displayAvatar.value = url || defaultAvatar;
         } catch (error) {
             console.error('Error loading avatar:', error);
@@ -34,7 +33,7 @@ watch(
     async (newAvatarUrl) => {
         if (newAvatarUrl && authStore.user) {
         try {
-            const url = await downloadImage(newAvatarUrl);
+            const url = await userStore.downloadProfileImage(newAvatarUrl);
             displayAvatar.value = url || defaultAvatar;
         } catch (error) {
             console.error('Error loading new avatar:', error);
