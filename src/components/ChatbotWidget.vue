@@ -37,6 +37,16 @@ const STORAGE_KEY = 'peddit_chat'
 const GREETING = 'Hi! Ask me anything about your pet.'
 const THINKING = '…thinking'
 const MAX_CONTEXT_MESSAGES = 20
+// ----- Mode selection (Simple vs Thinking) -----
+const MODE_STORAGE_KEY = 'peddit_chat_mode'
+const selectedMode = ref(localStorage.getItem(MODE_STORAGE_KEY) || 'simple')
+watch(selectedMode, (v) => localStorage.setItem(MODE_STORAGE_KEY, v))
+const selectedModel = computed(() => {
+  const simple = import.meta.env.VITE_CHAT_SIMPLE_MODEL || CHAT_MODEL
+  const thinking = import.meta.env.VITE_CHAT_THINKING_MODEL || CHAT_MODEL
+  return selectedMode.value === 'thinking' ? thinking : simple
+})
+
 
 /** @type {readonly string[]} */
 const SUGGESTIONS = [
@@ -237,8 +247,9 @@ async function onSend() {
 
     let seenFirst = false
     await sendChatStream(payloadMessages, {
-      model: CHAT_MODEL,
+      model: selectedModel.value,
       controller,
+      reasoning: selectedMode.value === 'thinking',
       onToken(token) {
         if (!seenFirst) {
           state.messages[idx].content = token
@@ -323,6 +334,8 @@ function regenerate() {
         <div class="card-header d-flex justify-content-between align-items-center headingFont">
           <strong>Peddit Chat</strong>
           <div class="d-flex gap-2 align-items-center">
+            <div class="mode-switch" data-testid="mode-switch" aria-label="Model mode"><button type="button" class="mode-btn" :class="{active: selectedMode === 'simple'}" @click="selectedMode = 'simple'" title="Fast, lightweight">Simple</button><button type="button" class="mode-btn" :class="{active: selectedMode === 'thinking'}" @click="selectedMode = 'thinking'" title="More reasoning tokens">Thinking</button></div>
+            
             <span class="text-muted small me-2" v-if="sending">streaming…</span>
             <button class="btn btn-sm btn-outline-danger" v-if="sending" @click="cancelStreaming">Cancel</button>
             <button class="btn btn-sm btn-outline-secondary" @click="clearChat" :disabled="sending">Clear</button>
@@ -498,4 +511,29 @@ function regenerate() {
 /* ---------- Small a11y/UX tweaks ---------- */
 /* Remove bright blue focus outline/shadow from Bootstrap inputs inside the widget only */
 .form-control:focus { box-shadow: none !important; outline: none !important; }
+
+/* ----- Mode switch ----- */
+.mode-switch {
+  display: inline-flex;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--bs-body-bg);
+}
+.mode-switch .mode-btn {
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.mode-switch .mode-btn.active {
+  background: rgba(0,0,0,.06);
+  opacity: 1;
+  font-weight: 600;
+}
+.mode-switch .mode-btn:focus { outline: none; box-shadow: none; }
+
 </style>
