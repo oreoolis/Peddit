@@ -5,6 +5,7 @@ import { usePostStore } from "@/stores/postStore";
 import { onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useCommentStore } from "@/stores/commentStore";
+import { useUserStore } from "@/stores/userStore";
 
 const props = defineProps({
     foundProfiles:{
@@ -55,6 +56,8 @@ const { posts } = storeToRefs(postStore);
 const commentStore = useCommentStore();
 const { comments, commentLoading: loading } = storeToRefs(commentStore);
 
+const userStore = useUserStore();
+
 // Store comments by post ID
 const commentsByPostId = ref({});
 
@@ -82,12 +85,6 @@ const loadAllComments = async () => {
     }
 };
 
-// Safe method to get comments - returns array immediately
-const getComments = (postId) => {
-    if (!postId) return [];
-    return commentsByPostId.value[postId] || [];
-};
-
 </script>
 
 
@@ -110,24 +107,11 @@ const getComments = (postId) => {
 
         <div class="w-75 mx-auto" id="PostList">
             <!-- SimplePostSearchResult -->
-             <PostSearch v-for="posts in foundPosts"
-             :link="posts.link"
-             :title="posts.title"
-             :Name="posts.Name">
+             <PostSearch v-for="post in posts"
+             :link="post.link"
+             :title="post.title"
+             :Name="post.Name">
              </PostSearch>
             <!-- SimplePostSearchResult -->
-        </div>
-        <div>
-            <div v-for="post in posts" :key="post.id">
-                <h2>{{ post.title }}</h2>
-                <p>{{ post.content }}</p>
-                <div v-if="loading">Loading comments...</div>
-                <ol v-else>
-                    <li v-for="comment in getComments(post.id)" :key="comment.id">
-                        {{ comment.content }}
-                    </li>
-                    <li v-if="getComments(post.id).length === 0">No comments yet</li>
-                </ol>
-            </div>
         </div>
 </template>

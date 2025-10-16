@@ -1,46 +1,27 @@
 <script setup>
 import { RouterLink } from 'vue-router';
 import personImage from '../assets/person.jpg';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
-import { useStorage } from '@/composables/useStorage';
 import { useAuthStore } from '@/stores/authStore';
+import { storeToRefs } from 'pinia';
 
 const defaultAvatar = personImage;
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-const displayAvatar = ref(defaultAvatar);
-const isLoggedIn = computed(() => !!authStore.user);
+const { user } = storeToRefs(authStore);
+const { profile, avatarUrl } = storeToRefs(userStore);
 
-// Watch for user changes to update avatar
-watch(() => authStore.user, async (user) => {
-    if (user && userStore.profile?.avatar_url) {
-        try {
-            const url = await userStore.downloadProfileImage(userStore.profile.avatar_url);
-            displayAvatar.value = url || defaultAvatar;
-        } catch (error) {
-            console.error('Error loading avatar:', error);
-            displayAvatar.value = defaultAvatar;
-        }
-    } else {
-            displayAvatar.value = defaultAvatar;
-    }
-}, { immediate: true });
+const isLoggedIn = computed(() => !!user.value);
 
-watch(
-    () => userStore.profile?.avatar_url,
-    async (newAvatarUrl) => {
-        if (newAvatarUrl && authStore.user) {
-        try {
-            const url = await userStore.downloadProfileImage(newAvatarUrl);
-            displayAvatar.value = url || defaultAvatar;
-        } catch (error) {
-            console.error('Error loading new avatar:', error);
-        }
-        }
+const displayAvatar = computed(() => avatarUrl.value || defaultAvatar);
+
+onMounted(async () => {
+    if (!profile.value && user.value) {
+        await userStore.fetchProfile();
     }
-);
+});
 </script>
 
 <template>

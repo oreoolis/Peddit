@@ -12,7 +12,7 @@ import { storeToRefs } from 'pinia';
 import { useAuthStore } from '@/stores/authStore';
 import { useUserStore } from '@/stores/userStore';
 // Others
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 // Global states
@@ -24,37 +24,16 @@ const router = useRouter();
 const { user, loading: authLoading } = storeToRefs(authStore);
 const { profile, loading: profileLoading, username, follows, followers, avatarUrl } = storeToRefs(userStore);
 const defaultAvatar = personImage;
-const downloadedAvatarUrl = ref('');
 const showUploadModal = ref(false);
 const isLoading = computed(() => authLoading.value || profileLoading.value);
-const displayAvatar = computed(() => downloadedAvatarUrl.value || defaultAvatar);
 
-watch(user, async (newUser) => {
-    if (newUser) {
-        console.log('User loaded:', newUser);
-    }
-});
-
-watch(
-    avatarUrl,
-    async (path) => {
-        if (path) {
-            try {
-                const url = await userStore.downloadProfileImage();
-                downloadedAvatarUrl.value = url;
-            } catch (error) {
-                console.error('Error loading avatar:', error);
-                downloadedAvatarUrl.value = '';
-            }
-            } else {
-                downloadedAvatarUrl.value = '';
-        }
-    },
-    { immediate: true }
-);
+const displayAvatar = computed(() => avatarUrl.value || defaultAvatar);
 
 const handleImageUpload = async (file) => {
     const result = await userStore.uploadProfileImage(file);
+    if (!result.success) {
+        console.error('Error uploading image:', result.error);
+    }
 };
 
 const handleSignOut = async () => {
@@ -72,6 +51,11 @@ const openUploadModal = () => {
     showUploadModal.value = true;
 };
 
+onMounted(async () => {
+    if (!profile.value && user.value) {
+        await userStore.fetchProfile();
+    }
+});
 </script>
 
 <template>
