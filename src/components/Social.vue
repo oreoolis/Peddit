@@ -1,6 +1,11 @@
 <script setup>
 import ProfileSearch from "../components/social/ProfileSearch.vue"
 import PostSearch from "../components/social/PostSearch.vue"
+import { usePostStore } from "@/stores/postStore";
+import { onMounted, ref } from "vue";
+import { storeToRefs } from "pinia";
+import { useCommentStore } from "@/stores/commentStore";
+
 const props = defineProps({
     foundProfiles:{
         type: Array,
@@ -43,6 +48,46 @@ const props = defineProps({
     }
 }
 )
+
+const postStore = usePostStore();
+const { posts } = storeToRefs(postStore);
+
+const commentStore = useCommentStore();
+const { comments, commentLoading: loading } = storeToRefs(commentStore);
+
+// Store comments by post ID
+const commentsByPostId = ref({});
+
+onMounted(async () => {
+    await postStore.fetchPosts();
+    // Pre-load comments for all posts
+    await loadAllComments();
+});
+
+// Load comments for all posts
+const loadAllComments = async () => {
+    if (!posts.value || posts.value.length === 0) return;
+    
+    for (const post of posts.value) {
+        if (post.id) {
+            try {
+                const { data: postComments } = await commentStore.fetchCommentsByPostID(post.id);
+                console.log(postComments);
+                commentsByPostId.value[post.id] = postComments || [];
+            } catch (error) {
+                console.error(`Error loading comments for post ${post.id}:`, error);
+                commentsByPostId.value[post.id] = [];
+            }
+        }
+    }
+};
+
+// Safe method to get comments - returns array immediately
+const getComments = (postId) => {
+    if (!postId) return [];
+    return commentsByPostId.value[postId] || [];
+};
+
 </script>
 
 
@@ -71,5 +116,18 @@ const props = defineProps({
              :Name="posts.Name">
              </PostSearch>
             <!-- SimplePostSearchResult -->
+        </div>
+        <div>
+            <div v-for="post in posts" :key="post.id">
+                <h2>{{ post.title }}</h2>
+                <p>{{ post.content }}</p>
+                <div v-if="loading">Loading comments...</div>
+                <ol v-else>
+                    <li v-for="comment in getComments(post.id)" :key="comment.id">
+                        {{ comment.content }}
+                    </li>
+                    <li v-if="getComments(post.id).length === 0">No comments yet</li>
+                </ol>
+            </div>
         </div>
 </template>
