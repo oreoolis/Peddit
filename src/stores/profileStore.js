@@ -9,7 +9,7 @@ export const useProfileStore = defineStore('profile', () => {
     const profile = ref(null);
     const loading = ref(false);
     const error = ref(null);
-    const lastFetchedUserId = ref(null);
+    const lastFetchedUsername = ref(null);
 
     // Getters
     const hasProfile = computed(() => !!profile.value);
@@ -23,14 +23,14 @@ export const useProfileStore = defineStore('profile', () => {
     const followers = computed(() => profile.value?.follower_count || 0);
 
     // Actions
-    const fetchProfile = async (userId) => {
-        if (!userId || typeof userId !== 'string') {
-            console.warn('Invalid user ID:', userId);
-            return { success: false, error: 'Invalid user ID' };
+    const fetchProfile = async (username, force = false) => {
+        if (!username || typeof username !== 'string') {
+            console.warn('Invalid username:', username);
+            return { success: false, error: 'Invalid username' };
         }
 
         // Skip if already loaded
-        if (lastFetchedUserId.value === userId && profile.value) {
+        if (!force && lastFetchedUsername.value === username && profile.value) {
             return { success: true, data: profile.value };
         }
 
@@ -41,13 +41,13 @@ export const useProfileStore = defineStore('profile', () => {
             const { data, error: fetchError } = await supabase
                 .from('profiles')
                 .select('*')
-                .eq('id', userId)
+                .eq('username', username)
                 .single();
 
             if (fetchError) throw fetchError;
 
             profile.value = data;
-            lastFetchedUserId.value = userId;
+            lastFetchedUsername.value = username;
             
             return { success: true, data };
         } catch (err) {
@@ -61,7 +61,7 @@ export const useProfileStore = defineStore('profile', () => {
 
     const clearProfile = () => {
         profile.value = null;
-        lastFetchedUserId.value = null;
+        lastFetchedUsername.value = null;
         error.value = null;
     };
 
