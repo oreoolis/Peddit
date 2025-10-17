@@ -84,18 +84,24 @@ export const usePostStore = defineStore('posts', () => {
             loading.value = true;
             error.value = null;
 
+            // const { data, error: supabaseError } = await supabase
+            //     .from('posts')
+            //     .select(`
+            //         *,
+            //         profiles:author_id (
+            //             username,
+            //             display_name,
+            //             avatar_url
+            //         ),
+            //         post_media (*),
+            //         comments:comments_count(*)
+            //     `)
+            //     .eq('id', postId)
+            //     .single();
+
             const { data, error: supabaseError } = await supabase
                 .from('posts')
-                .select(`
-                    *,
-                    profiles:author_id (
-                        username,
-                        display_name,
-                        avatar_url
-                    ),
-                    post_media (*),
-                    comments:comments_count(*)
-                `)
+                .select(`*`)
                 .eq('id', postId)
                 .single();
 

@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
+import { useUserStore } from './userStore';
 
 export const useAuthStore = defineStore('auth', () => {
     // State
@@ -39,16 +40,21 @@ export const useAuthStore = defineStore('auth', () => {
             // Set up auth state listener (only once!)
             if (!authSubscription) {
                 const { data: { subscription } } = supabase.auth.onAuthStateChange(
-                    (event, newSession) => {
+                    async (event, newSession) => {
                         console.log('Auth event:', event);
                         session.value = newSession;
                         user.value = newSession?.user ?? null;
                         loading.value = false;
 
-                        // Handle specific events if needed
-                        if (event === 'SIGNED_OUT') {
-                            // Clear any user-specific stores here
-                            clearUserData();
+                        // Handle specific events
+                        if (event === 'SIGNED_IN' && newSession?.user) {
+                            // Fetch user profile when signed in
+                            const userStore = useUserStore();
+                            await userStore.fetchProfile();
+                        } else if (event === 'SIGNED_OUT') {
+                            // Clear user profile when signed out
+                            const userStore = useUserStore();
+                            userStore.clearProfile();
                         }
                     }
                 );

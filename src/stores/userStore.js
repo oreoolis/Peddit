@@ -1,35 +1,38 @@
+// stores/userStore.js
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
 import { validateImageFile } from '@/utils/imageFileValidation';
 import { useStorage } from '@/composables/useStorage';
+import { useAuthStore } from './authStore';
 
-const { uploadImage, downloadImage, deleteImage } = useStorage();
+const { uploadImage, deleteImage } = useStorage();
 
 export const useUserStore = defineStore('user', () => {
     // State
     const profile = ref(null);
     const loading = ref(false);
     const error = ref(null);
-    const lastFetchedUserId = ref(null);
 
     // Getters
     const hasProfile = computed(() => !!profile.value);
-    const avatarUrl = computed(() => profile.value?.avatar_url || null);
-    const username = computed(() => profile.value?.display_name || 'user');
+    const avatarUrl = computed(() => {
+        if (!profile.value?.avatar_url) return null;
+        const { getPublicImage } = useStorage();
+        return getPublicImage('avatars', profile.value.avatar_url);
+    });
+    const username = computed(() => profile.value?.display_name || profile.value?.username || 'user');
     const follows = computed(() => profile.value?.following_count || 0);
     const followers = computed(() => profile.value?.follower_count || 0);
 
-    // Primary Action: Fetch any user's profile
-    const fetchProfile = async (userId) => {
-        if (!userId || typeof userId !== 'string') {
-            console.warn('Invalid user ID:', userId);
-            return { success: false, error: 'Invalid user ID' };
-        }
-
-        // Skip if already loaded
-        if (lastFetchedUserId.value === userId && profile.value) {
-            return { success: true, data: profile.value };
+    // Actions
+    const fetchProfile = async () => {
+        const authStore = useAuthStore();
+        const userId = authStore.userId;
+        
+        if (!userId) {
+            console.warn('No authenticated user found');
+            return { success: false, error: 'No authenticated user' };
         }
 
         try {
@@ -45,7 +48,6 @@ export const useUserStore = defineStore('user', () => {
             if (fetchError) throw fetchError;
 
             profile.value = data;
-            lastFetchedUserId.value = userId;
             
             return { success: true, data };
         } catch (err) {
@@ -57,10 +59,12 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
-    // Primary Action: Update any user's profile
-    const updateProfile = async (userId, updates) => {
+    const updateProfile = async (updates) => {
+        const authStore = useAuthStore();
+        const userId = authStore.userId;
+        
         if (!userId) {
-            return { success: false, error: 'No user ID provided' };
+            return { success: false, error: 'No authenticated user' };
         }
 
         try {
@@ -79,11 +83,7 @@ export const useUserStore = defineStore('user', () => {
 
             if (updateError) throw updateError;
 
-            // Update local state if this is the currently loaded profile
-            if (userId === lastFetchedUserId.value) {
-                profile.value = data;
-            }
-
+            profile.value = data;
             return { success: true, data };
         } catch (err) {
             error.value = err.message;
@@ -93,53 +93,47 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
-    // Image Action: Download
-    const downloadProfileImage = async () => {
-        if (!profile.value?.avatar_url) return null;
-        
-        try {
-            return await downloadImage('avatars', profile.value.avatar_url);
-        } 
-        catch (error) {
-            console.error('Error loading avatar:', error);
-            return null;
-        }
-    }
-
-    // Image Action: Upload
     const uploadProfileImage = async (file) => {
-        try {
-            if (!profile.value) {
-                throw new Error('No user profile found');
-            }
+        const authStore = useAuthStore();
+        const userId = authStore.userId;
+        
+        if (!userId) {
+            return { success: false, error: 'No authenticated user' };
+        }
 
+        try {
             validateImageFile(file);
 
             // Delete old profile image if exists
-            if (profile.value.avatar_url) {
+            if (profile.value?.avatar_url) {
                 await deleteImage('avatars', profile.value.avatar_url);
             }
 
             // Upload new profile image
-            const storagePath = `${profile.value.id}/${Date.now()}-${file.name}`;
+            const storagePath = `${userId}/${Date.now()}-${file.name}`;
             const { error: uploadError } = await uploadImage('avatars', file, storagePath);
             if (uploadError) throw uploadError;
 
             // Update profile image url
-            const result = await updateProfile(profile.value.id, {
+            const result = await updateProfile({
                 avatar_url: storagePath
             });
 
             return result;
-
         } catch (err) {
             error.value = err.message;
             return { success: false, error: err.message };
         }
-    }
+    };
 
-    // Image Action: Delete
     const deleteProfileImage = async () => {
+        const authStore = useAuthStore();
+        const userId = authStore.userId;
+        
+        if (!userId) {
+            return { success: false, error: 'No authenticated user' };
+        }
+
         try {
             if (!profile.value?.avatar_url) return { success: true };
 
@@ -147,21 +141,19 @@ export const useUserStore = defineStore('user', () => {
             const { error: deleteError } = await deleteImage('avatars', profile.value.avatar_url);
             if (deleteError) throw deleteError;
 
-            const result = await updateProfile(profile.value.id, {
+            const result = await updateProfile({
                 avatar_url: null
             });
 
             return result;
-
         } catch (err) {
             error.value = err.message;
             return { success: false, error: err.message };
         }
-    }
+    };
 
     const clearProfile = () => {
         profile.value = null;
-        lastFetchedUserId.value = null;
         error.value = null;
     };
 
@@ -182,9 +174,6 @@ export const useUserStore = defineStore('user', () => {
         fetchProfile,
         updateProfile,
         clearProfile,
-
-        // Image Actions
-        downloadProfileImage,
         uploadProfileImage,
         deleteProfileImage
     };

@@ -43,6 +43,12 @@ const router = createRouter({
       component: () => import('@/views/ProfileView.vue'),
 	  meta: { requiresAuth: true } // true
     },{
+      path: '/profile/:username',
+      name: 'publicProfile',
+      component: () => import('@/views/PublicProfileView.vue'),
+      props: true,
+      meta: { requiresAuth: false } // Public profiles can be viewed without authentication
+    },{
       path: '/meal',
       name: 'meal',
       component: () => import('@/views/MealView.vue'),
@@ -57,6 +63,12 @@ const router = createRouter({
       name: 'social',
       component: () => import('@/views/SocialView.vue'),
 	  meta: { requiresAuth: false } // true
+    },{
+      path: '/social/:postId',
+      name: 'publicPosts',
+      component: () => import('@/views/PublicPostView.vue'),
+      props: true,
+      meta: { requiresAuth: false } // Public profiles can be viewed without authentication
     },{
       path: '/pet',
       name: 'pet',
