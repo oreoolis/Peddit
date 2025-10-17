@@ -1,7 +1,8 @@
 <script>
 </script>
 <template>
-     <div class="ingredient-card">
+    <!-- render prop based on dictionary -->
+    <div class="ingredient-card">
         <div class="card-contents">
             <h5 class="headingFont fw-bold">Drum Meat</h5>
             <img src="../../assets/Sprite/Food/Set3-Meat/13.png">
@@ -9,7 +10,7 @@
         </div>
     </div>
 </template>
-<style>
+<style scoped>
 /* From Uiverse.io by SteveBloX */
 .ingredient-card {
     box-sizing: border-box;
