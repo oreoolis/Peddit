@@ -8,6 +8,8 @@ import { storeToRefs } from 'pinia';
 import { useCommentStore } from '@/stores/commentStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
+import { useUserStore } from '@/stores/userStore';
 
 // const props = defineProps({
 //     title: {
@@ -80,24 +82,44 @@ const props = defineProps({
 const postStore = usePostStore();
 const { loading, currentPost } = storeToRefs(postStore);
 
-const commmentStore = useCommentStore();
-const { comments } = storeToRefs(commmentStore)
+const commentStore = useCommentStore();
+const { submitting, comments } = storeToRefs(commentStore)
 
-const profileStore = useProfileStore();
-const {} = storeToRefs(profileStore);
+const authStore = useAuthStore();
+const { user } = storeToRefs(authStore);
+
+const userStore = useUserStore();
+const { profile: authorProfile } = storeToRefs(userStore);
 
 onMounted(async () =>{
     if (props.postId) {
         await postStore.fetchPostById(props.postId);
-        await commmentStore.fetchCommentsByPostID(props.postId);
+        await commentStore.fetchCommentsByPostID(props.postId);
         console.log(currentPost.value);
     } else {
         router.push('/');
     }
 });
 
-const handleCommentSubmit = () => {
-    console.log("Create Comment!");
+const handleCommentSubmit = async (content) => {
+    if (!user.value || !authorProfile.value) {
+        console.error("User is not logged in or profile not loaded.");
+        return;
+    }
+
+    console.log("Creating comment with content:", content);
+
+    const result = await commentStore.createComment({
+        postId: props.postId,
+        authorId: user.value.id,
+        content: content,
+        authorProfile: authorProfile.value
+    });
+
+    if (!result.success) {
+        // You could show a toast notification here with result.error
+        console.error('Failed to submit comment:', result.error);
+    }
 };
 </script>
 
@@ -124,12 +146,18 @@ const handleCommentSubmit = () => {
         </div>
         </div>
         <div v-if="comments" class="w-75 card mx-auto" id="CommentSection">
-             <Comment v-for="comment in comments" v-bind:key="comment.id"
-             :Name="comment.profiles.display_name"
-             :Picture="comment.profiles.avatar_url"
-             :Content="comment.content"
-             ></comment>
-             <TextInput label="Add a comment..." @submit="handleCommentSubmit" />
+             <Comment 
+                v-for="comment in comments" 
+                v-bind:key="comment.id"
+                :Name="comment.profiles.display_name"
+                :Picture="comment.profiles.avatar_url"
+                :Content="comment.content"
+             />
+             <TextInput 
+                label="Add a comment..." 
+                @submit="handleCommentSubmit" 
+                :disabled="submitting"
+            />
         </div>
 
     </main>

@@ -1,19 +1,57 @@
 <script setup>
 import Button from "./button.vue"
+// const props = defineProps({
+//   label: {
+//     type: String,
+//     default: 'Label',
+//   },
+//   type: {
+//     type: String,
+//     default: 'button',
+//   },
+// });
+import { ref, defineEmits, defineProps, computed } from 'vue';
+
+// Define props
 const props = defineProps({
   label: {
     type: String,
-    default: 'Label',
+    default: 'Enter text...'
   },
-  type: {
-    type: String,
-    default: 'button',
-  },
+  disabled: {
+    type: Boolean,
+    default: false
+  }
 });
+
+// Define the event this component can emit
+const emit = defineEmits(['submit']);
+
+// Internal state for the input field
+const inputValue = ref('');
+
+// Method to handle submission
+const handleSubmit = () => {
+  // Don't submit if the input is empty or disabled
+  if (!inputValue.value.trim() || props.disabled) return;
+
+  // Emit the 'submit' event with the input's value
+  emit('submit', inputValue.value.trim());
+  
+  // Clear the input after submitting
+  inputValue.value = '';
+};
 </script>
+
 <template>
-    <div class="wave-group w-100 p-3">
-  <input required="" type="text" class="input">
+    <form @submit.prevent="handleSubmit" class="wave-group w-100 p-3">
+  <input 
+    v-model="inputValue" 
+    required="" 
+    type="text" 
+    class="input"
+    :disabled="disabled"
+  >
   <span class="bar"></span>
   <label class="label">
     <span class="label-char" style="--index: 0">C</span>
@@ -24,11 +62,9 @@ const props = defineProps({
     <span class="label-char" style="--index: 5">n</span>
     <span class="label-char" style="--index: 6">t</span>
   </label>
-  <Button label="comment"></Button>
-</div>
+  <Button label="Comment" type="submit" :disabled="disabled" />
+</form>
 </template>
-
-
 
 <style scoped>
 .wave-group {
