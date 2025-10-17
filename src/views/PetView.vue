@@ -1,180 +1,293 @@
 <script setup>
 import ItemsChecklist from '@/components/PetViewComponents/ItemsChecklist.vue';
-import MealPlanCards from '@/components/PetViewComponents/MealPlanCards.vue';
-import PetCards from '@/components/PetViewComponents/PetCards.vue';
-import router from '@/router';
+import MealPlanCards from '@/components/PetViewComponents/MealPlanCard.vue';
+import PetCards from '@/components/PetViewComponents/PetCard.vue';
 import { RouterLink } from 'vue-router';
+import { ref, watch } from 'vue';
+import ShoppingListModal from '@/components/PetViewComponents/ShoppingListModal.vue';
+import { usePetStore } from '@/stores/petStore';
+import { useAuthStore } from '@/stores/authStore';
 
-// TODO: link Pet here
-// import Pet from '../components/Pet.vue';
+const petStore = usePetStore();
+const {fetchPets} = petStore;
+const authStore = useAuthStore();
+
+
+watch(() => authStore.userId, (newUserId) => {
+    if (newUserId){
+        fetchPets(newUserId);
+    }
+}, {immediate: true});
+
+const showShoppingList = ref(false);
+const openShoppingList = () => {
+    showShoppingList.value = true;
+}
+
+const showPetInfo = ref(false);
+const openPetInfo = () => {
+    showPetInfo.value = true;
+}
 
 </script>
 
 <template>
-    <div class="pet-view container-fluid">
-        <div class="pet-card-container">
-            <h1 class="text-center px-5 py-5 headingFont fw-semibold">My Pets</h1>
+    <div class="pet-view">
+        <div class="pet-card-container container-fluid">
+            <div class="row d-flex justify-content-center">
+                <div class="col-lg-6 col-sm-5">
+                    <h1 class="text-start px-4 py-5 headingFont fw-semibold display-4">My Pets</h1>
+                </div>
+                <div class="col-lg-3 col-sm-4 d-flex justify-content-end">
+                    <div class="py-5">
+                        <router-link to="/create-pet" custom v-slot="{ href, navigate }">
+                            <button class="button-add-pet bodyFont" :href="href" role="link" @click="navigate">
+                                + Add Pet
+                            </button>
+                        </router-link>
+                    </div>
+                </div>
+            </div>
+            <div v-if="!petStore.pets">
+                <h1>No pets. Create a pet.</h1>
+            </div>
             <!-- To do v-if if there is no pets rendered from DB, else show current screen -->
             <div class="row justify-content-center g-3">
-                <div class="col-lg-5 d-flex justify-content-center">
-                    <PetCards />
+                <div v-for="pet in petStore.pets" :key="pet.id" class="col-lg-5 d-flex justify-content-center">
+                    <PetCards 
+                        :name="pet.name"
+                        :gender="pet.gender"
+                        :breed="pet.breed"
+                        :birthday="pet.birthdate"
+                        :weight="pet.weight_kg"
+                        :allergies="pet.allergies"
+                        :photo_url="pet.photo_url"
+                    />
                 </div>
-                <div class="col-lg-5 d-flex justify-content-center">
+                <!-- <div class="col-lg-5 d-flex justify-content-center">
                     <PetCards />
-                </div>
+                </div>  -->
             </div>
         </div>
-        <div class="container-fluid px-5 py-2">
-            <div class="row g-3">
-                <div class="col-lg-12 col-sm-12 d-flex justify-content-lg-end justify-content-sm-center">
-                    <router-link to="/create-pet" custom v-slot="{ href, navigate }">
-                        <button class="button-add-pet" :href = "href" role = "link" @click = "navigate">
-                            + Add Pet
-                        </button>
-                    </router-link>
+        <!-- <div class="container-fluid px-5 py-2">
+            <div class="row">
+                <div class="col-lg-12 col-sm-12 d-flex justify-content-lg-around justify-content-sm-center">
+
+                </div>
+            </div>
+        </div> -->
+
+        <div class="grocery-checklist container-fluid">
+            <div class="row d-flex justify-content-center">
+                <div class="col-lg-9">
+                    <h1 class="headingFont fw-semibold display-4 mt-5 mb-2">Weekly Grocery Checklist</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12 d-flex justify-content-center">
+                    <div class="bg-light container bodyFont fw-bold rounded-3 shadow p-3 mt-3">
+                        <!--Use v-for to loop through list of grocery items, Max number of cols per row: 3 (col-lg-4) -->
+                        <div class="row px-3 py-3">
+                            <div class="col-lg-4">
+                                <ItemsChecklist />
+                            </div>
+                            <div class="col-lg-4">
+                                <ItemsChecklist />
+                            </div>
+                            <div class="col-lg-4">
+                                <ItemsChecklist />
+                            </div>
+                        </div>
+                        <div class="row px-3 py-3 justify-evenly">
+                            <div class="col-lg-4">
+                                <ItemsChecklist />
+                            </div>
+                            <div class="col-lg-4">
+                                <ItemsChecklist />
+                            </div>
+                            <div class="col-lg-4">
+                                <ItemsChecklist />
+                            </div>
+                        </div>
+                        <div class="row px-3 py-3 justify-evenly">
+                            <div class="col-lg-4">
+                                <ItemsChecklist />
+                            </div>
+                            <div class="col-lg-4">
+                                <ItemsChecklist />
+                            </div>
+                            <div class="col-lg-4">
+                                <ItemsChecklist />
+                            </div>
+                        </div>
+                        <div class="text-end px-1 py-1">
+                            <!-- size: none -->
+                            <button class="button-edit-list fw-bold bodyFont" @click="openShoppingList">
+                                + Edit
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="grocery-checklist">
-            <h1 class="text-center px-5 py-5 headingFont fw-semibold">Weekly Grocery Checklist</h1>
-            <div class="container-fluid bg-light bodyFont fw-bold rounded-3 shadow p-3 mb-5">
-                <!--Use v-for to loop through list of grocery items, Max number of cols per row: 3 (col-lg-4) -->
-                <div class="row px-3 py-3 justify-evenly ">
-                    <div class="col-lg-4">
-                        <ItemsChecklist />
-                    </div>
-                    <div class="col-lg-4">
-                        <ItemsChecklist />
-                    </div>
-                    <div class="col-lg-4">
-                        <ItemsChecklist />
-                    </div>
-                </div>
-                <div class="row px-3 py-3 justify-evenly">
-                    <div class="col-lg-4">
-                        <ItemsChecklist />
-                    </div>
-                    <div class="col-lg-4">
-                        <ItemsChecklist />
-                    </div>
-                    <div class="col-lg-4">
-                        <ItemsChecklist />
-                    </div>
-                </div>
-                <div class="row px-3 py-3 justify-evenly">
-                    <div class="col-lg-4">
-                        <ItemsChecklist />
-                    </div>
-                    <div class="col-lg-4">
-                        <ItemsChecklist />
-                    </div>
-                    <div class="col-lg-4">
-                        <ItemsChecklist />
-                    </div>
-                </div>
-                <div class="text-end px-1 py-1">
-                    <!-- size: none -->
-                    <button type="button" class="btn btn-warning ">
-                        Edit
+        <div class="meal-plans-container container-fluid ">
+            <div class="row d-flex justify-content-center mt-5 py-2">
+                <div class="col-lg-9">
+                    <h1 class="headingFont fw-semibold display-4">My Meal Plans</h1>
+                    <button class="button-recommend bodyFont">
+                      Auto Recommend
                     </button>
+                    <div class="meal-plan-cards container-fluid">
+                        <div class="row justify-content-center px-5 py-5 gy-5 gx-4">
+                            <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
+                                <MealPlanCards />
+                            </div>
+                            <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
+                                <MealPlanCards />
+                            </div>
+                            <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
+                                <MealPlanCards />
+                            </div>
+                            <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
+                                <router-link to="/add-meal-plan" custom v-slot="{ href, navigate }">
+                                    <button class="icon-btn add-btn shadow" @click="navigate" :href="href">
+                                        <div class="add-icon"></div>
+                                        <div class="btn-txt">New Plan</div>
+                                    </button>
+                                </router-link>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="meal-plans-container">
-            <h1 class="text-center px-5 py-5 headingFont fw-semibold">My Meal Plans</h1>
-            <div class="row justify-content-center px-5 py-5 g-1">
-                <div class="col-lg-3 d-flex justify-content-center">
-                    <MealPlanCards />
-                </div>
-                <div class="col-lg-3 d-flex justify-content-center">
-                    <MealPlanCards />
-
-                </div>
-                <div class="col-lg-3 d-flex justify-content-center">
-                    <MealPlanCards />
-                </div>
-                <div class="col-lg-3 d-flex justify-content-center pt-5">
-                    <router-link to="/add-meal-plan" custom v-slot="{ href, navigate }">
-                        <button class="icon-btn add-btn shadow" @click="navigate" :href="href">
-                            <div class="add-icon"></div>
-                            <div class="btn-txt">New Plan</div>
-                        </button>
-                    </router-link>
-                </div>
-            </div>
-        </div>
+        <ShoppingListModal v-model:show="showShoppingList" />
     </div>
 </template>
 
 <style>
-
 /* Add Pet */
 .button-add-pet {
-  position: relative;
-  transition: all 0.3s ease-in-out;
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-  padding-block: 0.5rem;
-  padding-inline: 1.25rem;
-  background-color: rgb(0 107 179);
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #ffff;
-  gap: 10px;
-  font-weight: bold;
-  border: 3px solid #ffffff4d;
-  outline: none;
-  overflow: hidden;
-  font-size: 15px;
+    position: relative;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+    padding-block: 0.5rem;
+    padding-inline: 1.25rem;
+    background-color: rgb(0 107 179);
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #ffff;
+    gap: 10px;
+    font-weight: bold;
+    border: 3px solid #ffffff4d;
+    outline: none;
+    overflow: hidden;
+    font-size: 18px;
 }
 
 .button-add-pet:hover {
-  transform: scale(1.05);
-  border-color: #fff9;
+    transform: scale(1.05);
+    border-color: #fff9;
 }
 
 .button-add-pet:hover .icon {
-  transform: translate(4px);
+    transform: translate(4px);
 }
 
 .button-add-pet:hover::before {
-  animation: shine 1.5s ease-out infinite;
+    animation: shine 1.5s ease-out infinite;
 }
 
 .button-add-pet::before {
-  content: "";
-  position: absolute;
-  width: 100px;
-  height: 100%;
-  background-image: linear-gradient(
-    120deg,
-    rgba(255, 255, 255, 0) 30%,
-    rgba(255, 255, 255, 0.8),
-    rgba(255, 255, 255, 0) 70%
-  );
-  top: 0;
-  left: -100px;
-  opacity: 0.6;
+    content: "";
+    position: absolute;
+    width: 100px;
+    height: 100%;
+    background-image: linear-gradient(120deg,
+            rgba(255, 255, 255, 0) 30%,
+            rgba(255, 255, 255, 0.8),
+            rgba(255, 255, 255, 0) 70%);
+    top: 0;
+    left: -100px;
+    opacity: 0.6;
 }
 
 @keyframes shine {
-  0% {
-    left: -100px;
-  }
+    0% {
+        left: -100px;
+    }
 
-  60% {
-    left: 100%;
-  }
+    60% {
+        left: 100%;
+    }
 
-  to {
-    left: 100%;
-  }
+    to {
+        left: 100%;
+    }
 }
 
+/* Edit Shopping List */
+.button-edit-list {
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+    padding-block: 0.5rem;
+    padding-inline: 1.25rem;
+    background-color: #3eda5f;
+    border-radius: 9999px;
+    cursor: pointer;
+    color: #ffff;
+    gap: 10px;
+    font-weight: bold;
+    border: 3px solid #ffffff4d;
+    outline: none;
+    overflow: hidden;
+    font-size: 18px;
+}
+
+.button-edit-list:hover {
+    transform: scale(1.05);
+    border-color: #fff9;
+}
+
+.button-edit-list:hover .icon {
+    transform: translate(4px);
+}
+
+.button-edit-list:hover::before {
+    animation: shine 1.5s ease-out infinite;
+}
+
+.button-edit-list::before {
+    content: "";
+    position: absolute;
+    width: 100px;
+    height: 100%;
+    background-image: linear-gradient(120deg,
+            rgba(255, 255, 255, 0) 30%,
+            rgba(255, 255, 255, 0.8),
+            rgba(255, 255, 255, 0) 70%);
+    top: 0;
+    left: -100px;
+    opacity: 0.6;
+}
+
+@keyframes shine {
+    0% {
+        left: -100px;
+    }
+
+    60% {
+        left: 100%;
+    }
+
+    to {
+        left: 100%;
+    }
+}
 
 
 /* Add Meal Plan */
@@ -272,5 +385,68 @@ import { RouterLink } from 'vue-router';
     right: 15px;
     height: 4px;
     top: calc(50% - 2px);
+}
+
+/* Recommend Meal */
+.button-recommend {
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+  padding-block: 0.5rem;
+  padding-inline: 1.25rem;
+  background-color: rgb(78, 78, 78);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ffff;
+  gap: 10px;
+  font-weight: bold;
+  border: 3px solid #ffffff4d;
+  outline: none;
+  overflow: hidden;
+  font-size: 18px;
+}
+
+.button-recommend:hover {
+  transform: scale(1.05);
+  border-color: #fff9;
+}
+
+.button-recommend:hover .icon {
+  transform: translate(4px);
+}
+
+.button-recommend:hover::before {
+  animation: shine 1.5s ease-out infinite;
+}
+
+.button-recommend::before {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100%;
+  background-image: linear-gradient(120deg,
+      rgba(255, 255, 255, 0) 30%,
+      rgba(255, 255, 255, 0.8),
+      rgba(255, 255, 255, 0) 70%);
+  top: 0;
+  left: -100px;
+  opacity: 0.6;
+}
+
+@keyframes shine {
+  0% {
+    left: -100px;
+  }
+
+  60% {
+    left: 100%;
+  }
+
+  to {
+    left: 100%;
+  }
 }
 </style>
