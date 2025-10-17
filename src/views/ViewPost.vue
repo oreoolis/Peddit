@@ -1,6 +1,8 @@
 <script setup lang="ts">
 // view of a single post with comment section
+import { Text } from 'vue';
 import Comment  from '../components/social/Comment.vue';
+import TextInput from '@/components/atoms/TextInput.vue';
 const props = defineProps({
     title: {
         
@@ -89,6 +91,7 @@ const props = defineProps({
              :Picture="comment.profilePic"
              :Content="comment.content"
              ></comment>
+             <TextInput label="Add a comment..." @submit="handleCommentSubmit" />
         </div>
 
     </main>

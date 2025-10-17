@@ -46,34 +46,43 @@ watch(
 <template>
     <div >
         <!-- Bottom navbar: xs–md -->
-        <nav class="navbar fixed-bottom bg-white headingFont d-block d-lg-none shadow" >
+        <nav class="navbar fixed-bottom bg-white headingFont d-block d-lg-none shadow navbar-bottom" >
             <div class="container-fluid">
-                <ul class="navbar-nav w-100 d-flex justify-content-around flex-row text-center mb-0">
+                <ul class="navbar-nav w-100 d-flex justify-content-around flex-row text-center mb-0 align-items-center">
                     <li class="nav-item">
-                        <img src="../assets/Sprite/HomeIcons/Paw.png" alt="">
-                        <RouterLink class="nav-link active black" to="/pet">Pet</RouterLink>
-                    </li>
-                    <li class="nav-item">
-                        <img src="../assets/Sprite/HomeIcons/Home.png" alt="">
-                        <RouterLink class="nav-link active black" to="/home">Home</RouterLink>
+                        <RouterLink class="nav-pill nav-link black" to="/pet">
+                            <img src="../assets/Sprite/HomeIcons/Paw.png" alt="" class="icon">
+                            <span class="nav-label">Pet</span>
+                        </RouterLink>
                     </li>
                     <li class="nav-item">
-                        <img src="../assets/Sprite/HomeIcons/Social.png" alt="">
-                        <RouterLink class="nav-link active primary" to="/social">Social</RouterLink>
+                        <RouterLink class="nav-pill nav-link black" to="/home">
+                            <img src="../assets/Sprite/HomeIcons/Home.png" alt="" class="icon">
+                            <span class="nav-label">Home</span>
+                        </RouterLink>
                     </li>
                     <li class="nav-item">
-                        <img src="../assets/Sprite/HomeIcons/Burger.png" alt="">
-                        <RouterLink class="nav-link active primary" to="/meal">Meal</RouterLink>
+                        <RouterLink class="nav-pill nav-link black" to="/social">
+                            <img src="../assets/Sprite/HomeIcons/Social.png" alt="" class="icon">
+                            <span class="nav-label">Social</span>
+                        </RouterLink>
                     </li>
-                    <li v-if="isLoggedIn" class="nav-item">
-                        <img 
-                            class="rounded-circle profile-image"
-                            :src="displayAvatar" 
-                            alt="Profile Image"
-                        >
-                        <RouterLink class="nav-link active primary" to="/profile">Profile</RouterLink>
+                    <li class="nav-item">
+                        <RouterLink class="nav-pill nav-link black" to="/meal">
+                            <img src="../assets/Sprite/HomeIcons/Burger.png" alt="" class="icon">
+                            <span class="nav-label">Meal</span>
+                        </RouterLink>
                     </li>
-
+                    <li v-if="isLoggedIn" class="nav-item profile-pill">
+                        <RouterLink class="nav-pill nav-link black align-items-center" to="/profile">
+                            <img 
+                                class="rounded-circle profile-image"
+                                :src="displayAvatar" 
+                                alt="Profile Image"
+                            >
+                            <span class="nav-label">Profile</span>
+                        </RouterLink>
+                    </li>
                 </ul>
             </div>
         </nav>
@@ -122,9 +131,106 @@ watch(
 
 
 <style scoped>
-.profile-image {
-    width: 24px;
-    height: 24px;
+.navbar-bottom {
+    padding: 0.45rem 0.6rem;
+    background: rgba(255,255,255,0.95);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    margin: 0 8px 8px 8px; /* lift a little from absolute edge */
+    box-shadow: 0 8px 24px rgba(16,24,40,0.18), 0 2px 6px rgba(0,0,0,0.08);
+    backdrop-filter: blur(6px);
+}
+
+/* Top navbar styling */
+.navbar-top {
+    background: linear-gradient(90deg, #0066cc 0%, #004a9f 100%);
+    color: white;
+    padding: 0.65rem 1rem;
+    box-shadow: 0 6px 20px rgba(2,6,23,0.25);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Soft shared shadow helper */
+.shadow-custom {
+    transition: box-shadow 180ms ease, transform 180ms ease;
+}
+.shadow-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 34px rgba(2,6,23,0.28);
+}
+
+/* Nav item pill style for bottom */
+.nav-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+    text-decoration: none; /* ensure RouterLink has no underline */
+    color: inherit;
+}
+.nav-item > .nav-pill:hover {
+    background: rgba(0, 102, 204, 0.06);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(2,6,23,0.12);
+}
+.nav-pill.d-flex { flex-direction: row; gap: 8px; padding: 6px 10px; }
+
+/* Profile pill emphasised */
+.profile-pill .profile-image {
+    width: 36px;
+    height: 36px;
+    border: 2px solid #fff;
+    box-shadow: 0 6px 14px rgba(2,6,23,0.18);
+}
+
+/* Top navbar profile */
+.profile-image-top {
+    width: 32px;
+    height: 32px;
     object-fit: cover;
+    margin-right: 8px;
+    box-shadow: 0 6px 12px rgba(2,6,23,0.16);
+    vertical-align: middle;
+    border: 2px solid rgba(255,255,255,0.12);
+}
+
+/* Default small profile for bottom */
+.profile-image { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+.nav-label {
+    font-weight: 600;
+    font-size: 0.82rem;
+    line-height: 1;
+    display: inline-block;
+}
+/* Icon sizing for bottom */
+.icon { width: 20px; height: 20px; }
+
+/* Nav link visuals */
+.nav-link {
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 2px 6px;
+    color: inherit;
+    text-decoration: none;
+    transition: color 140ms ease, transform 140ms ease;
+}
+.nav-link:hover {
+    color: #ffdca3;
+    transform: translateY(-2px);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.12);
+}
+
+/* Slightly dim inactive icons/text */
+.navbar .nav-link.black { color: #222 !important; }
+.navbar .nav-link.primary { color: #0066cc !important; }
+.navbar .nav-link.active.primary { color: #004a9f !important; }
+
+/* Responsive tweaks */
+@media (max-width: 576px) {
+    .navbar-bottom { margin: 0 6px 10px 6px; padding: 0.4rem 0.4rem; }
+    .profile-pill .profile-image { width: 30px; height: 30px; }
 }
 </style>
