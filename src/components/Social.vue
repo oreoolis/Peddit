@@ -2,6 +2,11 @@
 import ProfileSearch from "../components/social/ProfileSearch.vue"
 import PostSearch from "../components/social/PostSearch.vue"
 import Button from "../components/atoms/button.vue"
+import { usePostStore } from "@/stores/postStore"
+import { storeToRefs } from "pinia"
+import { useCommentStore } from "@/stores/commentStore"
+import { useUserStore } from "@/stores/userStore"
+import { onMounted, ref } from "vue"
 const props = defineProps({
     foundProfiles:{
         type: Array,
@@ -44,6 +49,22 @@ const props = defineProps({
     }
 }
 )
+const postStore = usePostStore();
+const { posts } = storeToRefs(postStore);
+
+const commentStore = useCommentStore();
+const { comments, commentLoading: loading } = storeToRefs(commentStore);
+
+const userStore = useUserStore();
+
+// Store comments by post ID
+const commentsByPostId = ref({});
+
+onMounted(async () => {
+    await postStore.fetchPosts();
+});
+
+
 </script>
 
 
@@ -86,11 +107,12 @@ const props = defineProps({
 
     <div class="grid">
       <PostSearch
-        v-for="(post, idx) in props.foundPosts"
-        :key="(post.link ?? idx) + '_post'"
-        :link="post.link"
+        v-for="post in posts"
+        :key="post.id"
+        :link="post.id"
         :title="post.title"
-        :Name="post.Name"
+        :Name="post.profiles.display_name"
+        :Image="post.profiles.avatar_url"
         class=""
       />
     </div>

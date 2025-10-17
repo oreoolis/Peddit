@@ -4,6 +4,7 @@ views/PublicProfileView.vue
 import personImage from '../assets/person.jpg';
 // Components
 import PetProfileCard from '@/components/PetProfileCard.vue';
+import PetCard from '@/components/PetViewComponents/PetCard.vue';
 // Stores
 import { storeToRefs } from 'pinia';
 import { useProfileStore } from '@/stores/profileStore';
@@ -148,11 +149,36 @@ watch([user, profile], async ([newUser, newProfile]) => {
           <p>No pets to display yet.</p>
         </div>
         <div v-else>
-          <!-- Pet -->
-          <div v-for="pet in pets">
+          <PetCard 
+              v-for="pet in pets"
+              :key="pet.id"
+              :name="pet.name"
+              :gender="pet.gender"
+              :breed="pet.breed"
+              :birthday="pet.birthday"
+              :weight="pet.weight"
+              :allergies="pet.allergies"
+              :photo_url="pet.photo_url"
+          />
+          <!-- Pet
+          <div
+            v-for="pet in pets"
+            :key="pet.id"
+          >
+            <PetCard 
+              :name="pet.name"
+              :gender="pet.gender"
+              :breed="pet.breed"
+              :birthday="pet.birthday"
+              :weight="pet.weight"
+              :allergies="pet.allergies"
+              :photo_url="pet.photo_url"
+            />
+          </div> -->
+          <!-- <div v-for="pet in pets">
             <h2>{{ pet.name }}</h2>
-            <!-- <img :src=petImages[pet.id] alt=""> -->
-          </div>
+            <img :src="pet.photo_url" alt="">
+          </div> -->
         </div>
       </div>
     </div>
