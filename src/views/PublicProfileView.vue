@@ -66,7 +66,6 @@ onMounted(async () => {
   if (props.username) {
     await profileStore.fetchProfile(props.username);
     await petStore.fetchPets(profile.value.id);
-    console.log(petImages.value);
   } else {
     router.push('/');
   }
