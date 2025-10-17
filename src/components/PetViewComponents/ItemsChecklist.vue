@@ -6,6 +6,13 @@
         <label class="custom-checkbox-label" for="modernCheckbox1">
             <span class="custom-checkbox-text bodyFont">Rectange</span>
         </label>
+        <button class="delete-button mt-2 mx-2">
+            <svg class="delete-svgIcon" viewBox="0 0 448 512">
+                <path
+                    d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z">
+                </path>
+            </svg>
+        </button>
     </div>
 </template>
 
@@ -17,7 +24,7 @@
     align-items: center;
     cursor: pointer;
     user-select: none;
-    padding: 10px;
+    padding: 5px;
 }
 
 .custom-checkbox-input {
@@ -37,6 +44,8 @@
 
 /* Checkbox box */
 .custom-checkbox-label:before {
+    width: var(--checkbox-size);
+    height: var(--checkbox-size);
     content: "";
     position: absolute;
     left: 0;
@@ -54,8 +63,8 @@
     content: "";
     position: absolute;
     left: 6px;
-    top: 3px;
-    width: 8px;
+    top: 7px;
+    width: 7px;
     height: 12px;
     border: solid white;
     border-width: 0 2px 2px 0;
@@ -113,10 +122,10 @@
 /* Text styling */
 .custom-checkbox-text {
     color: #333;
-    font-size: 26px;
+    font-size: 20px;
     transition: color 0.2s ease;
     position: relative;
-    z-index: 4;
+    z-index: 1;
 }
 
 .custom-checkbox-container:hover .custom-checkbox-text {
@@ -126,7 +135,7 @@
 /* Focus state with transition */
 .custom-checkbox-input:focus+.custom-checkbox-label:before {
     outline: 2px solid #00b7ff;
-    outline-offset: 2px;
+    outline-offset: 3px;
     transition: outline 0.1s ease-in-out;
     /* Added fast transition for outline */
 }
@@ -150,5 +159,67 @@
     100% {
         left: 100%;
     }
+}
+
+.delete-button {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgb(66, 66, 66);
+    border: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.164);
+    cursor: pointer;
+    transition-duration: 0.3s;
+    overflow: hidden;
+    position: relative;
+}
+
+.delete-svgIcon {
+    width: 10px;
+    transition-duration: 0.3s;
+}
+
+.delete-svgIcon path {
+    fill: white;
+}
+
+.delete-button:hover {
+    width: 90px;
+    border-radius: 50px;
+    transition-duration: 0.3s;
+    background-color: rgb(255, 69, 69);
+    align-items: center;
+}
+
+.delete-button:hover .delete-svgIcon {
+    width: 10px;
+    transition-duration: 0.3s;
+    transform: translateY(60%);
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    transform: rotate(360deg);
+}
+
+.delete-button::before {
+    display: none;
+    content: "Delete";
+    color: white;
+    transition-duration: 0.3s;
+    font-size: 2px;
+}
+
+.delete-button:hover::before {
+    display: block;
+    padding-right: 10px;
+    font-size: 13px;
+    opacity: 1;
+    transform: translateY(0px);
+    transition-duration: 0.3s;
 }
 </style>
