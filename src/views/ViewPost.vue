@@ -84,11 +84,11 @@ const props = defineProps({
         </div>
         </div>
         <div class="w-75 card mx-auto" id="CommentSection">
-             <comment v-for="comment in props.commentsList" v-bind:key="comment.username"
+             <Comment v-for="comment in props.commentsList" v-bind:key="comment.username"
              :Name="comment.username"
              :Picture="comment.profilePic"
              :Content="comment.content"
-             ></comment>
+             ></Comment>
         </div>
 
     </main>

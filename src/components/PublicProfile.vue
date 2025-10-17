@@ -1,4 +1,4 @@
-views/PublicProfileView.vue
+<!-- views/PublicProfile.vue -->
 <script setup>
 // Assets
 import personImage from '../assets/person.jpg';

@@ -29,7 +29,7 @@ export const useFollowStore = defineStore('follow', () => {
         .select('id') // We only need to know if a row exists
         .eq('follower_id', followerId)
         .eq('followee_id', followeeId)
-        .limit(1); // <-- THE KEY CHANGE: Use .limit(1)
+        .limit(1); // 
 
       if (checkError) {
         // This will now only catch "real" database errors, not "not found"

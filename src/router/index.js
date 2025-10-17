@@ -64,6 +64,12 @@ const router = createRouter({
       component: () => import('@/views/SocialView.vue'),
 	  meta: { requiresAuth: false } // true
     },{
+      path: '/social/:postId',
+      name: 'publicPosts',
+      component: () => import('@/views/PublicPostView.vue'),
+      props: true,
+      meta: { requiresAuth: false } // Public profiles can be viewed without authentication
+    },{
       path: '/pet',
       name: 'pet',
       component: () => import('@/views/PetView.vue'),
