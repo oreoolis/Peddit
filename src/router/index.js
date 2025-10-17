@@ -96,8 +96,12 @@ const router = createRouter({
       path: '/add-meal-plan',
       name: 'add-meal-plan',
       component: () => import('@/views/AddMealPlan.vue'),
-    }
-    
+    },
+     {
+      path: '/components',
+      name: 'components',
+      component: () => import('@/views/Components.vue'),
+    }   
 
 
     // {
