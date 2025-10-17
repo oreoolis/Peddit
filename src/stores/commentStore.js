@@ -1,17 +1,16 @@
-// stpre/commentStore.js
-
+// stores/commentStore.js
+import { useStorage } from "@/composables/useStorage";
 import { supabase } from "@/lib/supabaseClient";
 import { defineStore } from "pinia";
 import { ref } from "vue";
+
+const { getPublicImage } = useStorage();
 
 export const useCommentStore = defineStore('comments', () => {
     // State
     const comments = ref([]);
     const loading = ref(false);
     const error = ref(null);
-
-    // Getters
-
 
     // Actions
     const fetchCommentsByPostID = async (postId) => {
@@ -23,16 +22,28 @@ export const useCommentStore = defineStore('comments', () => {
 
             const { data, error: supabaseError } = await supabase
                 .from('comments')
-                .select('*')
+                .select(`
+                    *,
+                    profiles:author_id (
+                        username,
+                        display_name,
+                        avatar_url
+                    )
+                `)
                 .eq('post_id', postId)
                 .order('created_at', { ascending: false });
             
             if(supabaseError) throw supabaseError;
 
-            comments.value = data || [];
-            console.log(comments.value);
+            const transformedComments = data.map(comment => {
+                if (comment.profiles?.avatar_url) {
+                    comment.profiles.avatar_url = getPublicImage('avatars', comment.profiles.avatar_url);
+                }
+                return comment;
+            });
 
-            return { success: true, data };
+            comments.value = transformedComments || [];
+            return { success: true, data: transformedComments };
         } catch (err) {
             error.value = err.message;
             console.error('Error fetching comments:', err);
@@ -45,9 +56,8 @@ export const useCommentStore = defineStore('comments', () => {
     return {
         // State
         comments,
-
-        // Getters
-
+        loading,
+        error,
         // Actions
         fetchCommentsByPostID,
     };
