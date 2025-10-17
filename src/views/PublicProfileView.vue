@@ -12,6 +12,7 @@ import { useFollowStore } from '@/stores/followStore';
 // Others
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { usePetStore } from '@/stores/petStore';
 
 const props = defineProps({
   username: {
@@ -25,10 +26,13 @@ const router = useRouter();
 const authStore = useAuthStore();
 const profileStore = useProfileStore();
 const followStore = useFollowStore();
+const petStore = usePetStore();
 
 const { user } = storeToRefs(authStore);
 const { profile, loading, username: profileUsername, follows, followers, avatarUrl } = storeToRefs(profileStore);
 const { isFollowing, loading: followLoading, error: followError } = storeToRefs(followStore);
+const { pets, petImages } = storeToRefs(petStore);
+
 const defaultAvatar = personImage;
 const actionMessage = ref('');
 
@@ -61,6 +65,7 @@ const handleFollow = async () => {
 onMounted(async () => {
   if (props.username) {
     await profileStore.fetchProfile(props.username);
+    await petStore.fetchPets(profile.value.id);
   } else {
     router.push('/');
   }
@@ -139,11 +144,15 @@ watch([user, profile], async ([newUser, newProfile]) => {
         <div class="col-12 text-center">
           <h2>Pets</h2>
         </div>
-        <div v-if="!profile.pets || profile.pets.length === 0" class="col-12 text-center text-muted">
+        <div v-if="!pets || pets.length === 0" class="col-12 text-center text-muted">
           <p>No pets to display yet.</p>
         </div>
         <div v-else>
-          <!-- Pet cards loop here -->
+          <!-- Pet -->
+          <div v-for="pet in pets">
+            <h2>{{ pet.name }}</h2>
+            <!-- <img :src=petImages[pet.id] alt=""> -->
+          </div>
         </div>
       </div>
     </div>
