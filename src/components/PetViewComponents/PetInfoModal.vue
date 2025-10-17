@@ -9,6 +9,7 @@ const props = defineProps({
   birthday: String,
   weight: Number,
   allergies: String,
+  photo_url: String,
   show: {
     type: Boolean,
     default: false
@@ -42,7 +43,7 @@ const closeModal = () => {
             </div>
             <form>
                 <div class="modal-body">
-                    <img src="../../assets/ragdoll.jpg" class="img-thumbnail container-fluid rounded-5 px-3 py-3 shadow"
+                    <img :src="photo_url" class="img-thumbnail container-fluid rounded-5 px-3 py-3 shadow"
                         alt="...">
                     <div class="pet-info container fw-bold py-5 px-5 mt-4 rounded-5 bg-light shadow">
                         <h2 class="headingFont fw-semibold m-2">{{ name }}</h2>
