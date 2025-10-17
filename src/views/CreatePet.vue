@@ -1,33 +1,126 @@
 <script setup>
-import MealPlanCards from '@/components/PetViewComponents/MealPlanCards.vue';
-import { computed, onMounted, ref, watch } from 'vue';
+import MealPlanCards from '@/components/PetViewComponents/MealPlanCard.vue';
 import ImageUploadModal from '@/components/ImageUploadModal.vue';
+import { usePetStore } from '@/stores/petStore';
+import { useAuthStore } from '@/stores/authStore';
+//import { storeToRefs } from 'pinia';
+import { onMounted, ref, watch } from 'vue';
 
+const petStore = usePetStore();
+const authStore = useAuthStore();
+
+const showSuccess = ref(false);
+
+// Form data
+const form = ref({
+  name: '',
+  kind: '',
+  breed: '',
+  gender: 'unknown',
+  birthdate: '',
+  weight_kg: null,
+  neutered: null
+})
+
+const imageFile = ref(null);
+const imagePreview = ref(null);
+
+const formatFileSize = (bytes) => {
+  if (!bytes) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+const handleImageSelect = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  imageFile.value = file;
+  imagePreview.value = URL.createObjectURL(file);
+}
+
+const removeImage = () => {
+  if (imagePreview.value) {
+    URL.revokeObjectURL(imagePreview.value);
+  }
+  imageFile.value = null;
+  imagePreview.value = null;
+}
+
+
+const handleSubmit = async () => {
+  if (!form.value.name || !form.value.kind) {
+    alert('Please fill in required fields')
+    return
+  }
+
+  const result = await petStore.createPet(authStore.userId, { ...form.value, photo_url: null })
+
+  if (result.success) {
+
+    // If image was selected, upload it
+    if (imageFile.value) {
+      const imageResult = await petStore.uploadPetImage(authStore.userId, result.data.id, imageFile.value);
+      if (!imageResult.success) {
+        console.error('Failed to upload image:', imageResult.error);
+      }
+    }
+
+    showSuccess.value = true
+    resetForm()
+
+    // Hide success message after 3 seconds
+    setTimeout(() => {
+      showSuccess.value = false
+    }, 3000)
+  }
+}
+
+const resetForm = () => {
+  form.value = {
+    name: '',
+    kind: '',
+    breed: '',
+    gender: 'unknown',
+    birthdate: '',
+    weight_kg: null,
+    neutered: null,
+    allergies: ''
+  }
+  if (imagePreview.value) {
+    URL.revokeObjectURL(imagePreview.value);
+  }
+  removeImage();
+  petStore.clearError();
+  showSuccess.value = false;
+}
 
 const selectCat = () => {
-  showToast("You have chosen Cat!", "cat")
+  form.value.kind = "cat";
+  showToast("You have chosen Cat!")
 }
 
 const selectDog = () => {
-  showToast("You have chosen Dog!", "dog")
+  form.value.kind = "dog";
+  showToast("You have chosen Dog!");
 }
 
-const showToast = (text, value) => {
+const showToast = (text) => {
   const toastElement = document.getElementById('liveToast');
   if (!toastElement) { return }
   const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement, { autohide: true, delay: 3000 });
   if (document.getElementById("message")) {
     document.getElementById("message").innerText = text;
     document.getElementById("message").style.fontWeight = "bold";
-    // to set value parsed as species
   }
   toastBootstrap.show();
-
 }
 const showUploadModal = ref(false);
 
 const handleImageUpload = async (file) => {
-  const result = await userStore.uploadProfileImage(file);
+  const result = await petStore.uploadProfileImage(file);
 };
 
 const openUploadModal = () => {
@@ -51,7 +144,7 @@ const openUploadModal = () => {
       </div>
     </div>
 
-    <form>
+    <form @submit.prevent="handleSubmit" class="pet-form">
       <div class="pet-selector mt-4 mb-5">
         <div class="row d-flex justify-content-evenly">
           <div class="col-lg-8">
@@ -72,107 +165,126 @@ const openUploadModal = () => {
         </div>
       </div>
 
+      <div v-if="form.kind == ''" class = "text-center mb-3">
+        <h3 class = "headingFont warning fw-semibold">Please select a species.</h3>
+      </div>
+
 
       <div class="input-forms container-fluid">
         <div class="row d-flex justify-content-center">
           <div class="col-lg-8">
-            <div class="text-center">
+            <div class="mb-3 input-group-lg">
+              <label for="" class="form-label headingFont fw-bold h5">Upload Pet Photo</label>
+              <input id="pet-photo" type="file" accept="image/*" @change="handleImageSelect" class="form-control" />
+            </div>
+            <!-- <div class="text-center">
               <button class="button-upload-photo bodyFont" :href="href" role="link" @click="openUploadModal"
                 type="button">
                 Upload Pet Photo
               </button>
+            </div> -->
+            <!-- Image Preview - Same size as avatar -->
+            <div v-if="imagePreview" class="image-preview-container mt-2">
+              <h6 class="preview-title">Preview</h6>
+              <div class="position-relative d-inline-block">
+                <img :src="imagePreview" alt="Preview" class="preview-image" />
+                <button type="button" @click="removeImage"
+                  class="btn btn-sm btn-danger position-absolute top-0 end-0 remove-btn">
+                  ×
+                </button>
+              </div>
+              <p class="text-muted small mt-1">
+                {{ imageFile?.name }} ({{ formatFileSize(imageFile?.size) }})
+              </p>
             </div>
+
             <div class="mb-3 input-group-lg">
               <label for="" class="form-label headingFont fw-bold h5">Pet Name</label>
               <input type="text" name="" id="" class="form-control bodyFont" placeholder="Frosty"
-                aria-describedby="helpId" />
+                aria-describedby="helpId" v-model="form.name" />
             </div>
+
             <div class="mb-3 input-group-lg">
               <label for="" class="form-label headingFont fw-bold h5">Gender</label>
               <div class="radio-inputs bodyFont mt-2">
                 <label class="radio">
-                  <input checked="" name="radio" type="radio" value="male" id="male" />
+                  <input checked name="radio" type="radio" value="male" id="male" v-model="form.gender" />
                   <span class="name">Male</span>
                 </label>
                 <label class="radio">
-                  <input name="radio" type="radio" value="female" id="female" />
+                  <input name="radio" type="radio" value="female" id="female" v-model="form.gender" />
                   <span class="name">Female</span>
                 </label>
                 <label class="radio">
-                  <input name="radio" type="radio" value="unknown" id="unknown" />
+                  <input name="radio" type="radio" value="unknown" id="unknown" v-model="form.gender" />
                   <span class="name">Unknown</span>
                 </label>
               </div>
             </div>
+
             <div class="mb-3 input-group-lg">
               <label for="" class="form-label headingFont fw-bold h5">Birthday</label>
-              <input type="date" name="" id="" class="form-control bodyFont" placeholder="" aria-describedby="helpId" />
+              <input type="date" name="" id="" class="form-control bodyFont" placeholder="" aria-describedby="helpId"
+                v-model="form.birthdate" />
             </div>
+
             <div class="mb-3 input-group-lg">
               <label for="" class="form-label headingFont fw-bold h5">Breed</label>
               <input type="text" name="" id="" class="form-control bodyFont" placeholder="e.g. Golden Retriever"
-                aria-describedby="helpId" />
+                aria-describedby="helpId" v-model="form.breed" />
             </div>
 
             <div class="mb-3 input-group-lg">
               <label for="" class="form-label headingFont fw-bold h5">Weight</label>
-              <input type="number" name="" id="" class="form-control bodyFont" placeholder=""
-                aria-describedby="helpId" />
+              <input type="number" name="" id="" class="form-control bodyFont" placeholder="" aria-describedby="helpId"
+                v-model="form.weight_kg" />
             </div>
+
             <div class="mb-3 input-group-lg">
               <label for="" class="form-label headingFont fw-bold h5">Allergies (Optional)</label>
-              <input type="text" name="" id="" class="form-control bodyFont" placeholder="" aria-describedby="helpId" />
+              <input type="text" name="" id="" class="form-control bodyFont" placeholder="" aria-describedby="helpId"
+                v-model="form.allergies" />
             </div>
           </div>
-          <div class='row container d-flex justify-content-center'>
-            <div class="col-lg-8">
-              <div class="meal-plan container-fluid px-3">
-                <div class="row justify-content-between">
-                  <div class="col-lg-2 col-sm-4">
-                    <h3 class="headingFont fw-bold">Meal Plan</h3>
-                  </div>
-                  <div class="col-lg-3 col-sm-5">
-                    <!-- size: btn-lg -->
-                    <button class="button-recommend bodyFont">
-                      Auto Recommend
-                    </button>
-                  </div>
-                </div>
-              </div>
 
-              <div class="meal-plan-cards container-fluid">
-                <div class="row justify-content-center px-5 py-5 gy-5 gx-4">
-                  <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
-                    <MealPlanCards />
-                  </div>
-                  <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
-                    <MealPlanCards />
-                  </div>
-                  <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
-                    <MealPlanCards />
-                  </div>
-                  <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
-                    <router-link to="/add-meal-plan" custom v-slot="{ href, navigate }">
-                      <button class="icon-btn add-btn shadow" @click="navigate" :href="href">
-                        <div class="add-icon"></div>
-                        <div class="btn-txt">New Plan</div>
-                      </button>
-                    </router-link>
-                  </div>
-                </div>
-              </div>
-              <!-- size: btn-lg -->
-              <button type="button" class="btn btn-lg bg-primary w-100 headingFont text-light fw-bold shadow">
-                Create Pet
-              </button>
+    
+          <!-- size: btn-lg -->
+           <div class="form-actions text-center">
+                <button
+                type="button"
+                @click="resetForm"
+                class="btn btn-secondary"
+                :disabled="petStore.loading"
+                >
+                Reset
+                </button>
+                <button
+                type="submit"
+                class="btn btn-primary"
+                :disabled="petStore.loading || !form.name || !form.kind"
+                >
+                <span v-if="petStore.loading" class="spinner"></span>
+                {{ petStore.loading ? 'Creating...' : 'Add Pet' }}
+                </button>
             </div>
-          </div>
+          <!-- <button type="button" class="btn btn-lg bg-primary h-100 headingFont text-light fw-bold shadow"
+            :disabled="petStore.loading || !form.name || !form.kind">
+            <span v-if="petStore.loading" class="spinner">
+              {{ petStore.loading ? 'Creating Pet...' : 'Add Pet' }}
+            </span>
+          </button> -->
         </div>
+      </div>
+      <div v-if="showSuccess" class='success-msg'>
+        Pet created successfully.
+      </div>
+      <div v-if="petStore.error" class='error-msg'>
+        {{ petStore.error }}
       </div>
     </form>
   </div>
-  <ImageUploadModal v-model:show="showUploadModal" :current-avatar="profile?.avatar_url" @uploaded="handleImageUpload"
-    title="Upload Pet Photo" @error="console.error" />
+  <!-- <ImageUploadModal v-model:show="showUploadModal" :current-avatar="profile?.avatar_url" @uploaded="handleImageUpload"
+    title="Upload Pet Photo" @error="console.error" /> -->
 </template>
 
 <style>
@@ -613,72 +725,6 @@ const openUploadModal = () => {
 }
 
 
-/* Add Pet */
-.button-recommend {
-  position: relative;
-  transition: all 0.3s ease-in-out;
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-  padding-block: 0.5rem;
-  padding-inline: 1.25rem;
-  background-color: rgb(78, 78, 78);
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #ffff;
-  gap: 10px;
-  font-weight: bold;
-  border: 3px solid #ffffff4d;
-  outline: none;
-  overflow: hidden;
-  font-size: 18px;
-}
-
-.button-recommend:hover {
-  transform: scale(1.05);
-  border-color: #fff9;
-}
-
-.button-recommend:hover .icon {
-  transform: translate(4px);
-}
-
-.button-recommend:hover::before {
-  animation: shine 1.5s ease-out infinite;
-}
-
-.button-recommend::before {
-  content: "";
-  position: absolute;
-  width: 100px;
-  height: 100%;
-  background-image: linear-gradient(120deg,
-      rgba(255, 255, 255, 0) 30%,
-      rgba(255, 255, 255, 0.8),
-      rgba(255, 255, 255, 0) 70%);
-  top: 0;
-  left: -100px;
-  opacity: 0.6;
-}
-
-@keyframes shine {
-  0% {
-    left: -100px;
-  }
-
-  60% {
-    left: 100%;
-  }
-
-  to {
-    left: 100%;
-  }
-}
-
-
-
-
 /* From Uiverse.io by mrhyddenn */
 .icon-btn {
   width: 50px;
@@ -776,5 +822,21 @@ const openUploadModal = () => {
   right: 15px;
   height: 4px;
   top: calc(50% - 2px);
+}
+
+.image-preview-container {
+  text-align: center;
+  padding: 1rem;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.preview-image {
+    width: 200px;
+    height: 200px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid #e0e0e0;
 }
 </style>

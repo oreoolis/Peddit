@@ -382,7 +382,6 @@ export const usePetStore = defineStore('pets', () => {
         // Getters
         petCount,
         petsByKind,
-        petImages,
         
         // Actions
         fetchPets,

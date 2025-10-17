@@ -1,12 +1,18 @@
 <script setup>
 import { ref, watch } from 'vue';
-import MealPlanCards from './MealPlanCards.vue';
+import MealPlanCards from './MealPlanCard.vue';
 
 const props = defineProps({
-    show: {
-        type: Boolean,
-        default: false
-    }
+  name: String,
+  gender: String,
+  breed: String,
+  birthday: String,
+  weight: Number,
+  allergies: String,
+  show: {
+    type: Boolean,
+    default: false
+  }
 });
 
 const emit = defineEmits(['update:show', 'uploaded', 'error']);
@@ -39,18 +45,18 @@ const closeModal = () => {
                     <img src="../../assets/ragdoll.jpg" class="img-thumbnail container-fluid rounded-5 px-3 py-3 shadow"
                         alt="...">
                     <div class="pet-info container fw-bold py-5 px-5 mt-4 rounded-5 bg-light shadow">
-                        <h2 class="headingFont fw-semibold m-2">Cat 1</h2>
+                        <h2 class="headingFont fw-semibold m-2">{{ name }}</h2>
                         <div class="row d-flex justify-content-center py-1">
                             <div class="col-lg-6">
                                 <h5 class="headingFont fw-semibold d-inline m-1">Gender:</h5>
                                 <div class="d-inline">
-                                    <p class="bodyFont d-inline">Male</p>
+                                    <p class="bodyFont d-inline">{{gender}}</p>
                                 </div>
                             </div>
                             <div class="col-lg-6">
                                 <h5 class="headingFont fw-semibold d-inline m-1">Birthday:</h5>
                                 <div class="d-inline">
-                                    <p class="bodyFont d-inline">30 October 2002</p>
+                                    <p class="bodyFont d-inline">{{ birthday }}</p>
                                 </div>
                             </div>
                         </div>
@@ -58,13 +64,13 @@ const closeModal = () => {
                             <div class="col-lg-6">
                                 <h5 class="headingFont fw-semibold d-inline m-1">Breed:</h5>
                                 <div class="d-inline">
-                                    <p class="bodyFont d-inline">Clouded</p>
+                                    <p class="bodyFont d-inline">{{breed}}</p>
                                 </div>
                             </div>
                             <div class="col-lg-6">
                                 <h5 class="headingFont fw-semibold d-inline m-1">Weight:</h5>
                                 <div class="d-inline">
-                                    <p class="bodyFont d-inline">11kg</p>
+                                    <p class="bodyFont d-inline">{{weight}}kg</p>
                                 </div>
                             </div>
                         </div>
@@ -72,7 +78,7 @@ const closeModal = () => {
                             <div class="col-lg-6">
                                 <h5 class="headingFont fw-semibold d-inline m-1">Allergies:</h5>
                                 <div class="d-inline">
-                                    <p class="bodyFont d-inline">NIL</p>
+                                    <p class="bodyFont d-inline">{{allergies}}</p>
                                 </div>
                             </div>
                         </div>
