@@ -66,6 +66,7 @@ onMounted(async () => {
   if (props.username) {
     await profileStore.fetchProfile(props.username);
     await petStore.fetchPets(profile.value.id);
+    console.log(petImages.value);
   } else {
     router.push('/');
   }
@@ -151,7 +152,7 @@ watch([user, profile], async ([newUser, newProfile]) => {
           <!-- Pet -->
           <div v-for="pet in pets">
             <h2>{{ pet.name }}</h2>
-            <!-- <img :src=petImages[pet.id] alt=""> -->
+            <img :src="pet.photo_url" alt="">
           </div>
         </div>
       </div>
