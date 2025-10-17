@@ -39,7 +39,7 @@ onMounted(async () =>{
         router.push('/');
     }
 });
-
+const parame = ref('');
 </script>
 
 <template>

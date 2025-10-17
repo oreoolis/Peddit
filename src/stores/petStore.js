@@ -16,6 +16,13 @@ export const usePetStore = defineStore('pets', () => {
     // Getters
     const petCount = computed(() => pets.value.length);
     const petsByKind = computed(() => (kind) => pets.value.filter(pet => pet.kind === kind));
+    // const petImages = computed(() => {
+    //     let data = {};
+    //     for (const pet of pets.value) {
+    //         data[pet.value.id] = getPublicImage('pet-images', pet.value.photo_url)
+    //     }
+    //     return data;
+    // });
 
     // Primary Actions
     const fetchPets = async (userId) => {
@@ -62,6 +69,7 @@ export const usePetStore = defineStore('pets', () => {
                     body_condition_scale: petData.body_condition_scale || null,
                     neutered: petData.neutered || null,
                     photo_url: petData.photo_url || null,
+                    allergies: petData.allergies || null,
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
                 }])
@@ -374,6 +382,7 @@ export const usePetStore = defineStore('pets', () => {
         // Getters
         petCount,
         petsByKind,
+        petImages,
         
         // Actions
         fetchPets,

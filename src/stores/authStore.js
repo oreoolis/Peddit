@@ -97,7 +97,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
-    // WIP: DO NOT USE
+    // Login is Google Provider
     const signInWithOAuth = async (provider = 'google', options = {}) => {
         try {
             loading.value = true;
