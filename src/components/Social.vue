@@ -2,6 +2,11 @@
 import ProfileSearch from "../components/social/ProfileSearch.vue"
 import PostSearch from "../components/social/PostSearch.vue"
 import Button from "../components/atoms/button.vue"
+import { usePostStore } from "@/stores/postStore"
+import { storeToRefs } from "pinia"
+import { useCommentStore } from "@/stores/commentStore"
+import { useUserStore } from "@/stores/userStore"
+import { onMounted, ref } from "vue"
 const props = defineProps({
     foundProfiles:{
         type: Array,
@@ -44,7 +49,6 @@ const props = defineProps({
     }
 }
 )
-
 const postStore = usePostStore();
 const { posts } = storeToRefs(postStore);
 
@@ -58,27 +62,8 @@ const commentsByPostId = ref({});
 
 onMounted(async () => {
     await postStore.fetchPosts();
-    // Pre-load comments for all posts
-    await loadAllComments();
 });
 
-// Load comments for all posts
-const loadAllComments = async () => {
-    if (!posts.value || posts.value.length === 0) return;
-    
-    for (const post of posts.value) {
-        if (post.id) {
-            try {
-                const { data: postComments } = await commentStore.fetchCommentsByPostID(post.id);
-                console.log(postComments);
-                commentsByPostId.value[post.id] = postComments || [];
-            } catch (error) {
-                console.error(`Error loading comments for post ${post.id}:`, error);
-                commentsByPostId.value[post.id] = [];
-            }
-        }
-    }
-};
 
 </script>
 
@@ -122,11 +107,12 @@ const loadAllComments = async () => {
 
     <div class="grid">
       <PostSearch
-        v-for="(post, idx) in props.foundPosts"
-        :key="(post.link ?? idx) + '_post'"
-        :link="post.link"
+        v-for="post in posts"
+        :key="post.id"
+        :link="post.id"
         :title="post.title"
-        :Name="post.Name"
+        :Name="post.profiles.display_name"
+        :Image="post.profiles.avatar_url"
         class=""
       />
     </div>

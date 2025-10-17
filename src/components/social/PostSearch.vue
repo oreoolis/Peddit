@@ -1,8 +1,8 @@
 <script setup>
 const props = defineProps({
     link: {
-        type: Number,
-        default: 0
+        type: String,
+        default: ""
     },
     title: {
         type: String,
@@ -20,11 +20,16 @@ const props = defineProps({
     }
 
 })
+
+const redir = (postId) => {
+    location.href = "/viewpost/" + props.link;
+};
+
 </script>
 
 
 <template>
-    <div class="d-flex align-items-start rounded card btn" onclick="location.href='/viewpost?id={{ link }}'">
+    <div class="d-flex align-items-start rounded card btn" @click="redir">
         <div class="card-body">
             <h2 class="card-title">{{props.title}}</h2>
             <div class="d-flex align-items-start">
