@@ -275,7 +275,7 @@ const petKindTitle = computed(() => {
 
 const healthPercentage = computed(() => {
   // Convert body condition scale (1-9) to percentage
-  if (!props.pet.body_condition_scale) return 75; // Default if not set
+  if (!props.pet.body_condition_scale) return 30; // Default if not set
   
   const scale = props.pet.body_condition_scale;
   
