@@ -98,7 +98,7 @@ const router = createRouter({
       component: () => import('@/views/AddMealPlan.vue'),
     },
      {
-      path: '/components',
+      path: '/temp',
       name: 'components',
       component: () => import('@/views/Components.vue'),
     }   

@@ -1,41 +1,61 @@
-/* COLORS */
+/* === Peddit theme tokens (Bootstrap 5.3 CSS vars) === */
+:root{
+  --bs-primary: #247BA0;
+  --bs-primary-rgb: 36, 123, 160;
+  --bs-success: #3EDA60;
+  --bs-success-rgb: 62, 218, 96;
+  --bs-danger: #DA3E52;
+  --bs-danger-rgb: 218, 62, 82;
+  --bs-body-bg: #FFFFFF;  /* app background; keep white for readability in chat */
+  --bs-body-color: #141414;
+  --bs-primary-light: #247ba073;
+  --bs-white: #EBEBEB;
+  --bs-black: #141414;
+  --bs-grey: #50514F;
+
+  /* Peddit custom tokens */
+  --peddit-radius: 16px;
+  --peddit-shadow: 0 12px 30px rgba(0,0,0,.12);
+}
+
+
 
 .primary{
-  color: #247BA0 !important;
+  color: var(--bs-primary)!important;
 }
 
 .bg-primary{
-  background-color: #247BA0 !important;
+  background-color: var(--bs-primary) !important;
 }
 
 .primary-light{
-  color: #247ba073 !important;
+  color: var(--bs-primary-light)!important;
 }
 .bg-primary-light{
-  background-color: #247ba073  !important;
+  background-color: var(--bs-primary-light)  !important;
 
 }
 
-.warning{
-  color: #DA3E52 !important;
+.danger{
+  color: var(--bs-danger) !important;
 }
-.bg-warning{
-  background-color: #DA3E52 !important;
+.bg-danger{
+  background-color: var(--bs-danger) !important;
 }
 
 .success{
-  color: #3EDA60 !important;
+  color: var(--bs-success) !important;
 }
 .bg-success{
-  background-color: #3EDA60 !important;
+  background-color: var(--bs-success) !important;
 }
 
 .white{
-  color: #EBEBEB !important;
+  color: var(--bs-white) !important;
 }
 
 .bg-white{
-  background-color: #EBEBEB !important;
+  background-color: var(--bs-white) !important;
 }
 
 .black{
@@ -71,21 +91,7 @@
 }
 
 
-/* === Peddit theme tokens (Bootstrap 5.3 CSS vars) === */
-:root{
-  --bs-primary: #247BA0;
-  --bs-primary-rgb: 36, 123, 160;
-  --bs-success: #3EDA60;
-  --bs-success-rgb: 62, 218, 96;
-  --bs-danger: #DA3E52;
-  --bs-danger-rgb: 218, 62, 82;
-  --bs-body-bg: #FFFFFF;  /* app background; keep white for readability in chat */
-  --bs-body-color: #141414;
 
-  /* Peddit custom tokens */
-  --peddit-radius: 16px;
-  --peddit-shadow: 0 12px 30px rgba(0,0,0,.12);
-}
 
 /* Rounded, friendly look across the app */
 .card, .btn, .form-control, .alert, .badge { border-radius: var(--peddit-radius) !important; }
@@ -97,6 +103,144 @@
 }
 .btn-primary:hover {
   filter: brightness(1.05);
+}
+
+/* Solid variants for all colors */
+.btn-secondary,
+.btn-secondary:focus,
+.btn-secondary:hover { /* uses grey as secondary */
+  background-color: var(--bs-grey) !important;
+  border-color: var(--bs-grey) !important;
+  color: var(--bs-white) !important;
+}
+.btn-success {
+  background-color: var(--bs-success) !important;
+  border-color: var(--bs-success) !important;
+  color: var(--bs-white) !important;
+}
+.btn-danger {
+  background-color: var(--bs-danger) !important;
+  border-color: var(--bs-danger) !important;
+  color: var(--bs-white) !important;
+}
+.btn-primary-light {
+  background-color: var(--bs-primary-light) !important;
+  border-color: var(--bs-primary-light) !important;
+  color: var(--bs-black) !important;
+}
+.btn-white {
+  background-color: var(--bs-white) !important;
+  border-color: var(--bs-white) !important;
+  color: var(--bs-black) !important;
+}
+.btn-black {
+  background-color: var(--bs-black) !important;
+  border-color: var(--bs-black) !important;
+  color: var(--bs-white) !important;
+}
+.btn-grey {
+  background-color: #50514F !important;
+  border-color: #50514F !important;
+  color: var(--bs-white) !important;
+}
+
+/* hover/active micro-interactions shared */
+.btn-secondary:hover,
+.btn-success:hover,
+.btn-danger:hover,
+.btn-primary-light:hover,
+.btn-white:hover,
+.btn-black:hover,
+.btn-grey:hover {
+  filter: brightness(1.05);
+}
+.btn-secondary:active,
+.btn-success:active,
+.btn-danger:active,
+.btn-primary-light:active,
+.btn-white:active,
+.btn-black:active,
+.btn-grey:active {
+  filter: brightness(0.95);
+}
+
+/* Outline variants */
+.btn-outline-primary {
+  background-color: transparent !important;
+  color: var(--bs-primary) !important;
+  border: 1px solid var(--bs-primary) !important;
+}
+.btn-outline-secondary {
+  background-color: transparent !important;
+  color: var(--bs-grey) !important;
+  border: 1px solid var(--bs-grey) !important;
+}
+.btn-outline-success {
+  background-color: transparent !important;
+  color: var(--bs-success) !important;
+  border: 1px solid var(--bs-success) !important;
+}
+.btn-outline-danger {
+  background-color: transparent !important;
+  color: var(--bs-danger) !important;
+  border: 1px solid var(--bs-danger) !important;
+}
+.btn-outline-primary-light {
+  background-color: transparent !important;
+  color: var(--bs-primary-light) !important;
+  border: 1px solid var(--bs-primary-light) !important;
+}
+.btn-outline-white {
+  background-color: transparent !important;
+  color: var(--bs-white) !important;
+  border: 1px solid var(--bs-white) !important;
+}
+.btn-outline-black {
+  background-color: transparent !important;
+  color: var(--bs-black) !important;
+  border: 1px solid var(--bs-black) !important;
+}
+.btn-outline-grey {
+  background-color: transparent !important;
+  color: #50514F !important;
+  border: 1px solid #50514F !important;
+}
+
+/* Outline hover fills lightly for affordance */
+.btn-outline-primary:hover,
+.btn-outline-secondary:hover,
+.btn-outline-success:hover,
+.btn-outline-danger:hover,
+.btn-outline-primary-light:hover,
+.btn-outline-white:hover,
+.btn-outline-black:hover,
+.btn-outline-grey:hover {
+  background: color-mix(in srgb, currentColor 10%, white) !important;
+  filter: none;
+}
+
+/* Focus ring (subtle, using primary) */
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.18);
+}
+
+/* keep rounded look for all new btns */
+.btn-secondary,
+.btn-outline-secondary,
+.btn-success,
+.btn-outline-success,
+.btn-danger,
+.btn-outline-danger,
+.btn-primary-light,
+.btn-outline-primary-light,
+.btn-white,
+.btn-outline-white,
+.btn-black,
+.btn-outline-black,
+.btn-grey,
+.btn-outline-grey {
+  border-radius: var(--peddit-radius) !important;
 }
 
 /* Optional: brand header/footer bars */

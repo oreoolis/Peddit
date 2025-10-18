@@ -6,22 +6,41 @@ export default {
         type: String,
         default: 'Click Me'
         },
-        type: {
-        type: String,
-        default: 'button'
-        }
+        outline: {
+        type: Boolean,
+        default: false,
+        },
+        color:{
+          type: String,
+          default: 'primary', // this can be primary, secondary, success, danger, warning, info, light, dark
+        },
     },
     emits: ['click'],
     methods: {
         handleClick(event) {
         this.$emit('click', event);
         }
+    },
+    computed:{
+      buttonClasses(){
+        const classes = ['app-button'];
+        if(this.outline) {
+          classes.push(`btn-outline-${this.color}`);
+          classes.push('btn');
+          return classes.join(' ');
+        } else {
+          classes.push(`btn-${this.color}`);
+          classes.push('btn');
+          return classes.join(' ');
+        }
+      }
     }
 }
 </script>
 
 <template>
-<button :type="type" class="app-button" @click="handleClick" aria-label="button">
+<button :type="type" :class="buttonClasses" @click="handleClick" aria-label="button">
+  <slot width="16px" height="16px"></slot>
   <span class="button-content">
     {{ label }}
   </span>
@@ -31,42 +50,27 @@ export default {
 <style scoped>
 
 button.app-button {
-    border: none;
-    background: linear-gradient(180deg, #2b9bb3 0%, #1f7286 100%);
-    border-radius: 0.9em;
-    cursor: pointer;
-    padding: 0.8em 1.2em;
-    transition: transform 160ms ease, box-shadow 180ms ease, background 120ms ease;
     font-size: 16px;
-    box-shadow:
-      0 10px 30px rgba(10,20,40,0.12),    /* large soft shadow */
-      0 4px 10px rgba(10,20,40,0.08),     /* mid shadow */
+    box-shadow: 
       inset 0 1px 0 rgba(255,255,255,0.12);/* subtle inner sheen */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    -webkit-tap-highlight-color: transparent;
 }
 
 button.app-button .button-content {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  color: #FFFFFF;
   font-weight: 700;
   letter-spacing: 0.2px;
 }
 
 /* Hover / focus */
 button.app-button:hover {
-    transform: translateY(-3px);
     box-shadow:
       0 18px 44px rgba(10,20,40,0.14),
       0 6px 16px rgba(10,20,40,0.10),
       inset 0 1px 0 rgba(255,255,255,0.14);
 }
 button.app-button:focus {
-    outline: none;
     box-shadow:
       0 18px 44px rgba(10,20,40,0.18),
       0 6px 16px rgba(10,20,40,0.12),
@@ -77,9 +81,9 @@ button.app-button:focus {
 button.app-button:active {
     transform: translateY(0);
     box-shadow:
-      0 6px 18px rgba(10,20,40,0.10),
-      inset 0 2px 6px rgba(0,0,0,0.08);
-    background: linear-gradient(180deg, #1f7286 0%, #196173 100%);
+      0px 4px 4px rgba(0, 0, 0, 0.25) inset;
+    background-color:  #196173;
+    color: #EBEBEB
 }
 
 /* Disabled */
@@ -89,5 +93,6 @@ button.app-button:disabled {
     transform: none;
     box-shadow: none;
 }
+
 
 </style>
