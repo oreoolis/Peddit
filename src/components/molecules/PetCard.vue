@@ -2,19 +2,42 @@
 import PetInfoModal from '@/components/PetViewComponents/PetInfoModal.vue';
 import { ref, defineProps } from 'vue';
 import Button from '../atoms/button.vue';
-const props = defineProps(['name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'])
-// TODO: calculation for status, not sure what we can do for this
-const status = "Good";
+const props = defineProps(['name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url','score'])
+// TODO: calculation for score, not sure what we can do for this
+
+// this will denote the emoji shown
+const score = 75; // out of 100, for progress bar
+// convert score to percentage for progress bar
 const showPetInfo = ref(false);
 const openPetInfo = () => {
     showPetInfo.value = true;
 }
+const StatusDetails = computed(() =>{
+    if (score > 55){
+        return {
+            icon: 'bi-emoji-laughing-fill',
+            colorClass: 'success',
+        };
 
+    }
+    else if (score >= 25 && score <= 55){
+        return {
+            icon: 'bi-emoji-neutral-fill',
+            colorClass: 'warning',
+        };
+    }
+    else{
+        return {
+            icon: 'bi-emoji-frown-fill',
+            colorClass: 'danger',
+        };
+    }
+});
 </script>
 <template>
     <div class="pet-card card overflow-hidden shadow p-3 mb-5 bg-body-tertiary rounded-4 h-100 d-flex flex-column position-relative
     w-100">
-        <div class="card-header text-center bg-transparent border-0">
+        <div class="card-header p-0 text-center bg-transparent border-0">
             <div class="row d-fill justify-content-between">
                 <div class="col-9 my-auto ">
                     <h4 class="bodyFont fw-bold text-start">{{ name }}</h4>
@@ -55,13 +78,15 @@ const openPetInfo = () => {
         <div class="card-body d-flex flex-column ">
             <div class="card-text py-1">
                 <section class="pet-info headingFont ">
-                    <h4 class="fw-bold d-flex">Status: <i class="bi bi-emoji-laughing-fill success mx-2"></i></h4>
+                    <h4 class="fw-bold d-flex">Status: 
+                        <i :class="['bi', StatusDetails.icon, StatusDetails.colorClass, 'mx-2']"></i>
+                    </h4>
                     <div class="d-fill">
                         <div class="d-flex align-items-center gap-2">
                             <h4 class="mb-0 fw-bold">Score:</h4>
                             <div class="flex-grow-1">
                                 <div class="progress w-100" role="progressbar" aria-label="Score" aria-valuemin="0" aria-valuemax="100">
-                                    <div class="progress-bar bg-success" style="width: 75%" aria-valuenow="75"></div>
+                                    <div :class="['progress-bar', StatusDetails.colorClass]" v-bind:style="{width : score+'%'}" v-bind:aria-valuenow="score"></div>
                                 </div>
                             </div>
                         </div>

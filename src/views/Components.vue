@@ -48,8 +48,8 @@ import PetCard from "@/components/molecules/PetCard.vue";
      <!-- SEARCH BAR -->
 <searchBar></searchBar>
 
-     <!-- PET PROFILE CARD -->
-    <!-- petName,petBreed,petImage -->
+     <!-- PET CARD -->
+<PetCard></PetCard>>
 
 
 </template>
