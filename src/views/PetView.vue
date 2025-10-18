@@ -1,7 +1,7 @@
 <script setup>
 import ItemsChecklist from '@/components/PetViewComponents/ItemsChecklist.vue';
 import MealPlanCards from '@/components/PetViewComponents/MealPlanCard.vue';
-import PetCards from '@/components/PetViewComponents/PetCard.vue';
+import PetCards from '@/components/molecules/PetCard.vue';
 import { RouterLink } from 'vue-router';
 import { ref, watch } from 'vue';
 import ShoppingListModal from '@/components/PetViewComponents/ShoppingListModal.vue';
