@@ -47,9 +47,54 @@ onMounted(async () => {
     await petStore.fetchPets(userId.value);
   }
 });
+
+import { ref } from 'vue'
+import { usePetInfoApi } from '@/composables/usePetInfoApi';
+
+// Reactive state for the selected pet kind
+const selectedPetKind = ref('cat')
+
+// Use our composable. It will automatically re-fetch when `selectedPetKind` changes.
+const { breedNames, error, isFetching } = usePetInfoApi(selectedPetKind)
+
 </script>
 
 <template>
+  <div>
+    <h1>Pet Breed Selector</h1>
+
+    <!-- 1. Pet Kind Selector -->
+    <div>
+      <label for="pet-kind">Choose a pet kind:</label>
+      <select id="pet-kind" v-model="selectedPetKind">
+        <option value="cat">Cat</option>
+        <option value="dog">Dog</option>
+      </select>
+    </div>
+
+    <hr />
+
+    <!-- 2. Display Loading State -->
+    <div v-if="isFetching">
+      <p>Loading breeds...</p>
+    </div>
+
+    <!-- 3. Display Error State -->
+    <div v-else-if="error">
+      <p style="color: red;">Error: {{ error.message }}</p>
+    </div>
+
+    <!-- 4. Display the List of Breeds -->
+    <div v-else-if="breedNames">
+      <h2>List of {{ selectedPetKind.charAt(0).toUpperCase() + selectedPetKind.slice(1) }} Breeds</h2>
+      <ul>
+        <li v-for="name in breedNames" :key="name">
+          {{ name }}
+        </li>
+      </ul>
+    </div>
+  </div>
+
   <div class="health-dashboard">
     <div class="container py-4">
       <!-- Header Section -->
