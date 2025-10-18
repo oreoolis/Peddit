@@ -2,6 +2,7 @@
 import ProfileSearch from "../components/social/ProfileSearch.vue"
 import PostSearch from "../components/social/PostSearch.vue"
 import Button from "../components/atoms/button.vue"
+import searchBar from "./atoms/searchBar.vue"
 import { usePostStore } from "@/stores/postStore"
 import { storeToRefs } from "pinia"
 import { useCommentStore } from "@/stores/commentStore"
@@ -69,21 +70,12 @@ onMounted(async () => {
 
 
 <template>
-<div class="input-group w-75 mx-auto py-1 bodyFont rounded-pill my-3" style="box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-    <button class="input-group-text bg-transparent border-0 ps-3 pe-0">
-        <img src="../assets/Sprite/HomeIcons/Search.png" alt="Search Icon" style="width: 16px; height: 16px;">
-    </button>
-    <input 
-        type="text" 
-        class="form-control bg-transparent border-0" 
-        placeholder="Search" 
-        aria-label="Search"
-    >
-</div>
+  <!-- search bar -->
+   <searchBar class="w-75"></searchBar>
   <section class="section w-75 mx-auto">
     <header class="section-header">
       <div class="badge mx-2">Profiles</div>
-      <h2 class="section-title">Discover people</h2>
+      <h1 class="section-title pb-2">Discover people</h1>
     </header>
 
     <div class="grid">
@@ -129,7 +121,8 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 0.75rem;
+  margin-bottom: 2rem;
+
 }
 .badge {
   background: linear-gradient(135deg,#ffdca3,#ffb86b);
@@ -150,7 +143,6 @@ onMounted(async () => {
 /* Title styling */
 .section-title {
   margin: 0;
-  font-size: 1.25rem;
   font-weight: 800;
   color: #112;
   text-shadow: 0 1px 0 rgba(255,255,255,0.6);
@@ -161,6 +153,8 @@ onMounted(async () => {
   display: grid;
   gap: 5px;
 }
+
+
 
 
 </style>

@@ -3,22 +3,23 @@ import PetInfoModal from '@/components/PetViewComponents/PetInfoModal.vue';
 import { ref, defineProps } from 'vue';
 
 const props = defineProps(['name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'])
-
+// calculation for status, not sure what we can do for this
+const status = "Good";
 const showPetInfo = ref(false);
 const openPetInfo = () => {
     showPetInfo.value = true;
 }
-
+console.log(props.gender);
 </script>
 <template>
     <div class="pet-card card overflow-hidden shadow p-3 mb-5 bg-body-tertiary rounded-4"
         style="width: 40rem; height: 40rem; ">
-        <div class="card-header text-center">
+        <div class="card-header text-center bg-transparent border-0">
             <div class="row d-flex justify-content-between">
                 <div class="col-lg-6">
-                    <h2 class="bodyFont fw-bold">{{ name }}</h2>
+                    <h2 class="bodyFont fw-bold text-start">{{ name }}</h2>
                 </div>
-                <div class="col-lg-6">
+                <div class="col-lg-6 text-end">
                     <!-- <<h2 class="bodyFont fw-bold">{{gender}}</h2>> -->
                     <div v-if="gender == 'male'">
                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" fill="blue"
@@ -34,25 +35,39 @@ const openPetInfo = () => {
                                 d="M8 1a4 4 0 1 0 0 8 4 4 0 0 0 0-8M3 5a5 5 0 1 1 5.5 4.975V12h2a.5.5 0 0 1 0 1h-2v2.5a.5.5 0 0 1-1 0V13h-2a.5.5 0 0 1 0-1h2V9.975A5 5 0 0 1 3 5" />
                         </svg>
                     </div>
+                    <div v-if="gender == 'unknown'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 64 64" 
+                            fill="purple">
+                            <g fill-rule="evenodd">
+                            <path d="M30.2 2.1Q12.8 3.3 12 21.3h11.7c.1-4.1 2.5-7.2 6.7-7.7s8.2.6 9.4 3.4c1.3 3.1-1.6 6.7-3 8.2-2.6 2.8-6.8 4.9-8.9 7.9s-2.5 6.9-2.7 11.7h10.3c.1-3.1.3-6 1.7-7.9 2.3-3.1 5.7-4.5 8.5-7 2.7-2.3 5.6-5.1 6-9.5 1.6-12.9-9-19.1-21.5-18.3" />
+                            <ellipse cx="30.515" cy="55.567" rx="6.532" ry="6.433"/></g></svg>
+                    </div>
                 </div>
             </div>
         </div>
         <img :src="photo_url" style="height: 60%; object-fit:cover;"
-            class="card-img-top rounded-5 px-3 py-3" alt="...">
+            class="card-img-top rounded-5 px-3 py-1" alt="...">
         <div class="card-body">
-            <div class="card-text py-3">
+            <div class="card-text py-1">
                 <section class="pet-info headingFont">
-                    <h5 class="fw-bold">Status: Good</h5>
-                    <h5 class="mb-0 d-inline-block fw-bold">Score:</h5>
-                    <div class="d-inline-block">
-                        <div class="progress ms-2" role="progressbar" aria-label="Success example" aria-valuenow="25"
-                            aria-valuemin="0" aria-valuemax="100" style="width: 150px;">
-                            <div class="progress-bar bg-success" style="width: 75%"></div>
+                    <h3 class="fw-bold d-flex">Status: Good</h3>
+                    <div class="d-fill">
+                    <!-- make label + bar a single flex row so the bar can grow to 100% of the parent -->
+                    <div class="d-flex align-items-center gap-2">
+                        <h3 class="mb-0 fw-bold">Score:</h3>
+                        <div class="flex-grow-1">
+                            <!-- progress uses w-100 to fill the flex container -->
+                            <div class="progress w-100" role="progressbar" aria-label="Score" aria-valuemin="0" aria-valuemax="100">
+                                <!-- you can bind the width to a reactive value or prop (example uses inline 75%) -->
+                                <div class="progress-bar bg-success" style="width: 75%" aria-valuenow="75"></div>
+                            </div>
                         </div>
                     </div>
-                    <h5 class="fw-bold">Meal:
+                    </div>
+ 
+                    <h3 class="fw-bold">Meal:
                         <p class="meal-tooltip bodyFont">Salmon</p>
-                    </h5>
+                    </h3>
                 </section>
             </div>
             <div class="summary-container container-fluid position-absolute bottom-0 start-0 end-0 px-3 py-3 bg-primary"

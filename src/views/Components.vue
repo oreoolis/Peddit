@@ -1,5 +1,9 @@
 <script setup>
 import Button from "../components/atoms/button.vue"
+import searchBar from "@/components/atoms/searchBar.vue";
+import PetProfileCard from "@/components/molecules/PetProfileCard.vue";
+import PetCard from "@/components/molecules/PetCard.vue";
+
 </script>
 <template>
     <!-- BUTTONS! -->
@@ -40,6 +44,16 @@ import Button from "../components/atoms/button.vue"
             </Button>
         </div>        
      </div>
+
+     <!-- SEARCH BAR -->
+<searchBar></searchBar>
+
+     <!-- PET PROFILE CARD -->
+    <!-- petName,petBreed,petImage -->
+<PetProfileCard></PetProfileCard>
+    <!-- Pet Card-->
+    <!-- ['name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'] -->
+<PetCard></PetCard>
 
 
 </template>
