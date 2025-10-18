@@ -1,25 +1,25 @@
 <script setup>
 import PetInfoModal from '@/components/PetViewComponents/PetInfoModal.vue';
 import { ref, defineProps } from 'vue';
-
+import Button from '../atoms/button.vue';
 const props = defineProps(['name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'])
-// calculation for status, not sure what we can do for this
+// TODO: calculation for status, not sure what we can do for this
 const status = "Good";
 const showPetInfo = ref(false);
 const openPetInfo = () => {
     showPetInfo.value = true;
 }
-console.log(props.gender);
+
 </script>
 <template>
-    <div class="pet-card card overflow-hidden shadow p-3 mb-5 bg-body-tertiary rounded-4"
-        style="width: 40rem; height: 40rem; ">
+    <div class="pet-card card overflow-hidden shadow p-3 mb-5 bg-body-tertiary rounded-4 h-100 d-flex flex-column position-relative
+    w-100">
         <div class="card-header text-center bg-transparent border-0">
-            <div class="row d-flex justify-content-between">
-                <div class="col-lg-6">
-                    <h2 class="bodyFont fw-bold text-start">{{ name }}</h2>
+            <div class="row d-fill justify-content-between">
+                <div class="col-9 my-auto ">
+                    <h4 class="bodyFont fw-bold text-start">{{ name }}</h4>
                 </div>
-                <div class="col-lg-6 text-end">
+                <div class="col-3  text-end">
                     <!-- <<h2 class="bodyFont fw-bold">{{gender}}</h2>> -->
                     <div v-if="gender == 'male'">
                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" fill="blue"
@@ -45,38 +45,39 @@ console.log(props.gender);
                 </div>
             </div>
         </div>
-        <img :src="photo_url" style="height: 60%; object-fit:cover;"
-            class="card-img-top rounded-5 px-3 py-1" alt="...">
-        <div class="card-body">
+         <div class="ratio mb-3" style="--bs-aspect-ratio: 75%;">
+            <img :src="photo_url" class="w-100 h-100 rounded-5 object-fit-cover" alt="pet photo">
+        </div>
+        <div class="ratio mb-3 image-area">
+            <img :src="photo_url" class="w-100 h-100 rounded-5 object-fit-cover" alt="pet photo">
+        </div>
+
+        <div class="card-body d-flex flex-column ">
             <div class="card-text py-1">
-                <section class="pet-info headingFont">
-                    <h3 class="fw-bold d-flex">Status: Good</h3>
+                <section class="pet-info headingFont ">
+                    <h4 class="fw-bold d-flex">Status: <i class="bi bi-emoji-laughing-fill success mx-2"></i></h4>
                     <div class="d-fill">
-                    <!-- make label + bar a single flex row so the bar can grow to 100% of the parent -->
-                    <div class="d-flex align-items-center gap-2">
-                        <h3 class="mb-0 fw-bold">Score:</h3>
-                        <div class="flex-grow-1">
-                            <!-- progress uses w-100 to fill the flex container -->
-                            <div class="progress w-100" role="progressbar" aria-label="Score" aria-valuemin="0" aria-valuemax="100">
-                                <!-- you can bind the width to a reactive value or prop (example uses inline 75%) -->
-                                <div class="progress-bar bg-success" style="width: 75%" aria-valuenow="75"></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <h4 class="mb-0 fw-bold">Score:</h4>
+                            <div class="flex-grow-1">
+                                <div class="progress w-100" role="progressbar" aria-label="Score" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar bg-success" style="width: 75%" aria-valuenow="75"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    </div>
- 
-                    <h3 class="fw-bold">Meal:
-                        <p class="meal-tooltip bodyFont">Salmon</p>
-                    </h3>
+                    <h4 class="fw-bold d-flex align-items-center">Curent Diet:
+                        <Button class="h-75 mx-1" label="Salmon"></Button>
+                    </h4>
                 </section>
             </div>
-            <div class="summary-container container-fluid position-absolute bottom-0 start-0 end-0 px-3 py-3 bg-primary"
+            <div class="summary-container container-fluid position-absolute bottom-0 end-0 px-3 py-3 bg-primary"
                 @click="openPetInfo">
                 <div class="text-center text-light fw-bold h5 bodyFont">
                     Summary
                 </div>
             </div>
-        </div>
+        </div>       
     </div>
     <!-- to pass in props here -->
     <PetInfoModal v-model:show="showPetInfo"
@@ -100,6 +101,7 @@ console.log(props.gender);
     /* Zooms in the card by 5% */
     box-shadow: 0 8px 16px rgba(75, 75, 75, 0.2);
     /* Adds a subtle shadow */
+    z-index: 1;
 }
 
 .pet-info {
@@ -128,7 +130,6 @@ console.log(props.gender);
     height: 100%;
     background-color: #3dacd84f;
     opacity: 0;
-    border-radius: 8px;
     transform: scale(0);
     transition: all 0.4s;
     z-index: 0;

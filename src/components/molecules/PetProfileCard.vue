@@ -16,7 +16,7 @@
 </script>
 
 <template>
-    <div class="text-center w-100 pt-2 rounded profile-card">
+    <div class="text-center w-100 pt-2 rounded profile-card card">
         <!-- Circular Pet Image -->
         <div class="mt-2 d-inline">
             <h5 class="pet-name headingFont">{{ petName }} <img src="../assets/Sprite/GenderIcon/FemaleIcon.png" alt=""></h5>

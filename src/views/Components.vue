@@ -50,10 +50,6 @@ import PetCard from "@/components/molecules/PetCard.vue";
 
      <!-- PET PROFILE CARD -->
     <!-- petName,petBreed,petImage -->
-<PetProfileCard></PetProfileCard>
-    <!-- Pet Card-->
-    <!-- ['name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'] -->
-<PetCard></PetCard>
 
 
 </template>
