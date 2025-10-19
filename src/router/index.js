@@ -100,7 +100,7 @@ const router = createRouter({
      {
       path: '/temp',
       name: 'components',
-      component: () => import('@/views/ComponentsBern.vue'),
+      component: () => import('@/views/Components.vue'),
     }   
 
 
