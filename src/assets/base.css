@@ -258,3 +258,23 @@
 .headingFont { font-family: "Roboto", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
 .bodyFont    { font-family: "Quicksand", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
 .brandFont   { font-family: "Titan One", cursive; }
+
+
+/*  scrollbar styling */
+::-webkit-scrollbar {
+  width: 25px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.3);
+  border-end-end-radius: 8px;
+  border-top-right-radius: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(var(--bs-primary-rgb),0.88), rgba(var(--bs-primary-rgb),0.48));
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(var(--bs-primary-rgb)), rgba(var(--bs-primary-rgb),0.9));
+}

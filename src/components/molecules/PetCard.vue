@@ -1,5 +1,5 @@
 <script setup>
-import PetInfoModal from '@/components/PetViewComponents/PetInfoModal.vue';
+import PetInfoModal from '@/components/Organisms/PetInfoModal.vue';
 import { ref, defineProps, computed } from 'vue';
 import Button from '../atoms/button.vue';
 const props = defineProps(['name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'])
@@ -86,7 +86,7 @@ const StatusDetails = computed(() =>{
                             <h4 class="mb-0 fw-bold">Score:</h4>
                             <div class="flex-grow-1">
                                 <div class="progress w-100" role="progressbar" aria-label="Score" aria-valuemin="0" aria-valuemax="100">
-                                    <div :class="['progress-bar', StatusDetails.colorClass]" v-bind:style="{width : score+'%'}" v-bind:aria-valuenow="score"></div>
+                                    <div :class="['progress-bar', 'bg-'+ StatusDetails.colorClass]" v-bind:style="{width : score+'%'}" v-bind:aria-valuenow="score"></div>
                                 </div>
                             </div>
                         </div>

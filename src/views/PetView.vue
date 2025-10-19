@@ -114,9 +114,9 @@ const openPetInfo = () => {
                         </div>
                         <div class="text-end px-1 py-1">
                             <!-- size: none -->
-                            <button class="button-edit-list fw-bold bodyFont" @click="openShoppingList">
-                                + Edit
-                            </button>
+                            <Button label="+ Edit" color="primary" class="button-edit-list fw-bold bodyFont" @click="openShoppingList">
+                                
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -159,82 +159,8 @@ const openPetInfo = () => {
 </template>
 
 <style>
-/* Add Pet */
 
 
-
-@keyframes shine {
-    0% {
-        left: -100px;
-    }
-
-    60% {
-        left: 100%;
-    }
-
-    to {
-        left: 100%;
-    }
-}
-
-/* Edit Shopping List */
-.button-edit-list {
-    transition: all 0.3s ease-in-out;
-    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-    padding-block: 0.5rem;
-    padding-inline: 1.25rem;
-    background-color: #3eda5f;
-    border-radius: 9999px;
-    cursor: pointer;
-    color: #ffff;
-    gap: 10px;
-    font-weight: bold;
-    border: 3px solid #ffffff4d;
-    outline: none;
-    overflow: hidden;
-    font-size: 18px;
-}
-
-.button-edit-list:hover {
-    transform: scale(1.05);
-    border-color: #fff9;
-}
-
-.button-edit-list:hover .icon {
-    transform: translate(4px);
-}
-
-.button-edit-list:hover::before {
-    animation: shine 1.5s ease-out infinite;
-}
-
-.button-edit-list::before {
-    content: "";
-    position: absolute;
-    width: 100px;
-    height: 100%;
-    background-image: linear-gradient(120deg,
-            rgba(255, 255, 255, 0) 30%,
-            rgba(255, 255, 255, 0.8),
-            rgba(255, 255, 255, 0) 70%);
-    top: 0;
-    left: -100px;
-    opacity: 0.6;
-}
-
-@keyframes shine {
-    0% {
-        left: -100px;
-    }
-
-    60% {
-        left: 100%;
-    }
-
-    to {
-        left: 100%;
-    }
-}
 
 
 /* Add Meal Plan */
