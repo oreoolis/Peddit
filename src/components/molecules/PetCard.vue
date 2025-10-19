@@ -1,5 +1,5 @@
 <script setup>
-import PetInfoModal from '@/components/PetViewComponents/PetInfoModal.vue';
+import PetInfoModal from '@/components/Organisms/PetInfoModal.vue';
 import { ref, defineProps, computed } from 'vue';
 import Button from '../atoms/button.vue';
 const props = defineProps(['name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'])

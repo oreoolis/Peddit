@@ -3,6 +3,7 @@ import Button from "../components/atoms/button.vue"
 import searchBar from "@/components/atoms/searchBar.vue";
 import PetProfileCard from "@/components/molecules/PetProfileCard.vue";
 import PetCard from "@/components/molecules/PetCard.vue";
+import buttonTogglable from "@/components/atoms/buttonTogglable.vue";
 
 </script>
 <template>
@@ -49,7 +50,7 @@ import PetCard from "@/components/molecules/PetCard.vue";
 <searchBar></searchBar>
 
      <!-- PET CARD -->
-<PetCard></PetCard>>
 
+<buttonTogglable></buttonTogglable>
 
 </template>

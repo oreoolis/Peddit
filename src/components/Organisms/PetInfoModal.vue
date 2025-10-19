@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue';
-import MealPlanCards from './MealPlanCard.vue';
+import MealPlanCards from '../PetViewComponents/MealPlanCard.vue';
 import Button from '../atoms/button.vue';
 import PetInfoCard from '../molecules/PetInfoCard.vue';
 
