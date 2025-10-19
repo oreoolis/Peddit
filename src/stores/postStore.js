@@ -1,7 +1,10 @@
 // stores/postStore.js
+import { useStorage } from '@/composables/useStorage';
 import { supabase } from '@/lib/supabaseClient';
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+
+const { getPublicImage } = useStorage();
 
 export const usePostStore = defineStore('posts', () => {
     // State
@@ -58,17 +61,24 @@ export const usePostStore = defineStore('posts', () => {
 
             const { data, error: supabaseError } = await query;
 
+            const transformedPosts = data.map(post => {
+                if (post.profiles?.avatar_url) {
+                    post.profiles.avatar_url = getPublicImage('avatars', post.profiles.avatar_url);
+                }
+                return post;
+            });
+
             if (supabaseError) throw supabaseError;
 
             if (loadMore) {
-                posts.value = [...posts.value, ...data];
+                posts.value = [...posts.value, ...transformedPosts];
             } else {
-                posts.value = data || [];
+                posts.value = transformedPosts || [];
             }
 
             hasMore.value = data.length === PAGE_SIZE;
 
-            return { success: true, data };
+            return { success: true, transformedPosts };
 
         } catch (err) {
             error.value = err.message;
@@ -84,28 +94,25 @@ export const usePostStore = defineStore('posts', () => {
             loading.value = true;
             error.value = null;
 
-            // const { data, error: supabaseError } = await supabase
-            //     .from('posts')
-            //     .select(`
-            //         *,
-            //         profiles:author_id (
-            //             username,
-            //             display_name,
-            //             avatar_url
-            //         ),
-            //         post_media (*),
-            //         comments:comments_count(*)
-            //     `)
-            //     .eq('id', postId)
-            //     .single();
-
             const { data, error: supabaseError } = await supabase
                 .from('posts')
-                .select(`*`)
+                .select(`
+                    *,
+                    profiles:author_id (
+                        username,
+                        display_name,
+                        avatar_url
+                    ),
+                    post_media (*)
+                `)
                 .eq('id', postId)
                 .single();
 
             if (supabaseError) throw supabaseError;
+
+            if (data.profiles?.avatar_url) {
+                data.profiles.avatar_url = getPublicImage('avatars', data.profiles.avatar_url);
+            }
 
             currentPost.value = data;
             return { success: true, data };
@@ -150,6 +157,10 @@ export const usePostStore = defineStore('posts', () => {
                 .single();
 
             if (supabaseError) throw supabaseError;
+
+            if (data.profiles?.avatar_url) {
+                data.profiles.avatar_url = getPublicImage('avatars', data.profiles.avatar_url);
+            }
 
             // Add to local state (at beginning for newest first)
             posts.value.unshift(data);
@@ -197,6 +208,10 @@ export const usePostStore = defineStore('posts', () => {
             // Update currentPost if it's the one being edited
             if (currentPost.value?.id === postId) {
                 currentPost.value = data;
+            }
+
+            if (data.profiles?.avatar_url) {
+                data.profiles.avatar_url = getPublicImage('avatars', data.profiles.avatar_url);
             }
 
             return { success: true, data };

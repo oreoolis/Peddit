@@ -1,6 +1,7 @@
 <script setup>
 import { RouterView } from 'vue-router';
 import NavBar from './components/NavBar.vue';
+import NavBarBottom from './components/molecules/NavBarBottom.vue';
 
 // Chatbot widget import + flag
 import ChatbotWidget from '@/components/ChatbotWidget.vue';
@@ -66,10 +67,10 @@ watch(
 <template>
   <!-- <header> -->
   <!-- <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" /> -->
-
+   <NavBar></NavBar>
   <!-- LG breakpoint, Desktop -->
   <div id="app" class="min-vh-100 d-flex flex-column bg-white">
-    <NavBar />
+    <NavBarBottom></NavBarBottom>
     <div class="router-view flex-grow-1 pb-4 pb-sm-5">
       <RouterView />
     </div>

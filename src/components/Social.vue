@@ -1,12 +1,13 @@
 <script setup>
 import ProfileSearch from "../components/social/ProfileSearch.vue"
 import PostSearch from "../components/social/PostSearch.vue"
-import { usePostStore } from "@/stores/postStore";
-import { onMounted, ref } from "vue";
-import { storeToRefs } from "pinia";
-import { useCommentStore } from "@/stores/commentStore";
-import { useUserStore } from "@/stores/userStore";
-
+import Button from "../components/atoms/button.vue"
+import searchBar from "./atoms/searchBar.vue"
+import { usePostStore } from "@/stores/postStore"
+import { storeToRefs } from "pinia"
+import { useCommentStore } from "@/stores/commentStore"
+import { useUserStore } from "@/stores/userStore"
+import { onMounted, ref } from "vue"
 const props = defineProps({
     foundProfiles:{
         type: Array,
@@ -49,7 +50,6 @@ const props = defineProps({
     }
 }
 )
-
 const postStore = usePostStore();
 const { posts } = storeToRefs(postStore);
 
@@ -63,55 +63,98 @@ const commentsByPostId = ref({});
 
 onMounted(async () => {
     await postStore.fetchPosts();
-    // Pre-load comments for all posts
-    await loadAllComments();
 });
 
-// Load comments for all posts
-const loadAllComments = async () => {
-    if (!posts.value || posts.value.length === 0) return;
-    
-    for (const post of posts.value) {
-        if (post.id) {
-            try {
-                const { data: postComments } = await commentStore.fetchCommentsByPostID(post.id);
-                console.log(postComments);
-                commentsByPostId.value[post.id] = postComments || [];
-            } catch (error) {
-                console.error(`Error loading comments for post ${post.id}:`, error);
-                commentsByPostId.value[post.id] = [];
-            }
-        }
-    }
-};
 
 </script>
 
 
 <template>
-             <div class="input-group w-75 mx-auto py-3 bodyFont">
-            <button class="btn border rounded-start-pill" type="button" id="SearchButton"><img src="../assets/Sprite/HomeIcons/Search.png" alt=""></button>
-            <input type="text" class="form-control rounded-end-pill " placeholder="Search" aria-label="Search" aria-describedby="visible-addon">
-            <input type="text" class="form-control d-none " placeholder="Hidden input" aria-label="Hidden input" aria-describedby="visible-addon">
-        </div>
-        <div class="text-center headingFont fw-bold fs-1">Profiles</div>
-        <div class="w-75 mx-auto" id="ProfileList">
-            <!-- ProfileSearchResult -->
-             <ProfileSearch v-for="profile in props.foundProfiles"
-             :Name = "profile.Name"
-             :Image = "profile.Image"
-             ></ProfileSearch>
-            <!-- ProfileSearchResult -->
-        </div>
-        <div class="text-center headingFont fw-bold fs-1">Posts</div>
+  <!-- search bar -->
+   <searchBar class="w-75"></searchBar>
+  <section class="section w-75 mx-auto">
+    <header class="section-header">
+      <div class="badge mx-2">Profiles</div>
+      <h1 class="section-title pb-2">Discover people</h1>
+    </header>
 
-        <div class="w-75 mx-auto" id="PostList">
-            <!-- SimplePostSearchResult -->
-             <PostSearch v-for="post in posts"
-             :link="post.link"
-             :title="post.title"
-             :Name="post.Name">
-             </PostSearch>
-            <!-- SimplePostSearchResult -->
-        </div>
+    <div class="grid">
+      <ProfileSearch
+        v-for="(profile, idx) in props.foundProfiles"
+        :key="profile.Name + '_' + idx"
+        :Name="profile.Name"
+        :Image="profile.Image"
+        class="card card-profile"
+      />
+    </div>
+  </section>
+
+
+
+<section class="section mt-4 mx-auto w-75">
+    <header class="section-header">
+      <div class="badge badge-alt mx-2">Posts</div>
+      <h2 class="section-title">Trending posts</h2>
+    </header>
+
+    <div class="grid">
+      <PostSearch
+        v-for="post in posts"
+        :key="post.id"
+        :link="post.id"
+        :title="post.title"
+        :Name="post.profiles.display_name"
+        :Image="post.profiles.avatar_url"
+        class=""
+      />
+    </div>
+  </section>
+
 </template>
+<style scoped>
+
+/* Section header */
+.section {
+  margin-top: 1rem;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 2rem;
+
+}
+.badge {
+  background: linear-gradient(135deg,#ffdca3,#ffb86b);
+  color: #3b2e14;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(255,165,60,0.16);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.badge-alt {
+  background: linear-gradient(135deg,#c7f0ff,#7fd2ff);
+  box-shadow: 0 6px 18px rgba(60,160,220,0.12);
+}
+
+/* Title styling */
+.section-title {
+  margin: 0;
+  font-weight: 800;
+  color: #112;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* Grids */
+.grid {
+  display: grid;
+  gap: 5px;
+}
+
+
+
+
+</style>

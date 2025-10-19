@@ -2,7 +2,7 @@
 // Assets
 import personImage from '../assets/person.jpg';
 // Components
-import PetProfileCard from '@/components/PetProfileCard.vue';
+import PetProfileCard from '@/components/molecules/PetProfileCard.vue';
 // Stores
 import { storeToRefs } from 'pinia';
 import { useProfileStore } from '@/stores/profileStore';
@@ -13,6 +13,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { usePostStore } from '@/stores/postStore';
 import { useCommentStore } from '@/stores/commentStore';
+import { useStorage } from '@/composables/useStorage';
 
 const props = defineProps({
   postId: {
@@ -46,9 +47,11 @@ const parame = ref('');
     <div v-if="currentPost">
         <h2>{{ currentPost.title }}</h2>
         <h3>{{ currentPost.author }}</h3>
+        <img :src="currentPost.profiles.avatar_url">
         <p>{{ currentPost.content }}</p>
         <div v-for="comment in comments">
-            <h2>{{ comment.author_id }}</h2>
+            <h2>{{ comment.profiles.display_name }}</h2>
+            <img :src="comment.profiles.avatar_url">
             <p>{{ comment.content }}</p>
         </div>
     </div>
