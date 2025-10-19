@@ -32,11 +32,11 @@ const props = defineProps({
 
 <template>
     <section class="pet-info-card pet-info fw-bold py-4 px-2 m-0 bg-light shadow">
-    <h2 class="headingFont fw-semibold text border-bottom pb-2">{{ props.name }}</h2>
+    <h2 class="headingFont fw-semibold text border-bottom pb-2 text-center fs-1">{{ props.name }}</h2>
 
-    <div class="data-grid">
+    <div class="data-grid fs-5">
       <div class="data-row">
-        <div class="label headingFont">Gender</div>
+        <div class="label headingFont ">Gender</div>
         <div class="value text-capitalize">{{ props.gender }}</div>
       </div>
 
