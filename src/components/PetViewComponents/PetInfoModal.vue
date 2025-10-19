@@ -57,7 +57,6 @@ const closeModal = () => {
                             :allergies="allergies"
                             />
                     </div>
-
                     <div class="preferred-meal-container container py-5 px-5 mt-4 rounded-5 bg-light shadow">
                         <h2 class="headingFont fw-semibold">Preferred Meal</h2>
                             <div class = "row d-flex justify-content-center">
@@ -67,7 +66,6 @@ const closeModal = () => {
                             </div>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary bodyFont" @click="closeModal">
                         Close
@@ -186,4 +184,25 @@ p {
     box-shadow: none !important;
   }
 }
+
+.modal-content::-webkit-scrollbar {
+  width: 15px;
+  height: 10px;
+}
+.modal-content::-webkit-scrollbar-track {
+  background: var(--bs-white);
+  border-end-end-radius: 8px;
+  border-top-right-radius: 8px;
+}
+.modal-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(var(--bs-primary-rgb),0.88), rgba(var(--bs-primary-rgb),0.48));
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(var(--bs-primary-rgb)), rgba(var(--bs-primary-rgb),0.9));
+}
+
+
+
 </style>
