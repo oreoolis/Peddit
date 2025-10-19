@@ -2,12 +2,13 @@
 import PetInfoModal from '@/components/PetViewComponents/PetInfoModal.vue';
 import { ref, defineProps } from 'vue';
 
-const props = defineProps(['name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'])
+const props = defineProps(['id', 'name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'])
 
 const showPetInfo = ref(false);
 const openPetInfo = () => {
     showPetInfo.value = true;
 }
+
 
 </script>
 <template>
@@ -42,14 +43,14 @@ const openPetInfo = () => {
         <div class="card-body">
             <div class="card-text py-3">
                 <section class="pet-info headingFont">
-                    <h5 class="fw-bold">Status: Good</h5>
-                    <h5 class="mb-0 d-inline-block fw-bold">Score:</h5>
+                    <h5 class="fw-bold">Breed: {{breed}}</h5>
+                    <!-- <h5 class="mb-0 d-inline-block fw-bold">Score:</h5>
                     <div class="d-inline-block">
                         <div class="progress ms-2" role="progressbar" aria-label="Success example" aria-valuenow="25"
                             aria-valuemin="0" aria-valuemax="100" style="width: 150px;">
                             <div class="progress-bar bg-success" style="width: 75%"></div>
                         </div>
-                    </div>
+                    </div> -->
                     <h5 class="fw-bold">Meal:
                         <p class="meal-tooltip bodyFont">Salmon</p>
                     </h5>

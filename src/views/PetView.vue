@@ -49,12 +49,13 @@ const openPetInfo = () => {
                 </div>
             </div>
             <div v-if="!petStore.pets">
-                <h1>No pets. Create a pet.</h1>
+                <h1 class = "headingFont">No pets. Create a pet.</h1>
             </div>
             <!-- To do v-if if there is no pets rendered from DB, else show current screen -->
             <div class="row justify-content-center g-3">
                 <div v-for="pet in petStore.pets" :key="pet.id" class="col-lg-5 d-flex justify-content-center">
                     <PetCards 
+                        :id="pet.id"
                         :name="pet.name"
                         :gender="pet.gender"
                         :breed="pet.breed"

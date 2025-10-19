@@ -165,8 +165,8 @@ const openUploadModal = () => {
         </div>
       </div>
 
-      <div v-if="form.kind == ''" class = "text-center mb-3">
-        <h3 class = "headingFont warning fw-semibold">Please select a species.</h3>
+      <div v-if="form.kind == ''" class="text-center mb-3">
+        <h3 class="headingFont warning fw-semibold">Please select a species.</h3>
       </div>
 
 
@@ -247,26 +247,28 @@ const openUploadModal = () => {
             </div>
           </div>
 
-    
+
           <!-- size: btn-lg -->
-           <div class="form-actions text-center">
-                <button
-                type="button"
-                @click="resetForm"
-                class="btn btn-secondary"
-                :disabled="petStore.loading"
-                >
-                Reset
-                </button>
-                <button
-                type="submit"
-                class="btn btn-primary"
-                :disabled="petStore.loading || !form.name || !form.kind"
-                >
-                <span v-if="petStore.loading" class="spinner"></span>
-                {{ petStore.loading ? 'Creating...' : 'Add Pet' }}
-                </button>
-            </div>
+          <!-- <div class="form-actions text-center">
+            <button type="button" @click="resetForm" class="btn btn-secondary" :disabled="petStore.loading">
+              Reset
+            </button>
+            <button type="submit" class="btn btn-primary" :disabled="petStore.loading || !form.name || !form.kind">
+              <span v-if="petStore.loading" class="spinner"></span>
+              {{ petStore.loading ? 'Creating...' : 'Add Pet' }}
+            </button>
+          </div> -->
+
+          <div class="form-actions d-flex justify-content-center">
+            <button class="button-recommend bodyFont d-inline" type="button" @click="resetForm" :disabled="petStore.loading">
+              Reset
+            </button>
+            <button class="button-add-pet bodyFont d-inline" type="submit"
+              :disabled="petStore.loading || !form.name || !form.kind">
+              <span v-if="petStore.loading" class="spinner"></span>
+              {{ petStore.loading ? 'Creating...' : 'Add Pet' }}
+            </button>
+          </div>
           <!-- <button type="button" class="btn btn-lg bg-primary h-100 headingFont text-light fw-bold shadow"
             :disabled="petStore.loading || !form.name || !form.kind">
             <span v-if="petStore.loading" class="spinner">
@@ -724,6 +726,138 @@ const openUploadModal = () => {
   }
 }
 
+/* Add Pet */
+.button-add-pet {
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+  padding-block: 0.5rem;
+  padding-inline: 1.25rem;
+  background-color: rgb(0 107 179);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ffff;
+  gap: 10px;
+  font-weight: bold;
+  border: 3px solid #ffffff4d;
+  outline: none;
+  overflow: hidden;
+  font-size: 18px;
+}
+
+.button-add-pet:hover {
+  transform: scale(1.05);
+  border-color: #fff9;
+}
+
+.button-add-pet:hover .icon {
+  transform: translate(4px);
+}
+
+.button-add-pet:hover::before {
+  animation: shine 1.5s ease-out infinite;
+}
+
+.button-add-pet::before {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100%;
+  background-image: linear-gradient(120deg,
+      rgba(255, 255, 255, 0) 30%,
+      rgba(255, 255, 255, 0.8),
+      rgba(255, 255, 255, 0) 70%);
+  top: 0;
+  left: -100px;
+  opacity: 0.6;
+}
+
+.button-add-pet:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@keyframes shine {
+  0% {
+    left: -100px;
+  }
+
+  60% {
+    left: 100%;
+  }
+
+  to {
+    left: 100%;
+  }
+}
+
+/* Recommend Meal */
+.button-recommend {
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+  padding-block: 0.5rem;
+  padding-inline: 1.25rem;
+  background-color: rgb(78, 78, 78);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ffff;
+  gap: 10px;
+  font-weight: bold;
+  border: 3px solid #ffffff4d;
+  outline: none;
+  overflow: hidden;
+  font-size: 18px;
+}
+
+.button-recommend:hover {
+  transform: scale(1.05);
+  border-color: #fff9;
+}
+
+.button-recommend:hover .icon {
+  transform: translate(4px);
+}
+
+.button-recommend:hover::before {
+  animation: shine 1.5s ease-out infinite;
+}
+
+.button-recommend::before {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100%;
+  background-image: linear-gradient(120deg,
+      rgba(255, 255, 255, 0) 30%,
+      rgba(255, 255, 255, 0.8),
+      rgba(255, 255, 255, 0) 70%);
+  top: 0;
+  left: -100px;
+  opacity: 0.6;
+}
+
+@keyframes shine {
+  0% {
+    left: -100px;
+  }
+
+  60% {
+    left: 100%;
+  }
+
+  to {
+    left: 100%;
+  }
+}
 
 /* From Uiverse.io by mrhyddenn */
 .icon-btn {
@@ -833,10 +967,10 @@ const openUploadModal = () => {
 }
 
 .preview-image {
-    width: 200px;
-    height: 200px;
-    border-radius: 8px;
-    object-fit: cover;
-    border: 2px solid #e0e0e0;
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid #e0e0e0;
 }
 </style>

@@ -1,19 +1,25 @@
 <script setup>
 import { ref, watch } from 'vue';
 import MealPlanCards from './MealPlanCard.vue';
+import { usePetStore } from '@/stores/petStore';
+import { useRouter } from 'vue-router';
+
+const petStore = usePetStore();
+const router = useRouter();
 
 const props = defineProps({
-  name: String,
-  gender: String,
-  breed: String,
-  birthday: String,
-  weight: Number,
-  allergies: String,
-  photo_url: String,
-  show: {
-    type: Boolean,
-    default: false
-  }
+    id: String,
+    name: String,
+    gender: String,
+    breed: String,
+    birthday: String,
+    weight: Number,
+    allergies: String,
+    photo_url: String,
+    show: {
+        type: Boolean,
+        default: false
+    }
 });
 
 const emit = defineEmits(['update:show', 'uploaded', 'error']);
@@ -33,6 +39,21 @@ const closeModal = () => {
         emit('update:show', false);
     }
 };
+
+const deletePet = async () => {
+    if (confirm("You are going to delete " + props.name + ". Are you sure?")) {
+        try {
+            const res = await petStore.deletePet(props.id);
+            if (!res.success) {
+                throw new Error(res.error);
+            }
+            router.push('/pet');
+        } catch (error) {
+            alert("Error deleting " + props.name + ". Please try again.");
+        }
+    }
+}
+
 </script>
 <template>
     <div v-if="show" class="modal-backdrop" @click="closeModal">
@@ -43,15 +64,14 @@ const closeModal = () => {
             </div>
             <form>
                 <div class="modal-body">
-                    <img :src="photo_url" class="img-thumbnail container-fluid rounded-5 px-3 py-3 shadow"
-                        alt="...">
+                    <img :src="photo_url" class="img-thumbnail container-fluid rounded-5 px-3 py-3 shadow" alt="...">
                     <div class="pet-info container fw-bold py-5 px-5 mt-4 rounded-5 bg-light shadow">
                         <h2 class="headingFont fw-semibold m-2">{{ name }}</h2>
                         <div class="row d-flex justify-content-center py-1">
                             <div class="col-lg-6">
                                 <h5 class="headingFont fw-semibold d-inline m-1">Gender:</h5>
                                 <div class="d-inline">
-                                    <p class="bodyFont d-inline">{{gender}}</p>
+                                    <p class="bodyFont d-inline">{{ gender }}</p>
                                 </div>
                             </div>
                             <div class="col-lg-6">
@@ -65,13 +85,13 @@ const closeModal = () => {
                             <div class="col-lg-6">
                                 <h5 class="headingFont fw-semibold d-inline m-1">Breed:</h5>
                                 <div class="d-inline">
-                                    <p class="bodyFont d-inline">{{breed}}</p>
+                                    <p class="bodyFont d-inline">{{ breed }}</p>
                                 </div>
                             </div>
                             <div class="col-lg-6">
                                 <h5 class="headingFont fw-semibold d-inline m-1">Weight:</h5>
                                 <div class="d-inline">
-                                    <p class="bodyFont d-inline">{{weight}}kg</p>
+                                    <p class="bodyFont d-inline">{{ weight }}kg</p>
                                 </div>
                             </div>
                         </div>
@@ -79,22 +99,30 @@ const closeModal = () => {
                             <div class="col-lg-6">
                                 <h5 class="headingFont fw-semibold d-inline m-1">Allergies:</h5>
                                 <div class="d-inline">
-                                    <p class="bodyFont d-inline">{{allergies}}</p>
+                                    <p class="bodyFont d-inline">{{ allergies }}</p>
                                 </div>
                             </div>
+                        </div>
+                        <div class="text-end">
+                            <button class="btn btn-warning bodyFont">
+                                Edit
+                            </button>
                         </div>
                     </div>
                     <div class="preferred-meal-container container py-5 px-5 mt-4 rounded-5 bg-light shadow">
                         <h2 class="headingFont fw-semibold">Preferred Meal</h2>
-                            <div class = "row d-flex justify-content-center">
-                                <div class = "col-lg-5">
-                                    <MealPlanCards/>
-                                </div>
+                        <div class="row d-flex justify-content-center">
+                            <div class="col-lg-5">
+                                <MealPlanCards />
                             </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="modal-footer">
+                <div class="modal-footer justify-content-around">
+                    <button type="button" class="btn btn-danger bodyFont " @click="deletePet">
+                        Delete Pet
+                    </button>
                     <button type="button" class="btn btn-primary bodyFont" @click="closeModal">
                         Close
                     </button>
