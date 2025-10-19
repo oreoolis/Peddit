@@ -8,6 +8,7 @@ import { storeToRefs } from "pinia"
 import { useCommentStore } from "@/stores/commentStore"
 import { useUserStore } from "@/stores/userStore"
 import { onMounted, ref } from "vue"
+
 const props = defineProps({
     foundProfiles:{
         type: Array,
@@ -71,7 +72,9 @@ onMounted(async () => {
 
 <template>
   <!-- search bar -->
-   <searchBar class="w-75"></searchBar>
+   <searchBar class="w-75" placeholder="Search...">
+    <i class="bi bi-search"></i>
+   </searchBar>
   <section class="section w-75 mx-auto">
     <header class="section-header">
       <div class="badge mx-2">Profiles</div>

@@ -25,10 +25,10 @@ const onInput = (event) => {
 </script>
 
 <template>
-    <div class="input-group w-100 mx-auto py-1 bodyFont rounded-pill my-3">
+    <div class="input-group mx-auto py-1 bodyFont rounded-pill my-3">
         <span class="input-group-text bg-transparent border-0 ps-3 pe-0">
             <!-- Use a named slot for the icon, with a default search icon inside -->
-            <slot name="icon">
+            <slot >
                 
             </slot>
         </span>
@@ -55,7 +55,15 @@ const onInput = (event) => {
 
 .input-group:focus-within {
   transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 10px 30px rgba(var(--bs-primary-rgb), 0.10);
+  box-shadow: 0 10px 30px rgba(var(--bs-white), 0.10);
+}
+.input-group .form-control::placeholder {
+  transition: transform .18s cubic-bezier(.2,.9,.2,1), opacity .12s ease, color .12s ease;
+}
+.input-group:focus-within .form-control::placeholder {
+  transform: translateY(-4px);
+  opacity: 0.6;
+  color: rgba(var(--bs-primary-rgb), 0.6);
 }
 
 .input-group .form-control:focus,
@@ -66,12 +74,13 @@ const onInput = (event) => {
 }
 
 .input-group .bi {
-  transition: color .12s ease;
+  transition: transform .18s cubic-bezier(.2,.9,.2,1), opacity .12s ease, color .12s ease;
   color: rgba(0,0,0,0.6);
 }
 
 .input-group:focus-within .bi {
-  color: var(--bs-primary);
+  color: rgba(var(--bs-primary-rgb), 0.6);
+  transform: translateY(-2px); 
 }
 
 input[readonly] {
