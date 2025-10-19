@@ -1,6 +1,11 @@
 <script setup>
 import { ref, computed } from 'vue';
 
+const emit = defineEmits(['click']);
+const handleClick = () => {
+    emit('click');
+}
+
 const props = defineProps({
     iconLinkON: {
         type: String,
@@ -65,7 +70,7 @@ const iconClass = computed(() => {
     <input type="checkbox" :id="uniqueId" v-model="isToggled">
 
     <!-- The label is the visible, clickable button -->
-    <label :for="uniqueId" :class="buttonClasses">
+    <label :for="uniqueId" :class="buttonClasses" @click = "handleClick">
         <i :class="iconClass"></i>
         <div class="action">
             <span class="option-off">{{ labelOFF }}</span>

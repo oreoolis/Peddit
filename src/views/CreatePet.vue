@@ -5,9 +5,11 @@ import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
 //import { storeToRefs } from 'pinia';
 import { onMounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
 const petStore = usePetStore();
 const authStore = useAuthStore();
+const router = useRouter(); // push to next page
 
 const showSuccess = ref(false);
 
@@ -19,6 +21,7 @@ const form = ref({
   gender: 'unknown',
   birthdate: '',
   weight_kg: null,
+  allergies: null,
   neutered: null
 })
 
@@ -68,12 +71,17 @@ const handleSubmit = async () => {
       }
     }
 
-    showSuccess.value = true
-    resetForm()
+    showSuccess.value = true;
+    resetForm();
+    router.push({
+            path: '/pet',
+            state: { showOpSuccess: true, message: form.value.name + "has been created!"}
+        });
+
 
     // Hide success message after 3 seconds
     setTimeout(() => {
-      showSuccess.value = false
+      showSuccess.value = false;
     }, 3000)
   }
 }
@@ -175,7 +183,7 @@ const openUploadModal = () => {
           <div class="col-lg-8">
             <div class="mb-3 input-group-lg">
               <label for="" class="form-label headingFont fw-bold h5">Upload Pet Photo</label>
-              <input id="pet-photo" type="file" accept="image/*" @change="handleImageSelect" class="form-control" />
+              <input id="pet-photo" type="file" accept="image/*" @change="handleImageSelect" class="form-control bodyFont" />
             </div>
             <!-- <div class="text-center">
               <button class="button-upload-photo bodyFont" :href="href" role="link" @click="openUploadModal"
@@ -208,15 +216,15 @@ const openUploadModal = () => {
               <label for="" class="form-label headingFont fw-bold h5">Gender</label>
               <div class="radio-inputs bodyFont mt-2">
                 <label class="radio">
-                  <input checked name="radio" type="radio" value="male" id="male" v-model="form.gender" />
+                  <input checked name="gender" type="radio" value="male" id="male" v-model="form.gender" />
                   <span class="name">Male</span>
                 </label>
                 <label class="radio">
-                  <input name="radio" type="radio" value="female" id="female" v-model="form.gender" />
+                  <input name="gender" type="radio" value="female" id="female" v-model="form.gender" />
                   <span class="name">Female</span>
                 </label>
                 <label class="radio">
-                  <input name="radio" type="radio" value="unknown" id="unknown" v-model="form.gender" />
+                  <input name="gender" type="radio" value="unknown" id="unknown" v-model="form.gender" />
                   <span class="name">Unknown</span>
                 </label>
               </div>
@@ -245,6 +253,25 @@ const openUploadModal = () => {
               <input type="text" name="" id="" class="form-control bodyFont" placeholder="" aria-describedby="helpId"
                 v-model="form.allergies" />
             </div>
+
+            <div class="mb-3 input-group-lg">
+              <label for="" class="form-label headingFont fw-bold h5">Neutered:</label>
+              <div class="radio-inputs bodyFont mt-2">
+                <label class="radio">
+                  <input checked name="neutered" type="radio" value="Yes" id="n_yes" v-model="form.neutered" />
+                  <span class="name">Yes</span>
+                </label>
+                <label class="radio">
+                  <input name="neutered" type="radio" value="No" id="n_no" v-model="form.neutered" />
+                  <span class="name">No</span>
+                </label>
+                <label class="radio">
+                  <input name="neutered" type="radio" value="unknown" id="n_unknown" v-model="form.neutered" />
+                  <span class="name">Unknown</span>
+                </label>
+              </div>
+            </div>
+
           </div>
 
 
@@ -260,7 +287,8 @@ const openUploadModal = () => {
           </div> -->
 
           <div class="form-actions d-flex justify-content-center">
-            <button class="button-recommend bodyFont d-inline" type="button" @click="resetForm" :disabled="petStore.loading">
+            <button class="button-recommend bodyFont d-inline" type="button" @click="resetForm"
+              :disabled="petStore.loading">
               Reset
             </button>
             <button class="button-add-pet bodyFont d-inline" type="submit"
