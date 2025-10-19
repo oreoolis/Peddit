@@ -475,7 +475,10 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
         vitamin_a_iu: 0,
         vitamin_d_iu: 0,
         vitamin_e_iu: 0,
-        taurine_g: 0
+        vitamin_b6_mg: 0,
+        vitamin_b12_mg: 0,
+        taurine_g: 0,
+        epa_dha_g: 0
       };
     }
 
@@ -491,7 +494,10 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
       vitamin_a_iu: 0,
       vitamin_d_iu: 0,
       vitamin_e_iu: 0,
-      taurine_g: 0
+      vitamin_b6_mg: 0,
+      vitamin_b12_mg: 0,
+      taurine_g: 0,
+      epa_dha_g: 0
     };
 
     recipeIngredients.forEach(recipeIng => {
@@ -523,7 +529,10 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
       if (nutrition.vitamin_a?.value) totals.vitamin_a_iu += nutrition.vitamin_a.value * multiplier;
       if (nutrition.vitamin_d?.value) totals.vitamin_d_iu += nutrition.vitamin_d.value * multiplier;
       if (nutrition.vitamin_e?.value) totals.vitamin_e_iu += nutrition.vitamin_e.value * multiplier;
+      if (nutrition.vitamin_b6?.value) totals.vitamin_b6_mg += nutrition.vitamin_b6.value * multiplier;
+      if (nutrition.vitamin_b12?.value) totals.vitamin_b12_mg += nutrition.vitamin_b12.value * multiplier;
       if (nutrition.taurine?.value) totals.taurine_g += nutrition.taurine.value * multiplier;
+      if (nutrition.epa_dha?.value) totals.epa_dha_g += nutrition.epa_dha.value * multiplier;
     });
 
     // Round all values to 2 decimal places

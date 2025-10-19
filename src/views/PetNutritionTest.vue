@@ -162,7 +162,7 @@ const calculateNutrition = () => {
 
   // Transform selectedIngredients to match store format
   const recipeIngredientsFormat = selectedIngredients.value.map(si => ({
-    quantity_grams: si.quantity,
+    quantity_g: si.quantity,
     food_ingredients: si.ingredient
   }));
 
@@ -243,13 +243,13 @@ const loadRecipe = async (recipe) => {
   
   if (result.success) {
     currentRecipe.value = result.data;
-    recipeName.value = result.data.name;
+    recipeName.value = result.data.recipe_name;
     recipeDescription.value = result.data.description || '';
     
     // Transform recipe ingredients to selectedIngredients format
     selectedIngredients.value = result.data.recipe_ingredients.map(ri => ({
       ingredient: ri.food_ingredients,
-      quantity: ri.quantity_grams
+      quantity: ri.quantity_g
     }));
     
     showRecipeForm.value = true;
@@ -407,38 +407,50 @@ const getStatusLabel = (status) => {
             <div class="card-header">
               <h5 class="mb-0">
                 <i class="bi bi-clipboard-check me-2"></i>
-                Daily Requirements
+                Daily Requirements (per 1000 kcal)
               </h5>
             </div>
             <div class="card-body">
               <div class="requirement-item">
-                <span class="requirement-label">Calories:</span>
-                <span class="requirement-value">
-                  {{ Math.round(nutritionRequirements.calories_per_kg * petWeight) }} kcal
-                </span>
-              </div>
-              <div class="requirement-item">
                 <span class="requirement-label">Protein (min):</span>
                 <span class="requirement-value">
-                  {{ nutritionRequirements.protein_percent_min }}%
+                  {{ nutritionRequirements.min_protein_g }}g
                 </span>
               </div>
               <div class="requirement-item">
                 <span class="requirement-label">Fat (min):</span>
                 <span class="requirement-value">
-                  {{ nutritionRequirements.fat_percent_min }}%
+                  {{ nutritionRequirements.min_fat_g }}g
+                </span>
+              </div>
+              <div class="requirement-item" v-if="nutritionRequirements.max_fat_g">
+                <span class="requirement-label">Fat (max):</span>
+                <span class="requirement-value">
+                  {{ nutritionRequirements.max_fat_g }}g
                 </span>
               </div>
               <div class="requirement-item">
                 <span class="requirement-label">Calcium (min):</span>
                 <span class="requirement-value">
-                  {{ nutritionRequirements.calcium_percent_min }}%
+                  {{ nutritionRequirements.min_calcium_g }}g
+                </span>
+              </div>
+              <div class="requirement-item">
+                <span class="requirement-label">Calcium (max):</span>
+                <span class="requirement-value">
+                  {{ nutritionRequirements.max_calcium_g }}g
                 </span>
               </div>
               <div class="requirement-item">
                 <span class="requirement-label">Phosphorus (min):</span>
                 <span class="requirement-value">
-                  {{ nutritionRequirements.phosphorus_percent_min }}%
+                  {{ nutritionRequirements.min_phosphorus_g }}g
+                </span>
+              </div>
+              <div class="requirement-item">
+                <span class="requirement-label">Phosphorus (max):</span>
+                <span class="requirement-value">
+                  {{ nutritionRequirements.max_phosphorus_g }}g
                 </span>
               </div>
             </div>
@@ -582,7 +594,7 @@ const getStatusLabel = (status) => {
                   >
                     <div class="card recipe-item">
                       <div class="card-body">
-                        <h6 class="card-title">{{ recipe.name }}</h6>
+                        <h6 class="card-title">{{ recipe.recipe_name }}</h6>
                         <p class="card-text text-muted small">
                           {{ recipe.description || 'No description' }}
                         </p>
@@ -630,13 +642,7 @@ const getStatusLabel = (status) => {
                   <div class="col-6 col-md-4">
                     <div class="stat-box">
                       <div class="stat-label">Total Weight</div>
-                      <div class="stat-value">{{ recipeNutrition.total_weight_grams }}g</div>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="stat-box">
-                      <div class="stat-label">Calories</div>
-                      <div class="stat-value">{{ Math.round(recipeNutrition.calories) }} kcal</div>
+                      <div class="stat-value">{{ recipeNutrition.total_weight_g }}g</div>
                     </div>
                   </div>
                   <div class="col-6 col-md-4">
@@ -653,14 +659,38 @@ const getStatusLabel = (status) => {
                   </div>
                   <div class="col-6 col-md-4">
                     <div class="stat-box">
-                      <div class="stat-label">Carbs</div>
-                      <div class="stat-value">{{ recipeNutrition.carbohydrates_g.toFixed(1) }}g</div>
+                      <div class="stat-label">Calcium</div>
+                      <div class="stat-value">{{ recipeNutrition.calcium_g.toFixed(2) }}g</div>
+                    </div>
+                  </div>
+                  <div class="col-6 col-md-4">
+                    <div class="stat-box">
+                      <div class="stat-label">Phosphorus</div>
+                      <div class="stat-value">{{ recipeNutrition.phosphorus_g.toFixed(2) }}g</div>
                     </div>
                   </div>
                   <div class="col-6 col-md-4">
                     <div class="stat-box">
                       <div class="stat-label">Fiber</div>
                       <div class="stat-value">{{ recipeNutrition.fiber_g.toFixed(1) }}g</div>
+                    </div>
+                  </div>
+                  <div class="col-6 col-md-4">
+                    <div class="stat-box">
+                      <div class="stat-label">Iron</div>
+                      <div class="stat-value">{{ recipeNutrition.iron_mg.toFixed(1) }}mg</div>
+                    </div>
+                  </div>
+                  <div class="col-6 col-md-4">
+                    <div class="stat-box">
+                      <div class="stat-label">Taurine</div>
+                      <div class="stat-value">{{ recipeNutrition.taurine_g.toFixed(2) }}g</div>
+                    </div>
+                  </div>
+                  <div class="col-6 col-md-4">
+                    <div class="stat-box">
+                      <div class="stat-label">EPA+DHA</div>
+                      <div class="stat-value">{{ recipeNutrition.epa_dha_g.toFixed(2) }}g</div>
                     </div>
                   </div>
                 </div>
