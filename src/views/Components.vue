@@ -4,7 +4,7 @@ import searchBar from "@/components/atoms/searchBar.vue";
 import PetProfileCard from "@/components/molecules/PetProfileCard.vue";
 import PetCard from "@/components/molecules/PetCard.vue";
 import buttonTogglable from "@/components/atoms/buttonTogglable.vue";
-
+import SelectAndOption from "@/components/atoms/SelectAndOption.vue";
 </script>
 <template>
     <!-- BUTTONS! -->
@@ -54,4 +54,12 @@ import buttonTogglable from "@/components/atoms/buttonTogglable.vue";
 
 <buttonTogglable></buttonTogglable>
 
+<!-- select field with options -->
+<SelectAndOption defaultLabel="Select an option..."
+  :options="[
+    { value: 'this', label: 'This' },
+    { value: 'is', label: 'is' },
+    { value: 'a test', label: 'a test' },
+  ]"
+></SelectAndOption>
 </template>

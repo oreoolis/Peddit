@@ -58,7 +58,8 @@ const commentStore = useCommentStore();
 const { comments, commentLoading: loading } = storeToRefs(commentStore);
 
 const userStore = useUserStore();
-
+const { profile: authorProfile } = storeToRefs(userStore);
+console.log("Author Profile in Search View: ", authorProfile.value);
 // Store comments by post ID
 const commentsByPostId = ref({});
 
