@@ -1,12 +1,12 @@
 <script setup>
 import PetInfoModal from '@/components/PetViewComponents/PetInfoModal.vue';
-import { ref, defineProps } from 'vue';
+import { ref, defineProps, computed } from 'vue';
 import Button from '../atoms/button.vue';
-const props = defineProps(['name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url','score'])
+const props = defineProps(['name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'])
 // TODO: calculation for score, not sure what we can do for this
 
 // this will denote the emoji shown
-const score = 75; // out of 100, for progress bar
+const score = 65; // out of 100, for progress bar
 // convert score to percentage for progress bar
 const showPetInfo = ref(false);
 const openPetInfo = () => {

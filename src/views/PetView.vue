@@ -36,11 +36,11 @@ const openPetInfo = () => {
     <div class="pet-view">
         <div class="pet-card-container container-fluid">
             <div class="row d-flex justify-content-center">
-                <div class="col-lg-6 col-sm-5">
-                    <h1 class="text-start px-4 py-5 headingFont fw-semibold display-4">My Pets</h1>
+                <div class="col-3">
+                    <h1 class="text-start px-3 py-5 headingFont fw-semibold display-4 ">My Pets</h1>
                 </div>
-                <div class="col-lg-3 col-sm-4 d-flex justify-content-end">
-                    <div class="py-5">
+                <div class="col-7 d-flex align-items-center justify-content-end ">
+                    <div class="py-5 px-3 ">
                         <router-link to="/create-pet" custom v-slot="{ href, navigate }">
                             <Button label="+ Add Pet" color="primary" :href="href" role="link" @click="navigate">
                             </Button>
@@ -53,7 +53,7 @@ const openPetInfo = () => {
             </div>
             <!-- To do v-if if there is no pets rendered from DB, else show current screen -->
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 gy-4 justify-content-center px-4 pb-5">
-                <div v-for="pet in petStore.pets" :key="pet.id" class="col d-flex align-items-stretch">
+                <div v-for="pet in petStore.pets" :key="pet.id" class="col d-flex align-items-stretch my-2">
                     <PetCards 
                         :name="pet.name"
                         :gender="pet.gender"

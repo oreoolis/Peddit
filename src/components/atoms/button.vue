@@ -39,7 +39,7 @@ export default {
 </script>
 
 <template>
-<button :type="type" :class="buttonClasses" @click="handleClick" aria-label="button">
+<button :class="buttonClasses" @click="handleClick" aria-label="button">
   <slot width="16px" height="16px"></slot>
   <span class="button-content">
     {{ label }}
