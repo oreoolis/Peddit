@@ -101,6 +101,12 @@ const router = createRouter({
       path: '/temp',
       name: 'components',
       component: () => import('@/views/Components.vue'),
+    },
+    {
+      path: '/nutrition-test',
+      name: 'nutrition-test',
+      component: () => import('@/views/PetNutritionTest.vue'),
+      meta: { requiresAuth: false }
     }   
 
 
