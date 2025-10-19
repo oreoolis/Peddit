@@ -26,7 +26,7 @@ const {
 // ============================================
 const selectedPet = ref(null);
 const petKind = ref('dog');
-const petLifeStage = ref('adult');
+const petLifeStage = ref('adult_maintenance');
 const petWeight = ref(10);
 const nutritionRequirements = ref(null);
 
@@ -198,10 +198,9 @@ const createRecipe = async () => {
   try {
     // Create recipe
     const recipeResult = await nutritionStore.createRecipe({
-      name: recipeName.value,
+      recipe_name: recipeName.value,
       description: recipeDescription.value,
-      pet_id: selectedPet.value?.id || null,
-      user_id: userId.value
+      author_id: userId.value
     });
 
     if (!recipeResult.success) {
@@ -212,6 +211,7 @@ const createRecipe = async () => {
     const recipeId = recipeResult.data.id;
 
     // Add all ingredients to recipe
+    console.log(recipeId);
     for (const si of selectedIngredients.value) {
       await nutritionStore.addIngredientToRecipe(
         recipeId,
@@ -383,10 +383,8 @@ const getStatusLabel = (status) => {
               <div class="mb-3">
                 <label class="form-label fw-semibold">Life Stage</label>
                 <select v-model="petLifeStage" class="form-select">
-                  <option value="puppy" v-if="petKind === 'dog'">Puppy</option>
-                  <option value="kitten" v-if="petKind === 'cat'">Kitten</option>
-                  <option value="adult">Adult</option>
-                  <option value="senior">Senior</option>
+                  <option value="adult_maintenance">Adult</option>
+                  <option value="growth_and_reproduction">Baby or Mother</option>
                 </select>
               </div>
 
