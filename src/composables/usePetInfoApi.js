@@ -44,7 +44,7 @@ export function usePetInfoApi(petKind) {
 
 	// Process breed names based on pet kind
 	const breedNames = computed(() => {
-		if (!data.value) return [];
+		if (isFetching.value || !data.value) return [];
 
 		// Handle Cat API response
 		if (petKind.value?.toLowerCase() === "cat") {

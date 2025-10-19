@@ -6,6 +6,7 @@ import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
 import { usePetInfoApi } from '@/composables/usePetInfoApi';
 import PetHealthAccordionItem from '@/components/atomic/PetHealthAccordionItem.vue';
+import { useDebounceFn, watchDebounced } from '@vueuse/core';
 
 const router = useRouter();
 const petStore = usePetStore();
@@ -57,6 +58,23 @@ onMounted(async () => {
     await petStore.fetchPets(userId.value);
   }
 });
+
+const breedQuery = ref('');
+const filteredBreeds = ref([]);
+// Trigger debounce function when any of the following updates
+watchDebounced([breedQuery, selectedPetKind, isFetchingBreeds], () => {
+  if (isFetchingBreeds.value) {
+    return;
+  }
+  if(!breedQuery){
+    filteredBreeds.value = breedNames.value;
+    return;
+  }
+  filteredBreeds.value = breedNames.value.filter(breed =>
+    breed.toLowerCase().includes(breedQuery.value.toLowerCase())
+  );
+}, {debounce: 300, immediate: true});
+
 </script>
 
 <template>
@@ -150,14 +168,19 @@ onMounted(async () => {
 
                 <!-- Breeds List -->
                 <div v-else-if="breedNames && breedNames.length > 0" class="breed-list-container">
+                  <input 
+                    v-model="breedQuery"
+                    placeholder="Search for a breed..."
+                    type="text"
+                  >
                   <div class="breed-list-header">
                     <h5 class="mb-0">
-                      {{ breedNames.length }} {{ selectedPetKind.charAt(0).toUpperCase() + selectedPetKind.slice(1) }} Breeds
+                      {{ filteredBreeds.length }} {{ selectedPetKind.charAt(0).toUpperCase() + selectedPetKind.slice(1) }} Breeds
                     </h5>
                   </div>
                   <div class="breed-grid">
                     <div 
-                      v-for="breed in breedNames" 
+                      v-for="breed in filteredBreeds" 
                       :key="breed"
                       class="breed-card"
                     >
