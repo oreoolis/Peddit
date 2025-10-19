@@ -29,7 +29,7 @@ const onInput = (event) => {
         <span class="input-group-text bg-transparent border-0 ps-3 pe-0">
             <!-- Use a named slot for the icon, with a default search icon inside -->
             <slot name="icon">
-                <i class="bi bi-search"></i>
+                
             </slot>
         </span>
         <input 
