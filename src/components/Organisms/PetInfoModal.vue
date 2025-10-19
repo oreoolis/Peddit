@@ -3,7 +3,7 @@ import { ref, watch } from 'vue';
 import MealPlanCards from '../PetViewComponents/MealPlanCard.vue';
 import Button from '../atoms/button.vue';
 import PetInfoCard from '../molecules/PetInfoCard.vue';
-
+import buttonTogglable from '../atoms/buttonTogglable.vue';
 const props = defineProps({
   name: String,
   gender: String,
@@ -39,7 +39,7 @@ const closeModal = () => {
 <template>
     <div v-if="show" class="modal-backdrop" @click="closeModal">
         <div class="modal-content bg-white" @click.stop>
-            <div class="modal-header d-flex shadow">
+            <div class="modal-header d-flex shadow sticky-top">
                 <h5 class="modal-title primary headingFont h3 ">Summary : <i>{{ name }}</i></h5>
                 <Button label="X" color="danger" outline="true" class="ms-auto px-4" @click="closeModal"></Button>
             </div>
@@ -66,10 +66,20 @@ const closeModal = () => {
                             </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary bodyFont" @click="closeModal">
-                        Close
-                    </button>
+<!-- NOTE: this should only be seen if this summary page is the pet's owner -->
+                <div class="modal-footer ">
+                  <buttonTogglable class="px-4 mx-1"
+                  iconLinkON="bi-pen-fill"
+                  labelON="Editing..."
+                  colorON="primary"
+                  iconLinkOFF="bi-pen"
+                  labelOFF="Edit"
+                  colorOFF="secondary"
+                  ></buttonTogglable> 
+
+                  <Button label="Delete" class="px-4" color="danger">
+                    <i class="bi bi-trash3 mx-1"></i>
+                  </Button>
                 </div>
             </form>
         </div>

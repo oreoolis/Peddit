@@ -34,13 +34,13 @@ import buttonTogglable from "@/components/atoms/buttonTogglable.vue";
         </div>
 
         <div class="col">
-            <Button class="m-2" label="This is a custom text!" outline="true">
+            <Button class="m-2" label="This is a custom text!" outline>
             <i class="bi bi-heart-fill mx-1 " ></i>
             </Button>
-            <Button class="m-2" label="This is a custom text!" color="secondary" outline="true">
+            <Button class="m-2" label="This is a custom text!" color="secondary" outline>
             <i class="bi bi-heart-fill mx-1 " ></i>
             </Button>
-            <Button class="m-2" label="This is a custom text!" color="danger" outline="true">
+            <Button class="m-2" label="This is a custom text!" color="danger" outline>
             <i class="bi bi-heart-fill mx-1 "></i>
             </Button>
         </div>        
