@@ -5,7 +5,7 @@ import persianImage from '../assets/persian.jpg';
 import ragdollImage from '../assets/ragdoll.jpg';
 import personImage from '../assets/person.jpg';
 // Components
-import PetProfileCard from './PetProfileCard.vue';
+import PetProfileCard from './molecules/PetProfileCard.vue';
 import ImageUploadModal from '@/components/ImageUploadModal.vue'
 // Stores
 import { storeToRefs } from 'pinia';

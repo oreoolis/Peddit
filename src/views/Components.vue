@@ -1,47 +1,9 @@
 <script setup>
-import BaseAvatar from '@/components/atomic/BaseAvatar.vue';
-import BaseIcon from '@/components/atomic/BaseIcon.vue';
-import BaseStatNumber from '@/components/atomic/BaseStatNumber.vue';
-import BaseLabel from '@/components/atomic/BaseLabel.vue';
-import BaseProgressRing from '@/components/atomic/BaseProgressRing.vue';
-import BaseButton from '@/components/atomic/BaseButton.vue';
-import BaseBadge from '@/components/atomic/BaseBadge.vue';
-import HealthAvatar from '@/components/atomic/HealthAvatar.vue';
-import StatCard from '@/components/atomic/StatCard.vue';
-import PetInfoChip from '@/components/atomic/PetInfoChip.vue';
-import HealthProgressBar from '@/components/atomic/HealthProgressBar.vue';
-import InfoDetail from '@/components/atomic/InfoDetail.vue';
-import PetHealthAccordionItem from '@/components/atomic/PetHealthAccordionItem.vue';
+import Button from "../components/atoms/button.vue"
+import searchBar from "@/components/atoms/searchBar.vue";
+import PetProfileCard from "@/components/molecules/PetProfileCard.vue";
+import PetCard from "@/components/molecules/PetCard.vue";
 
-const dummyPet = {
-  id: '1',
-  name: 'Buddy',
-  kind: 'dog',
-  gender: 'male',
-  breed: 'Golden Retriever',
-  birthdate: '2019-05-15',
-  weight_kg: 30,
-  body_condition_scale: 5,
-  neutered: true,
-  allergies: 'Pollen, Dust',
-  photo_url: 'https://picsum.photos/seed/buddy/200/200.jpg',
-  updated_at: '2024-01-15'
-};
-
-const dummyPet2 = {
-  id: '2',
-  name: 'Whiskers',
-  kind: 'cat',
-  gender: 'female',
-  breed: 'Persian',
-  birthdate: '2021-03-20',
-  weight_kg: 4.5,
-  body_condition_scale: 3,
-  neutered: false,
-  allergies: null,
-  photo_url: 'https://picsum.photos/seed/whiskers/200/200.jpg',
-  updated_at: '2024-01-10'
-};
 </script>
 
 <template>
@@ -140,18 +102,13 @@ const dummyPet2 = {
           </div>
         </div>
 
-        <div class="component-showcase mb-4">
-          <h4>BaseButton</h4>
-          <div class="d-flex gap-2 flex-wrap">
-            <BaseButton variant="primary" size="sm">Small</BaseButton>
-            <BaseButton variant="success" icon="check-circle">With Icon</BaseButton>
-            <BaseButton variant="danger" :loading="true">Loading</BaseButton>
-            <BaseButton variant="outline-primary" icon="heart" size="lg">Large</BaseButton>
-          </div>
-        </div>
-      </section>
-    </div>
-  </div>
+     <!-- SEARCH BAR -->
+<searchBar></searchBar>
+
+     <!-- PET CARD -->
+<PetCard></PetCard>>
+
+
 </template>
 
 <style scoped>

@@ -39,7 +39,7 @@ export default {
 </script>
 
 <template>
-<button :type="type" :class="buttonClasses" @click="handleClick" aria-label="button">
+<button :class="buttonClasses" @click="handleClick" aria-label="button">
   <slot width="16px" height="16px"></slot>
   <span class="button-content">
     {{ label }}
@@ -50,19 +50,35 @@ export default {
 <style scoped>
 
 button.app-button {
-    font-size: 16px;
-    box-shadow: 
-      inset 0 1px 0 rgba(255,255,255,0.12);/* subtle inner sheen */
+  overflow: hidden;
+  transition: box-shadow .18s ease, transform .12s ease;
+  will-change: transform, box-shadow;
 }
 
+button.app-button:not(:disabled):hover {
+  transform: translateY(-2px);
+}
 button.app-button .button-content {
-  display: inline-flex;
+  display: flex;
   justify-content: center;
   align-items: center;
   font-weight: 700;
-  letter-spacing: 0.2px;
 }
-
+button.app-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -140%;
+  width: 40%;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-18deg);
+  opacity: 0.2;
+}
+button.app-button:not(:disabled):hover::before {
+  animation: shine 900ms ease-in-out;
+}
 /* Hover / focus */
 button.app-button:hover {
     box-shadow:
@@ -70,19 +86,14 @@ button.app-button:hover {
       0 6px 16px rgba(10,20,40,0.10),
       inset 0 1px 0 rgba(255,255,255,0.14);
 }
-button.app-button:focus {
-    box-shadow:
-      0 18px 44px rgba(10,20,40,0.18),
-      0 6px 16px rgba(10,20,40,0.12),
-      0 0 0 4px rgba(34,150,200,0.12);
+button.app-button:focus-visible {
+  outline: none;
 }
 
 /* Active (pressed) */
 button.app-button:active {
-    transform: translateY(0);
     box-shadow:
       0px 4px 4px rgba(0, 0, 0, 0.25) inset;
-    background-color:  #196173;
     color: #EBEBEB
 }
 
@@ -93,6 +104,5 @@ button.app-button:disabled {
     transform: none;
     box-shadow: none;
 }
-
 
 </style>

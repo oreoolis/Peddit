@@ -1,12 +1,13 @@
 <script setup>
 import ItemsChecklist from '@/components/PetViewComponents/ItemsChecklist.vue';
 import MealPlanCards from '@/components/PetViewComponents/MealPlanCard.vue';
-import PetCards from '@/components/PetViewComponents/PetCard.vue';
+import PetCards from '@/components/molecules/PetCard.vue';
 import { RouterLink } from 'vue-router';
 import { ref, watch } from 'vue';
 import ShoppingListModal from '@/components/PetViewComponents/ShoppingListModal.vue';
 import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
+import Button from '@/components/atoms/button.vue';
 
 const petStore = usePetStore();
 const {fetchPets} = petStore;
@@ -35,15 +36,14 @@ const openPetInfo = () => {
     <div class="pet-view">
         <div class="pet-card-container container-fluid">
             <div class="row d-flex justify-content-center">
-                <div class="col-lg-6 col-sm-5">
-                    <h1 class="text-start px-4 py-5 headingFont fw-semibold display-4">My Pets</h1>
+                <div class="col-3">
+                    <h1 class="text-start px-3 py-5 headingFont fw-semibold display-4 ">My Pets</h1>
                 </div>
-                <div class="col-lg-3 col-sm-4 d-flex justify-content-end">
-                    <div class="py-5">
+                <div class="col-7 d-flex align-items-center justify-content-end ">
+                    <div class="py-5 px-3 ">
                         <router-link to="/create-pet" custom v-slot="{ href, navigate }">
-                            <button class="button-add-pet bodyFont" :href="href" role="link" @click="navigate">
-                                + Add Pet
-                            </button>
+                            <Button label="+ Add Pet" color="primary" :href="href" role="link" @click="navigate">
+                            </Button>
                         </router-link>
                     </div>
                 </div>
@@ -52,8 +52,8 @@ const openPetInfo = () => {
                 <h1>No pets. Create a pet.</h1>
             </div>
             <!-- To do v-if if there is no pets rendered from DB, else show current screen -->
-            <div class="row justify-content-center g-3">
-                <div v-for="pet in petStore.pets" :key="pet.id" class="col-lg-5 d-flex justify-content-center">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 gy-4 justify-content-center px-4 pb-5">
+                <div v-for="pet in petStore.pets" :key="pet.id" class="col d-flex align-items-stretch my-2">
                     <PetCards 
                         :name="pet.name"
                         :gender="pet.gender"
@@ -64,18 +64,9 @@ const openPetInfo = () => {
                         :photo_url="pet.photo_url"
                     />
                 </div>
-                <!-- <div class="col-lg-5 d-flex justify-content-center">
-                    <PetCards />
-                </div>  -->
             </div>
         </div>
-        <!-- <div class="container-fluid px-5 py-2">
-            <div class="row">
-                <div class="col-lg-12 col-sm-12 d-flex justify-content-lg-around justify-content-sm-center">
 
-                </div>
-            </div>
-        </div> -->
 
         <div class="grocery-checklist container-fluid">
             <div class="row d-flex justify-content-center">
@@ -168,53 +159,8 @@ const openPetInfo = () => {
 
 <style>
 /* Add Pet */
-.button-add-pet {
-    position: relative;
-    transition: all 0.3s ease-in-out;
-    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-    padding-block: 0.5rem;
-    padding-inline: 1.25rem;
-    background-color: rgb(0 107 179);
-    border-radius: 9999px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #ffff;
-    gap: 10px;
-    font-weight: bold;
-    border: 3px solid #ffffff4d;
-    outline: none;
-    overflow: hidden;
-    font-size: 18px;
-}
 
-.button-add-pet:hover {
-    transform: scale(1.05);
-    border-color: #fff9;
-}
 
-.button-add-pet:hover .icon {
-    transform: translate(4px);
-}
-
-.button-add-pet:hover::before {
-    animation: shine 1.5s ease-out infinite;
-}
-
-.button-add-pet::before {
-    content: "";
-    position: absolute;
-    width: 100px;
-    height: 100%;
-    background-image: linear-gradient(120deg,
-            rgba(255, 255, 255, 0) 30%,
-            rgba(255, 255, 255, 0.8),
-            rgba(255, 255, 255, 0) 70%);
-    top: 0;
-    left: -100px;
-    opacity: 0.6;
-}
 
 @keyframes shine {
     0% {

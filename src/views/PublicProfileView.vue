@@ -3,8 +3,8 @@
 // Assets
 import personImage from '../assets/person.jpg';
 // Components
-import PetProfileCard from '@/components/PetProfileCard.vue';
-import PetCard from '@/components/PetViewComponents/PetCard.vue';
+import PetProfileCard from '@/components/molecules/PetProfileCard.vue';
+import PetCard from '@/components/molecules/PetCard.vue';
 // Stores
 import { storeToRefs } from 'pinia';
 import { useProfileStore } from '@/stores/profileStore';

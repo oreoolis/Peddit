@@ -5,7 +5,7 @@ import { computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { useAuthStore } from '@/stores/authStore';
 import { storeToRefs } from 'pinia';
-
+import NavBarBottom from './molecules/NavBarBottom.vue';
 const defaultAvatar = personImage;
 const userStore = useUserStore();
 const authStore = useAuthStore();
@@ -26,47 +26,6 @@ onMounted(async () => {
 
 <template>
     <div >
-        <!-- Bottom navbar: xs–md -->
-        <nav class="navbar fixed-bottom bg-white headingFont d-block d-lg-none shadow navbar-bottom" >
-            <div class="container-fluid">
-                <ul class="navbar-nav w-100 d-flex justify-content-around flex-row text-center mb-0 align-items-center">
-                    <li class="nav-item">
-                        <RouterLink class="nav-pill nav-link black" to="/pet">
-                            <img src="../assets/Sprite/HomeIcons/Paw.png" alt="" class="icon">
-                            <span class="nav-label">Pet</span>
-                        </RouterLink>
-                    </li>
-                    <li class="nav-item">
-                        <RouterLink class="nav-pill nav-link black" to="/home">
-                            <img src="../assets/Sprite/HomeIcons/Home.png" alt="" class="icon">
-                            <span class="nav-label">Home</span>
-                        </RouterLink>
-                    </li>
-                    <li class="nav-item">
-                        <RouterLink class="nav-pill nav-link black" to="/social">
-                            <img src="../assets/Sprite/HomeIcons/Social.png" alt="" class="icon">
-                            <span class="nav-label">Social</span>
-                        </RouterLink>
-                    </li>
-                    <li class="nav-item">
-                        <RouterLink class="nav-pill nav-link black" to="/meal">
-                            <img src="../assets/Sprite/HomeIcons/Burger.png" alt="" class="icon">
-                            <span class="nav-label">Meal</span>
-                        </RouterLink>
-                    </li>
-                    <li v-if="isLoggedIn" class="nav-item profile-pill">
-                        <RouterLink class="nav-pill nav-link black align-items-center" to="/profile">
-                            <img 
-                                class="rounded-circle profile-image"
-                                :src="displayAvatar" 
-                                alt="Profile Image"
-                            >
-                            <span class="nav-label">Profile</span>
-                        </RouterLink>
-                    </li>
-                </ul>
-            </div>
-        </nav>
         <!-- Top navbar: lg+ -->
         <nav class="navbar navbar-expand-lg bg-primary headingFont d-none d-lg-block shadow">
             <div class="container-fluid" >
@@ -112,19 +71,11 @@ onMounted(async () => {
 
 
 <style scoped>
-.navbar-bottom {
-    padding: 0.45rem 0.6rem;
-    background: rgba(255,255,255,0.95);
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-    margin: 0 8px 8px 8px; /* lift a little from absolute edge */
-    box-shadow: 0 8px 24px rgba(16,24,40,0.18), 0 2px 6px rgba(0,0,0,0.08);
-    backdrop-filter: blur(6px);
-}
+
 
 /* Top navbar styling */
 .navbar-top {
-    background: linear-gradient(90deg, #0066cc 0%, #004a9f 100%);
+    background: linear-gradient(90deg, var(--bs-primary) 0%, var(--bs-primary) 100%);
     color: white;
     padding: 0.65rem 1rem;
     box-shadow: 0 6px 20px rgba(2,6,23,0.25);
@@ -152,7 +103,7 @@ onMounted(async () => {
     text-decoration: none; /* ensure RouterLink has no underline */
     color: inherit;
 }
-.nav-item > .nav-pill:hover {
+.nav-item >.nav-pill:hover {
     background: rgba(0, 102, 204, 0.06);
     transform: translateY(-4px);
     box-shadow: 0 10px 30px rgba(2,6,23,0.12);
@@ -206,12 +157,18 @@ onMounted(async () => {
 
 /* Slightly dim inactive icons/text */
 .navbar .nav-link.black { color: #222 !important; }
-.navbar .nav-link.primary { color: #0066cc !important; }
-.navbar .nav-link.active.primary { color: #004a9f !important; }
+.navbar .nav-link.primary { color: var(--bs-primary) !important; }
+.navbar .nav-link.active.primary { color: var(--bs-primary)!important; }
 
 /* Responsive tweaks */
 @media (max-width: 576px) {
     .navbar-bottom { margin: 0 6px 10px 6px; padding: 0.4rem 0.4rem; }
     .profile-pill .profile-image { width: 30px; height: 30px; }
+}
+
+.selected {
+    background: rgba(0, 102, 204, 0.12);
+    padding: 6px;
+    border-radius: 16px;
 }
 </style>

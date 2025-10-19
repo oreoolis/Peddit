@@ -12,6 +12,7 @@
   --bs-white: #EBEBEB;
   --bs-black: #141414;
   --bs-grey: #50514F;
+  --bs-warning: #EF946C;
 
   /* Peddit custom tokens */
   --peddit-radius: 16px;
@@ -36,6 +37,12 @@
 
 }
 
+.warning{
+  color: var(--bs-warning) !important;
+}
+.bg-warning{
+  background-color: var(--bs-warning) !important;
+}
 .danger{
   color: var(--bs-danger) !important;
 }
