@@ -1,22 +1,24 @@
 // src/composables/usePetInfoApi.js
 import { useFetch } from "@vueuse/core";
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 export function usePetInfoApi(petKind) {
 	
 	const getApiUrl = (kind) => {
-		const lowerCaseKind = kind;
+		const lowerCaseKind = kind?.toLowerCase();
 		if (lowerCaseKind === "cat") {
 			return "https://api.thecatapi.com/v1/breeds";
 		} else if (lowerCaseKind === "dog") {
 			return "https://dog.ceo/api/breeds/list/all";
 		}
-		return null; // Return null if the kind is not recognized
+		return null;
 	};
 
-	const url = computed(() => getApiUrl(petKind.value))
+	// Create a computed URL that updates when petKind changes
+	const url = computed(() => getApiUrl(petKind.value));
 
-	if (!url) {
+	// Check if URL is valid
+	if (!url.value) {
 		return {
 			data: ref(null),
 			error: ref(
@@ -27,48 +29,72 @@ export function usePetInfoApi(petKind) {
 		};
 	}
 
-	// Invoke API
-	const { data, error, isFetching } = useFetch(url).get().json();
+	const { data, error, isFetching, execute } = useFetch(url, { immediate: false }).get().json();
 
+	// Watch petKind and re-fetch when it changes
+	watch(
+		() => petKind.value,
+		async (newKind) => {
+			if (newKind) {
+				await execute();
+			}
+		},
+		{ immediate: true } 
+	);
+
+	// Process breed names based on pet kind
 	const breedNames = computed(() => {
 		if (!data.value) return [];
 
-		if (petKind.value == "cat") {
-			return data.value.map((breed) => breed.name);
+		// Handle Cat API response
+		if (petKind.value?.toLowerCase() === "cat") {
+			// Cat API returns an array of breed objects with 'name' property
+			return data.value.map((breed) => breed.name).sort();
 		}
 
-		// Dogs are weird, the json object for breeds are nested....
-		if (petKind.value == "dog") {
-			const breedsObject = data.value;
-
-			console.log(breedsObject);
+		// Handle Dog API response
+		if (petKind.value?.toLowerCase() === "dog") {
+			// Dog API returns { "message": { "breed": ["subbreed1", "subbreed2"], ... }, "status": "success" }
+			const breedsObject = data.value.message;
 
 			if (!breedsObject) return [];
 			
-			console.log(breedsObject);
-			const breedNames = [];
+			const breedList = [];
+			
+			// Process each breed
 			for (const breed in breedsObject) {
-				if (breedsObject[breed].length === 0) {
-					breedNames.push(breed); // Main breed, no sub-breeds
+				const subBreeds = breedsObject[breed];
+				
+				if (subBreeds.length === 0) {
+					// No sub-breeds, just add the main breed (capitalize first letter)
+					breedList.push(capitalizeBreed(breed));
 				} else {
-					console.log(breedsObject[breed].length);
-					console.log(breedsObject[breed]);
-
-					// Handle sub-breeds, e.g., "terrier" -> "terrier (westhighland)"
-					// breedsObject[breed].forEach((subBreed) => {
-					// 	breedNames.push(`${breed} (${subBreed})`);
-					// });
+					// Has sub-breeds, add each combination
+					subBreeds.forEach((subBreed) => {
+						// Format as "Sub-breed Breed" (e.g., "Australian Shepherd")
+						breedList.push(`${capitalizeBreed(subBreed)} ${capitalizeBreed(breed)}`);
+					});
 				}
 			}
 			
-			return breedNames.sort(); // Sort alphabetically
+			return breedList.sort(); // Sort alphabetically
 		}
+		
 		return [];
 	});
+
+	// Helper function to capitalize breed names
+	const capitalizeBreed = (str) => {
+		return str
+			.split(' ')
+			.map(word => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(' ');
+	};
 
 	return {
 		breedNames,
 		error,
 		isFetching,
+		data
 	};
 }

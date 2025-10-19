@@ -1,9 +1,10 @@
 <script setup>
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
+import { usePetInfoApi } from '@/composables/usePetInfoApi';
 import PetHealthAccordionItem from '@/components/atomic/PetHealthAccordionItem.vue';
 
 const router = useRouter();
@@ -13,10 +14,19 @@ const authStore = useAuthStore();
 const { pets } = storeToRefs(petStore);
 const { userId } = storeToRefs(authStore);
 
+// Breed selector state
+const selectedPetKind = ref('cat');
+const showBreedSelector = ref(false);
+
+// Use our composable for fetching breeds
+const { breedNames, error: breedError, isFetching: isFetchingBreeds } = usePetInfoApi(selectedPetKind);
+
 const handleFindVet = (payload) => {
   console.log('Finding vet for:', payload);
-  // Navigate to map/vet finder page
-  // router.push({ name: 'vet-finder', query: { petId: payload.petId } });
+};
+
+const toggleBreedSelector = () => {
+  showBreedSelector.value = !showBreedSelector.value;
 };
 
 const healthyPetsCount = computed(() => {
@@ -47,70 +57,120 @@ onMounted(async () => {
     await petStore.fetchPets(userId.value);
   }
 });
-
-import { ref } from 'vue'
-import { usePetInfoApi } from '@/composables/usePetInfoApi';
-
-// Reactive state for the selected pet kind
-const selectedPetKind = ref('cat')
-
-// Use our composable. It will automatically re-fetch when `selectedPetKind` changes.
-const { breedNames, error, isFetching } = usePetInfoApi(selectedPetKind)
-
 </script>
 
 <template>
-  <div>
-    <h1>Pet Breed Selector</h1>
-
-    <!-- 1. Pet Kind Selector -->
-    <div>
-      <label for="pet-kind">Choose a pet kind:</label>
-      <select id="pet-kind" v-model="selectedPetKind">
-        <option value="cat">Cat</option>
-        <option value="dog">Dog</option>
-      </select>
-    </div>
-
-    <hr />
-
-    <!-- 2. Display Loading State -->
-    <div v-if="isFetching">
-      <p>Loading breeds...</p>
-    </div>
-
-    <!-- 3. Display Error State -->
-    <div v-else-if="error">
-      <p style="color: red;">Error: {{ error.message }}</p>
-    </div>
-
-    <!-- 4. Display the List of Breeds -->
-    <div v-else-if="breedNames">
-      <h2>List of {{ selectedPetKind.charAt(0).toUpperCase() + selectedPetKind.slice(1) }} Breeds</h2>
-      <ul>
-        <li v-for="name in breedNames" :key="name">
-          {{ name }}
-        </li>
-      </ul>
-    </div>
-  </div>
-
   <div class="health-dashboard">
     <div class="container py-4">
-      <!-- Header Section -->
+      <!-- Header with Browse Breeds Button -->
       <div class="row mb-4">
         <div class="col-12">
           <div class="dashboard-header">
-            <h1 class="dashboard-title">
-              <i class="bi bi-heart-pulse-fill text-danger me-2"></i>
-              Health Dashboard
-            </h1>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+              <h1 class="dashboard-title mb-0">
+                <i class="bi bi-heart-pulse-fill text-danger me-2"></i>
+                Health Dashboard
+              </h1>
+              <button 
+                class="btn btn-outline-primary"
+                @click="toggleBreedSelector"
+              >
+                <i class="bi bi-search me-2"></i>
+                {{ showBreedSelector ? 'Hide' : 'Browse' }} Breeds
+              </button>
+            </div>
             <p class="dashboard-subtitle text-muted">
               Monitor and manage your pets' health and wellbeing
             </p>
           </div>
         </div>
       </div>
+
+      <!-- Breed Selector Panel -->
+      <Transition name="slide-fade">
+        <div v-if="showBreedSelector" class="row mb-4">
+          <div class="col-12">
+            <div class="breed-selector-panel">
+              <div class="panel-header">
+                <h3 class="panel-title">
+                  <i class="bi bi-list-ul me-2"></i>
+                  Browse Pet Breeds
+                </h3>
+                <p class="panel-description">
+                  Explore different breeds to learn more
+                </p>
+              </div>
+
+              <div class="panel-body">
+                <!-- Pet Kind Selector -->
+                <div class="kind-selector mb-4">
+                  <label class="form-label fw-semibold">Select Pet Type:</label>
+                  <div class="btn-group w-100" role="group">
+                    <input 
+                      type="radio" 
+                      class="btn-check" 
+                      name="petKind" 
+                      id="kindCat" 
+                      value="cat"
+                      v-model="selectedPetKind"
+                    >
+                    <label class="btn btn-outline-primary" for="kindCat">
+                      <i class="bi bi-heart-fill me-2"></i>
+                      Cat
+                    </label>
+
+                    <input 
+                      type="radio" 
+                      class="btn-check" 
+                      name="petKind" 
+                      id="kindDog" 
+                      value="dog"
+                      v-model="selectedPetKind"
+                    >
+                    <label class="btn btn-outline-primary" for="kindDog">
+                      <i class="bi bi-heart-fill me-2"></i>
+                      Dog
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Loading State -->
+                <div v-if="isFetchingBreeds" class="breed-list-loading">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading breeds...</span>
+                  </div>
+                  <p class="mt-3 text-muted">Loading {{ selectedPetKind }} breeds...</p>
+                </div>
+
+                <!-- Error State -->
+                <div v-else-if="breedError" class="alert alert-danger" role="alert">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                  <strong>Error:</strong> {{ breedError.message }}
+                </div>
+
+                <!-- Breeds List -->
+                <div v-else-if="breedNames && breedNames.length > 0" class="breed-list-container">
+                  <div class="breed-list-header">
+                    <h5 class="mb-0">
+                      {{ breedNames.length }} {{ selectedPetKind.charAt(0).toUpperCase() + selectedPetKind.slice(1) }} Breeds
+                    </h5>
+                  </div>
+                  <div class="breed-grid">
+                    <div 
+                      v-for="breed in breedNames" 
+                      :key="breed"
+                      class="breed-card"
+                    >
+                      <i class="bi bi-paw-fill breed-icon"></i>
+                      <span class="breed-name">{{ breed }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
 
       <!-- Empty State -->
       <div v-if="!pets || pets.length === 0" class="row">
@@ -204,22 +264,136 @@ const { breedNames, error, isFetching } = usePetInfoApi(selectedPetKind)
 
 .dashboard-header {
   text-align: center;
-  padding: 2rem 0;
+  padding: 2rem 0 1rem;
 }
 
 .dashboard-title {
   font-size: 2.5rem;
   font-weight: 700;
   color: #2d3748;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dashboard-subtitle {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Breed Selector Panel */
+.breed-selector-panel {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.panel-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+}
+
+.panel-title {
+  font-size: 1.75rem;
+  font-weight: 700;
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.dashboard-subtitle {
-  font-size: 1.1rem;
+.panel-description {
   margin: 0;
+  opacity: 0.9;
+}
+
+.panel-body {
+  padding: 2rem;
+}
+
+.kind-selector .btn-group {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.kind-selector .btn {
+  padding: 1rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Breed List */
+.breed-list-loading {
+  text-align: center;
+  padding: 3rem;
+}
+
+.breed-list-container {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.breed-list-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.breed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.breed-card {
+  background: #f8f9fa;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.breed-card:hover {
+  background: white;
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.breed-icon {
+  font-size: 1.5rem;
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.breed-name {
+  font-weight: 500;
+  color: #2d3748;
+  flex: 1;
+}
+
+/* Slide Fade Transition */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.2s ease-in;
+}
+
+.slide-fade-enter-from {
+  transform: translateY(-20px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
 }
 
 /* Empty State */
@@ -323,25 +497,19 @@ const { breedNames, error, isFetching } = usePetInfoApi(selectedPetKind)
 /* Responsive */
 @media (max-width: 768px) {
   .dashboard-title {
-    font-size: 2rem;
-    flex-direction: column;
-    gap: 0.5rem;
+    font-size: 1.75rem;
   }
 
-  .dashboard-subtitle {
-    font-size: 1rem;
+  .breed-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .panel-body {
+    padding: 1.5rem;
   }
 
   .empty-state {
     padding: 3rem 1.5rem;
-  }
-
-  .empty-icon {
-    font-size: 4rem;
-  }
-
-  .empty-title {
-    font-size: 1.5rem;
   }
 
   .quick-stats {
@@ -359,29 +527,17 @@ const { breedNames, error, isFetching } = usePetInfoApi(selectedPetKind)
   .stat-number {
     font-size: 1.5rem;
   }
-
-  .stat-label {
-    font-size: 0.8rem;
-  }
 }
 
 @media (max-width: 576px) {
-  .dashboard-title {
-    font-size: 1.75rem;
+  .breed-grid {
+    grid-template-columns: 1fr;
   }
 
   .stat-box {
     flex-direction: column;
     text-align: center;
     padding: 1rem 0.75rem;
-  }
-
-  .stat-icon {
-    font-size: 1.75rem;
-  }
-
-  .stat-number {
-    font-size: 1.25rem;
   }
 }
 </style>
