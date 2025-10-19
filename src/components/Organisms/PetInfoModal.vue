@@ -195,23 +195,7 @@ p {
   }
 }
 
-.modal-content::-webkit-scrollbar {
-  width: 15px;
-  height: 10px;
-}
-.modal-content::-webkit-scrollbar-track {
-  background: var(--bs-white);
-  border-end-end-radius: 8px;
-  border-top-right-radius: 8px;
-}
-.modal-content::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(var(--bs-primary-rgb),0.88), rgba(var(--bs-primary-rgb),0.48));
-  border-radius: 8px;
-  border: 1px solid rgba(0,0,0,0.04);
-}
-.modal-content::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(var(--bs-primary-rgb)), rgba(var(--bs-primary-rgb),0.9));
-}
+
 
 
 
