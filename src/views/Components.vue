@@ -47,7 +47,8 @@ import buttonTogglable from "@/components/atoms/buttonTogglable.vue";
      </div>
 
      <!-- SEARCH BAR -->
-<searchBar></searchBar>
+<searchBar type="text" placeholder="Search..."> <i class="bi bi-search"></i>
+</searchBar>
 
      <!-- PET CARD -->
 
