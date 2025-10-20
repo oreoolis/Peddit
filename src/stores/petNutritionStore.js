@@ -38,7 +38,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
     try {
       const { data, error: fetchError } = await supabase
-        .from('nutrition_profiles')
+        .from('pet_nutrition_profiles')
         .select('*')
         .order('kind', { ascending: true });
 
@@ -65,7 +65,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
     try {
       const { data, error: fetchError } = await supabase
-        .from('nutrition_profiles')
+        .from('pet_nutrition_profiles')
         .select('*')
         .eq('kind', kind.toLowerCase())
         .eq('life_stage', lifeStage.toLowerCase())
@@ -470,15 +470,23 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
         fiber_g: 0,
         calcium_g: 0,
         phosphorus_g: 0,
+        magnesium_mg: 0,
         iron_mg: 0,
         zinc_mg: 0,
         vitamin_a_iu: 0,
         vitamin_d_iu: 0,
         vitamin_e_iu: 0,
+        thiamine_mg: 0,
+        riboflavin_mg: 0,
+        niacin_mg: 0,
         vitamin_b6_mg: 0,
         vitamin_b12_mg: 0,
+        choline_mg: 0,
         taurine_g: 0,
-        epa_dha_g: 0
+        linoleic_acid_g: 0,
+        alpha_linolenic_acid_g: 0,
+        epa_dha_g: 0,
+        arachidonic_acid_g: 0
       };
     }
 
@@ -489,15 +497,23 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
       fiber_g: 0,
       calcium_g: 0,
       phosphorus_g: 0,
+      magnesium_mg: 0,
       iron_mg: 0,
       zinc_mg: 0,
       vitamin_a_iu: 0,
       vitamin_d_iu: 0,
       vitamin_e_iu: 0,
+      thiamine_mg: 0,
+      riboflavin_mg: 0,
+      niacin_mg: 0,
       vitamin_b6_mg: 0,
       vitamin_b12_mg: 0,
+      choline_mg: 0,
       taurine_g: 0,
-      epa_dha_g: 0
+      linoleic_acid_g: 0,
+      alpha_linolenic_acid_g: 0,
+      epa_dha_g: 0,
+      arachidonic_acid_g: 0
     };
 
     recipeIngredients.forEach(recipeIng => {
@@ -524,15 +540,23 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
         totals.phosphorus_g += unit === 'g' ? nutrition.phosphorus.value * multiplier : (nutrition.phosphorus.value / 1000) * multiplier;
       }
       
+      if (nutrition.magnesium?.value) totals.magnesium_mg += nutrition.magnesium.value * multiplier;
       if (nutrition.iron?.value) totals.iron_mg += nutrition.iron.value * multiplier;
       if (nutrition.zinc?.value) totals.zinc_mg += nutrition.zinc.value * multiplier;
       if (nutrition.vitamin_a?.value) totals.vitamin_a_iu += nutrition.vitamin_a.value * multiplier;
       if (nutrition.vitamin_d?.value) totals.vitamin_d_iu += nutrition.vitamin_d.value * multiplier;
       if (nutrition.vitamin_e?.value) totals.vitamin_e_iu += nutrition.vitamin_e.value * multiplier;
+      if (nutrition.thiamine?.value) totals.thiamine_mg += nutrition.thiamine.value * multiplier;
+      if (nutrition.riboflavin?.value) totals.riboflavin_mg += nutrition.riboflavin.value * multiplier;
+      if (nutrition.niacin?.value) totals.niacin_mg += nutrition.niacin.value * multiplier;
       if (nutrition.vitamin_b6?.value) totals.vitamin_b6_mg += nutrition.vitamin_b6.value * multiplier;
       if (nutrition.vitamin_b12?.value) totals.vitamin_b12_mg += nutrition.vitamin_b12.value * multiplier;
+      if (nutrition.choline?.value) totals.choline_mg += nutrition.choline.value * multiplier;
       if (nutrition.taurine?.value) totals.taurine_g += nutrition.taurine.value * multiplier;
+      if (nutrition.linoleic_acid?.value) totals.linoleic_acid_g += nutrition.linoleic_acid.value * multiplier;
+      if (nutrition.alpha_linolenic_acid?.value) totals.alpha_linolenic_acid_g += nutrition.alpha_linolenic_acid.value * multiplier;
       if (nutrition.epa_dha?.value) totals.epa_dha_g += nutrition.epa_dha.value * multiplier;
+      if (nutrition.arachidonic_acid?.value) totals.arachidonic_acid_g += nutrition.arachidonic_acid.value * multiplier;
     });
 
     // Round all values to 2 decimal places
@@ -552,33 +576,52 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
       return null;
     }
 
-    // Extract minimum requirements from schema
-    const comparison = {
-      protein: {
-        actual: recipeNutrition.protein_g,
-        required: requirements.min_protein_g || 0,
-        percentage: requirements.min_protein_g ? (recipeNutrition.protein_g / requirements.min_protein_g) * 100 : 0,
-        status: getStatus(recipeNutrition.protein_g, requirements.min_protein_g)
-      },
-      fat: {
-        actual: recipeNutrition.fat_g,
-        required: requirements.min_fat_g || 0,
-        percentage: requirements.min_fat_g ? (recipeNutrition.fat_g / requirements.min_fat_g) * 100 : 0,
-        status: getStatus(recipeNutrition.fat_g, requirements.min_fat_g)
-      },
-      calcium: {
-        actual: recipeNutrition.calcium_g,
-        required: requirements.min_calcium_g || 0,
-        percentage: requirements.min_calcium_g ? (recipeNutrition.calcium_g / requirements.min_calcium_g) * 100 : 0,
-        status: getStatus(recipeNutrition.calcium_g, requirements.min_calcium_g)
-      },
-      phosphorus: {
-        actual: recipeNutrition.phosphorus_g,
-        required: requirements.min_phosphorus_g || 0,
-        percentage: requirements.min_phosphorus_g ? (recipeNutrition.phosphorus_g / requirements.min_phosphorus_g) * 100 : 0,
-        status: getStatus(recipeNutrition.phosphorus_g, requirements.min_phosphorus_g)
+    const comparison = {};
+    
+    // Helper to add nutrient comparison
+    const addComparison = (key, actualValue, requiredField, unit = '') => {
+      const required = requirements[requiredField] || 0;
+      if (required > 0) {
+        comparison[key] = {
+          actual: actualValue || 0,
+          required: required,
+          unit: unit,
+          percentage: (actualValue / required) * 100,
+          status: getStatus(actualValue, required)
+        };
       }
     };
+    
+    // Macronutrients
+    addComparison('protein', recipeNutrition.protein_g, 'min_protein_g', 'g');
+    addComparison('fat', recipeNutrition.fat_g, 'min_fat_g', 'g');
+    
+    // Fatty Acids
+    addComparison('linoleic_acid', recipeNutrition.linoleic_acid_g, 'min_linoleic_acid_g', 'g');
+    addComparison('alpha_linolenic_acid', recipeNutrition.alpha_linolenic_acid_g, 'min_alpha_linolenic_acid_g', 'g');
+    addComparison('epa_dha', recipeNutrition.epa_dha_g, 'min_epa_dha_g', 'g');
+    addComparison('arachidonic_acid', recipeNutrition.arachidonic_acid_g, 'min_arachidonic_acid_g', 'g');
+    
+    // Minerals
+    addComparison('calcium', recipeNutrition.calcium_g, 'min_calcium_g', 'g');
+    addComparison('phosphorus', recipeNutrition.phosphorus_g, 'min_phosphorus_g', 'g');
+    addComparison('magnesium', recipeNutrition.magnesium_mg, 'min_magnesium_mg', 'mg');
+    addComparison('iron', recipeNutrition.iron_mg, 'min_iron_mg', 'mg');
+    addComparison('zinc', recipeNutrition.zinc_mg, 'min_zinc_mg', 'mg');
+    
+    // Vitamins
+    addComparison('vitamin_a', recipeNutrition.vitamin_a_iu, 'min_vitamin_a_iu', 'IU');
+    addComparison('vitamin_d', recipeNutrition.vitamin_d_iu, 'min_vitamin_d_iu', 'IU');
+    addComparison('vitamin_e', recipeNutrition.vitamin_e_iu, 'min_vitamin_e_iu', 'IU');
+    addComparison('thiamine', recipeNutrition.thiamine_mg, 'min_thiamine_mg', 'mg');
+    addComparison('riboflavin', recipeNutrition.riboflavin_mg, 'min_riboflavin_mg', 'mg');
+    addComparison('niacin', recipeNutrition.niacin_mg, 'min_niacin_mg', 'mg');
+    addComparison('vitamin_b6', recipeNutrition.vitamin_b6_mg, 'min_vitamin_b6_mg', 'mg');
+    addComparison('vitamin_b12', recipeNutrition.vitamin_b12_mg, 'min_vitamin_b12_mg', 'mg');
+    addComparison('choline', recipeNutrition.choline_mg, 'min_choline_mg', 'mg');
+    
+    // Amino Acids
+    addComparison('taurine', recipeNutrition.taurine_g, 'min_taurine_g', 'g');
 
     return comparison;
   };

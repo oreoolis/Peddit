@@ -4,6 +4,7 @@ import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
 import { storeToRefs } from 'pinia';
+import { useDebounceFn } from '@vueuse/core';
 
 // ============================================
 // STORES
@@ -37,7 +38,8 @@ const currentRecipe = ref(null);
 const recipeName = ref('');
 const recipeDescription = ref('');
 const selectedIngredients = ref([]);
-const selectedIngredientId = ref('');
+const ingredientSearchQuery = ref('');
+const showIngredientDropdown = ref(false);
 const ingredientQuantity = ref(100);
 const recipeNutrition = ref(null);
 const nutritionComparison = ref(null);
@@ -63,6 +65,15 @@ const availableIngredients = computed(() => {
   );
 });
 
+const filteredIngredients = computed(() => {
+  const query = ingredientSearchQuery.value.toLowerCase().trim();
+  if (!query) return availableIngredients.value.slice(0, 10);
+  
+  return availableIngredients.value
+    .filter(ing => ing.name.toLowerCase().includes(query))
+    .slice(0, 10);
+});
+
 // ============================================
 // LIFECYCLE
 // ============================================
@@ -70,8 +81,28 @@ onMounted(async () => {
   await Promise.all([
     nutritionStore.fetchNutritionProfiles(),
     nutritionStore.fetchIngredients(),
-    petStore.fetchPets(userId.value)
   ]);
+  
+  // Fetch recipes if logged in
+  if (userId.value) {
+    await nutritionStore.fetchRecipes(userId.value);
+    await petStore.fetchPets(userId.value);
+  }
+  
+  // Log nutrition data for debugging
+  console.log('Nutrition Profiles:', nutritionProfiles.value);
+  console.log('Sample Ingredients:', ingredients.value.slice(0, 3));
+  
+  // Fetch initial requirements
+  await fetchNutritionRequirements();
+});
+
+// Watch for authentication changes
+watch(userId, async (newUserId) => {
+  if (newUserId) {
+    await nutritionStore.fetchRecipes(newUserId);
+    await petStore.fetchPets(newUserId);
+  }
 });
 
 // Watch for pet selection changes
@@ -106,33 +137,38 @@ const fetchNutritionRequirements = async () => {
     petLifeStage.value
   );
   
+  console.log('Nutrition Requirements Result:', result);
+  
   if (result.success) {
     nutritionRequirements.value = result.data;
+    console.log('Loaded Nutrition Requirements:', nutritionRequirements.value);
     calculateComparison();
+  } else {
+    console.error('Failed to load nutrition requirements:', result.error);
   }
 };
 
 /**
- * Add ingredient to recipe
+ * Select ingredient from dropdown with debounce
  */
-const addIngredient = () => {
-  if (!selectedIngredientId.value || ingredientQuantity.value <= 0) {
-    showError('Please select an ingredient and enter a valid quantity');
-    return;
-  }
-
-  const ingredient = ingredients.value.find(i => i.id === selectedIngredientId.value);
-  if (!ingredient) return;
-
+const selectIngredient = (ingredient) => {
   selectedIngredients.value.push({
     ingredient,
     quantity: ingredientQuantity.value
   });
-
-  // Reset form
-  selectedIngredientId.value = '';
+  
+  // Reset search
+  ingredientSearchQuery.value = '';
+  showIngredientDropdown.value = false;
   ingredientQuantity.value = 100;
 };
+
+/**
+ * Handle search input with debounce
+ */
+const handleSearchInput = useDebounceFn(() => {
+  showIngredientDropdown.value = ingredientSearchQuery.value.length > 0;
+}, 300);
 
 /**
  * Remove ingredient from recipe
@@ -167,6 +203,7 @@ const calculateNutrition = () => {
   }));
 
   recipeNutrition.value = nutritionStore.calculateRecipeNutrition(recipeIngredientsFormat);
+console.log('Calculated Recipe Nutrition:', recipeNutrition.value);
   calculateComparison();
 };
 
@@ -184,6 +221,8 @@ const calculateComparison = () => {
     nutritionRequirements.value,
     petWeight.value
   );
+
+  console.log('Nutrition Comparison:', nutritionComparison.value);
 };
 
 /**
@@ -192,6 +231,12 @@ const calculateComparison = () => {
 const createRecipe = async () => {
   if (!canCreateRecipe.value) {
     showError('Please provide a recipe name and add at least one ingredient');
+    return;
+  }
+
+  
+  if (!userId.value) {
+    showError('Please login to save recipes');
     return;
   }
 
@@ -267,7 +312,9 @@ const deleteRecipe = async (recipeId) => {
   
   if (result.success) {
     showSuccess('Recipe deleted successfully');
-    await nutritionStore.fetchRecipes(userId.value);
+    if (userId.value) {  // Add this check
+      await nutritionStore.fetchRecipes(userId.value);
+    }
   } else {
     showError(result.error);
   }
@@ -410,6 +457,7 @@ const getStatusLabel = (status) => {
                 Daily Requirements (per 1000 kcal)
               </h5>
             </div>
+            <!-- Break down into componenets -->
             <div class="card-body">
               <div class="requirement-item">
                 <span class="requirement-label">Protein (min):</span>
@@ -445,6 +493,18 @@ const getStatusLabel = (status) => {
                 <span class="requirement-label">Phosphorus (min):</span>
                 <span class="requirement-value">
                   {{ nutritionRequirements.min_phosphorus_g }}g
+                </span>
+              </div>
+              <div class="requirement-item">
+                <span class="requirement-label">Phosphorus (max):</span>
+                <span class="requirement-value">
+                  {{ nutritionRequirements.max_phosphorus_g }}g
+                </span>
+              </div>
+              <div class="requirement-item">
+                <span class="requirement-label">Phosphorus (max):</span>
+                <span class="requirement-value">
+                  {{ nutritionRequirements.max_phosphorus_g }}g
                 </span>
               </div>
               <div class="requirement-item">
@@ -502,16 +562,30 @@ const getStatusLabel = (status) => {
                   <h6 class="fw-semibold mb-2">Add Ingredients</h6>
                   <div class="row g-2">
                     <div class="col-md-6">
-                      <select v-model="selectedIngredientId" class="form-select">
-                        <option value="">-- Select Ingredient --</option>
-                        <option 
-                          v-for="ing in availableIngredients" 
-                          :key="ing.id" 
-                          :value="ing.id"
+                      <div class="autocomplete-wrapper">
+                        <input 
+                          type="text"
+                          v-model="ingredientSearchQuery"
+                          @input="handleSearchInput"
+                          @focus="showIngredientDropdown = ingredientSearchQuery.length > 0"
+                          @blur="setTimeout(() => showIngredientDropdown = false, 200)"
+                          class="form-control"
+                          placeholder="Search ingredients..."
                         >
-                          {{ ing.name }}
-                        </option>
-                      </select>
+                        <div 
+                          v-if="showIngredientDropdown && filteredIngredients.length > 0" 
+                          class="autocomplete-dropdown"
+                        >
+                          <div 
+                            v-for="ing in filteredIngredients" 
+                            :key="ing.id"
+                            @click="selectIngredient(ing)"
+                            class="autocomplete-item"
+                          >
+                            {{ ing.name }}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     <div class="col-md-4">
                       <input 
@@ -523,12 +597,9 @@ const getStatusLabel = (status) => {
                       >
                     </div>
                     <div class="col-md-2">
-                      <button 
-                        class="btn btn-success w-100"
-                        @click="addIngredient"
-                      >
-                        <i class="bi bi-plus"></i>
-                      </button>
+                      <div class="text-muted small text-center mt-2">
+                        {{ filteredIngredients.length }} results
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -621,7 +692,7 @@ const getStatusLabel = (status) => {
               <!-- Empty State -->
               <div v-if="!showRecipeForm && recipes.length === 0" class="text-center py-4">
                 <i class="bi bi-journal-x" style="font-size: 3rem; color: #cbd5e0;"></i>
-                <p class="text-muted mt-2">No recipes yet. Create your first recipe!</p>
+                <p class="text-muted mt-2">No recipes yet. {{ userId ? 'Create your first recipe!' : 'Login to create and save recipes.' }}</p>
               </div>
             </div>
           </div>
@@ -735,6 +806,59 @@ const getStatusLabel = (status) => {
 </template>
 
 <style scoped>
+/* Autocomplete Styles */
+.autocomplete-wrapper {
+  position: relative;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: 4px;
+}
+
+.autocomplete-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f7fafc;
+  transition: background-color 0.2s;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover {
+  background-color: #f7fafc;
+}
+
+/* Requirements Scroll */
+.requirements-scroll {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.requirement-section-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #667eea;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid #667eea;
+}
+
+/* Other */
+
 .nutrition-test-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
