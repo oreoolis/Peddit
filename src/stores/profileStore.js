@@ -4,6 +4,11 @@ import { ref, computed } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
 import { useStorage } from '@/composables/useStorage';
 
+/**
+ * Profile store for managing other users' profiles
+ * Handles fetching and viewing profiles of other users (not the current user)
+ * For current user profile management, use userStore instead
+*/
 export const useProfileStore = defineStore('profile', () => {
     // State
     const profile = ref(null);
@@ -23,6 +28,13 @@ export const useProfileStore = defineStore('profile', () => {
     const followers = computed(() => profile.value?.follower_count || 0);
 
     // Actions
+    /**
+     * Fetches a user's profile by username
+     * Uses caching to avoid refetching the same profile
+     * @param {string} username - The username of the profile to fetch
+     * @param {boolean} [force=false] - Force refetch even if already loaded
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const fetchProfile = async (username, force = false) => {
         if (!username || typeof username !== 'string') {
             console.warn('Invalid username:', username);
@@ -59,6 +71,10 @@ export const useProfileStore = defineStore('profile', () => {
         }
     };
 
+    /**
+     * Clears the currently loaded profile data
+     * @returns {void}
+    */
     const clearProfile = () => {
         profile.value = null;
         lastFetchedUsername.value = null;

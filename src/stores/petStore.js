@@ -6,6 +6,10 @@ import { useStorage } from '@/composables/useStorage';
 
 const { uploadImage, downloadImage, deleteImage, getPublicImage } = useStorage();
 
+/**
+ * Pet store for managing user's pets
+ * Handles pet CRUD operations and pet image management
+*/
 export const usePetStore = defineStore('pets', () => {
     // State
     const pets = ref([]);
@@ -18,6 +22,11 @@ export const usePetStore = defineStore('pets', () => {
     const petsByKind = computed(() => (kind) => pets.value.filter(pet => pet.kind === kind));
 
     // Primary Actions
+    /**
+     * Fetches all pets for a specific user
+     * @param {string} userId - The ID of the user whose pets to fetch
+     * @returns {Promise<void>}
+    */
     const fetchPets = async (userId) => {
         try {
             loading.value = true;
@@ -39,6 +48,12 @@ export const usePetStore = defineStore('pets', () => {
         }
     }
     
+    /**
+     * Creates a new pet for the user
+     * @param {string} userId - The ID of the user creating the pet
+     * @param {object} petData - The pet data (name, kind, breed, birthdate, gender, weight_kg, body_condition_scale, neutered, photo_url, allergies)
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const createPet = async (userId, petData) => {
         try {
             loading.value = true;
@@ -84,6 +99,12 @@ export const usePetStore = defineStore('pets', () => {
         }
     }
 
+    /**
+     * Updates an existing pet's information
+     * @param {string} petId - The ID of the pet to update
+     * @param {object} updates - The pet fields to update
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const updatePet = async (petId, updates) => {
         try {
             loading.value = true;
@@ -123,6 +144,11 @@ export const usePetStore = defineStore('pets', () => {
         }
     }
 
+    /**
+     * Deletes a pet and its associated image
+     * @param {string} petId - The ID of the pet to delete
+     * @returns {Promise<{ success: boolean, error?: string }>}
+    */
     const deletePet = async (petId) => {
         try {
             loading.value = true;
@@ -161,6 +187,14 @@ export const usePetStore = defineStore('pets', () => {
     }
 
     // Image Actions
+    /**
+     * Uploads a new image for a pet
+     * Deletes the old image if it exists and updates the pet's photo_url
+     * @param {string} userId - The ID of the user uploading the image
+     * @param {string} petId - The ID of the pet
+     * @param {File} file - The image file to upload
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const uploadPetImage = async (userId, petId, file) => {
         // try {
         //     loading.value = true;
@@ -250,6 +284,11 @@ export const usePetStore = defineStore('pets', () => {
         }
     }
 
+    /**
+     * Deletes a pet's image from storage and updates the pet record
+     * @param {string} petId - The ID of the pet whose image to delete
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const deletePetImage = async (petId) => {
         // try {
         //     const pet = pets.value.find(p => p.id === petId);
@@ -320,6 +359,11 @@ export const usePetStore = defineStore('pets', () => {
         }
     }
 
+    /**
+     * Downloads a pet's image from storage
+     * @param {string} petId - The ID of the pet whose image to download
+     * @returns {Promise<Blob|null>}
+    */
     const downloadPetImage = async (petId) => {
         try {
             const pet = pets.value.find(p => p.id === petId);
@@ -337,7 +381,11 @@ export const usePetStore = defineStore('pets', () => {
         }
     }
 
-    // Helper function to extract file path from URL
+    /**
+     * Helper function to extract storage file path from a Supabase URL
+     * @param {string} url - The full Supabase storage URL
+     * @returns {string|null} The extracted file path or null
+    */
     const extractFilePathFromUrl = (url) => {
         if (!url) return null;
         const matches = url.match(/pet-images\/(.+)$/);
