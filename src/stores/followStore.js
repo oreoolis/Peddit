@@ -111,32 +111,29 @@ export const useFollowStore = defineStore("follow", () => {
     */
     const unfollowUser = async (followerId, followeeId) => {
         if (!followerId || !followeeId) {
-        return {
-            success: false,
-            error: "Follower and Followee IDs are required.",
-        };
+            return { success: false, error: "Follower and Followee IDs are required." };
         }
 
         try {
-        loading.value = true;
-        error.value = null;
+            loading.value = true;
+            error.value = null;
 
-        const { error: unfollowError } = await supabase
-            .from("follows")
-            .delete()
-            .eq("follower_id", followerId)
-            .eq("followee_id", followeeId);
+            const { error: unfollowError } = await supabase
+                .from("follows")
+                .delete()
+                .eq("follower_id", followerId)
+                .eq("followee_id", followeeId);
 
-        if (unfollowError) throw unfollowError;
+            if (unfollowError) throw unfollowError;
 
-        isFollowing.value = false;
-        return { success: true };
+            isFollowing.value = false;
+            return { success: true };
         } catch (err) {
-        error.value = err.message;
-        console.error("Error unfollowing user:", err);
-        return { success: false, error: err.message };
+            error.value = err.message;
+            console.error("Error unfollowing user:", err);
+            return { success: false, error: err.message };
         } finally {
-        loading.value = false;
+            loading.value = false;
         }
     };
 
