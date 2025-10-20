@@ -8,7 +8,12 @@ import { useAuthStore } from './authStore';
 
 const { uploadImage, deleteImage } = useStorage();
 
+// Use for all things related to current user session
 export const useUserStore = defineStore('user', () => {
+    // Private
+    const authStore = useAuthStore();
+    const userId = computed(() => authStore.userId);
+
     // State
     const profile = ref(null);
     const loading = ref(false);
@@ -26,12 +31,9 @@ export const useUserStore = defineStore('user', () => {
     const followers = computed(() => profile.value?.follower_count || 0);
 
     // Actions
+    // Fetch the profile of current user session
     const fetchProfile = async () => {
-        const authStore = useAuthStore();
-        const userId = authStore.userId;
-        
         if (!userId) {
-            console.warn('No authenticated user found');
             return { success: false, error: 'No authenticated user' };
         }
 
@@ -59,10 +61,12 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
+    // Update current user profile
+    // Things allowed to update:
+    // username(Maybe not?), bio, display_name, is_private(Change this to to hide from other users)
+    // Changing image is handled by uploadProfileImage
+    // TODO: handle is_private
     const updateProfile = async (updates) => {
-        const authStore = useAuthStore();
-        const userId = authStore.userId;
-        
         if (!userId) {
             return { success: false, error: 'No authenticated user' };
         }
@@ -93,10 +97,10 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
+    // Update profile image of current user
+    // Deletes the old profile image and upload new one using supabase storage
+    // Also calls updateProfile to update image link
     const uploadProfileImage = async (file) => {
-        const authStore = useAuthStore();
-        const userId = authStore.userId;
-        
         if (!userId) {
             return { success: false, error: 'No authenticated user' };
         }
@@ -126,10 +130,9 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
+    // Delete the user's profile image
+    // This will force it to use the OG Rick Astley image
     const deleteProfileImage = async () => {
-        const authStore = useAuthStore();
-        const userId = authStore.userId;
-        
         if (!userId) {
             return { success: false, error: 'No authenticated user' };
         }
@@ -152,10 +155,11 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
-    const clearProfile = () => {
-        profile.value = null;
-        error.value = null;
-    };
+    // Clear profile value and errors, call this when sign out
+    // const clearProfile = () => {
+    //     profile.value = null;
+    //     error.value = null;
+    // };
 
     return {
         // State
@@ -173,7 +177,6 @@ export const useUserStore = defineStore('user', () => {
         // Actions 
         fetchProfile,
         updateProfile,
-        clearProfile,
         uploadProfileImage,
         deleteProfileImage
     };
