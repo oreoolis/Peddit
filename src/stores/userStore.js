@@ -39,7 +39,8 @@ export const useUserStore = defineStore('user', () => {
      * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
     */
     const fetchProfile = async () => {
-        if (!userId) {
+        if (!userId.value) {
+            console.warn('No authenticated user found');
             return { success: false, error: 'No authenticated user' };
         }
 
@@ -50,7 +51,7 @@ export const useUserStore = defineStore('user', () => {
             const { data, error: fetchError } = await supabase
                 .from('profiles')
                 .select('*')
-                .eq('id', userId)
+                .eq('id', userId.value)
                 .single();
 
             if (fetchError) throw fetchError;
@@ -78,7 +79,7 @@ export const useUserStore = defineStore('user', () => {
      * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
     */
     const updateProfile = async (updates) => {
-        if (!userId) {
+        if (!userId.value) {
             return { success: false, error: 'No authenticated user' };
         }
 
@@ -92,7 +93,7 @@ export const useUserStore = defineStore('user', () => {
                     ...updates,
                     updated_at: new Date().toISOString()
                 })
-                .eq('id', userId)
+                .eq('id', userId.value)
                 .select()
                 .single();
 
@@ -116,7 +117,7 @@ export const useUserStore = defineStore('user', () => {
      * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
     */
     const uploadProfileImage = async (file) => {
-        if (!userId) {
+        if (!userId.value) {
             return { success: false, error: 'No authenticated user' };
         }
 
@@ -129,7 +130,7 @@ export const useUserStore = defineStore('user', () => {
             }
 
             // Upload new profile image
-            const storagePath = `${userId}/${Date.now()}-${file.name}`;
+            const storagePath = `${userId.value}/${Date.now()}-${file.name}`;
             const { error: uploadError } = await uploadImage('avatars', file, storagePath);
             if (uploadError) throw uploadError;
 
@@ -152,7 +153,7 @@ export const useUserStore = defineStore('user', () => {
      * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
     */
     const deleteProfileImage = async () => {
-        if (!userId) {
+        if (!userId.value) {
             return { success: false, error: 'No authenticated user' };
         }
 

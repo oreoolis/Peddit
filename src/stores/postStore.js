@@ -6,6 +6,10 @@ import { ref, computed } from 'vue';
 
 const { getPublicImage } = useStorage();
 
+/**
+ * Post store for managing posts, including fetching, creating, updating, and deleting posts
+ * Also handles post voting and media management
+*/
 export const usePostStore = defineStore('posts', () => {
     // State
     const posts = ref([]);
@@ -23,6 +27,14 @@ export const usePostStore = defineStore('posts', () => {
     const popularPosts = computed(() => [...posts.value].sort((a, b) => b.vote_score - a.vote_score).slice(0, 5));
 
     // Actions
+    /**
+     * Fetches posts from the database with optional filtering and pagination
+     * @param {object} [options={}] - Options for fetching posts
+     * @param {string} [options.userId] - Filter posts by author ID
+     * @param {boolean} [options.publicOnly=true] - Filter to only show public posts
+     * @param {boolean} [options.loadMore=false] - Whether to load more posts or reset the list
+     * @returns {Promise<{ success: boolean, transformedPosts?: Array, error?: string }>}
+    */
     const fetchPosts = async (options = {}) => {
         try {
             loading.value = true;
@@ -30,6 +42,7 @@ export const usePostStore = defineStore('posts', () => {
 
             const { userId, publicOnly = true, loadMore = false } = options;
 
+            // Pagination stuff
             if (loadMore) {
                 page.value += 1;
             } else {
@@ -37,6 +50,7 @@ export const usePostStore = defineStore('posts', () => {
                 posts.value = [];
             }
 
+            // Query joins profiles to get the image of the post author
             let query = supabase
                 .from('posts')
                 .select(`
@@ -61,6 +75,7 @@ export const usePostStore = defineStore('posts', () => {
 
             const { data, error: supabaseError } = await query;
 
+            // Change the avatar_url into the image URL inside supabase avatars storage bucket
             const transformedPosts = data.map(post => {
                 if (post.profiles?.avatar_url) {
                     post.profiles.avatar_url = getPublicImage('avatars', post.profiles.avatar_url);
