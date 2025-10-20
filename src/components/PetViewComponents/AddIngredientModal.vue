@@ -3,6 +3,7 @@ import { ref, watch } from 'vue';
 import { onUnmounted } from 'vue'
 import Button from '../atoms/button.vue';
 import searchBar from '../atoms/searchBar.vue';
+import SelectAndOption from '../atoms/SelectAndOption.vue';
 const props = defineProps({
     show: {
         type: Boolean,
@@ -41,13 +42,13 @@ const closeModal = () => {
                     <!-- File Input -->
                     <div class="mb-3">
                         <label class="form-label headingFont fw-bold h5" for="inputGroupSelect01">Food Item</label>
-                        <select class="form-select black rounded-5 border-0 my-3" id="inputGroupSelect01">
-                            <option selected>Choose...</option>
-                            <!-- render from API -->
-                            <option value="1">Beef Steak</option>
-                            <option value="2">Orangle</option>
-                            <option value="3">Three</option>
-                        </select>
+                        <SelectAndOption defaultLabel="Select an option..."
+                            :options="[
+                                { value: 'beef', label: 'Beef Steak' },
+                                { value: 'orange', label: 'Orange' },
+                                { value: 'chicken', label: 'Chicken Breast' },
+                            ]">
+                        </SelectAndOption>
                     </div>
                     <div class="mb-3">
                         <span class="form-label headingFont fw-bold h5">Amount (in grams)</span>
@@ -58,9 +59,9 @@ const closeModal = () => {
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" @click="closeModal">
-                        Submit
-                    </button>
+                    <Button type="submit" label="Submit" @click="closeModal">
+                        <i class="bi bi-check-lg mx-1"></i>
+                    </Button>
                 </div>
             </form>
         </div>
