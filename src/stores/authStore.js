@@ -4,6 +4,7 @@ import { ref, computed } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
 import { useUserStore } from './userStore';
 
+// Use for all things related to user authentication
 export const useAuthStore = defineStore('auth', () => {
     // State
     const session = ref(null);
@@ -21,8 +22,12 @@ export const useAuthStore = defineStore('auth', () => {
     let authSubscription = null;
 
     // Actions
+    // Initialises authenthication session
+    // This should be called once at the start only
+    // If the session exists, use existing session
+    // If not user will be empty (isAuthenticated will return false)
     const initAuth = async () => {
-        // Prevent multiple initializations
+        // Prevent multiple initialisations
         if (initialised.value) return;
 
         try {
@@ -37,7 +42,7 @@ export const useAuthStore = defineStore('auth', () => {
             session.value = data.session;
             user.value = data.session?.user ?? null;
 
-            // Set up auth state listener (only once!)
+            // Set up auth state listener
             if (!authSubscription) {
                 const { data: { subscription } } = supabase.auth.onAuthStateChange(
                     async (event, newSession) => {
@@ -72,6 +77,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
+    // Handles signing in with magic link
     const signInWithEmail = async (email, options = {}) => {
         try {
             loading.value = true;
@@ -97,7 +103,9 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
-    // Login is Google Provider
+    // Handles signing in with OAuth
+    // Provider(s): Google
+    // TODO: GitHub(Future) 
     const signInWithOAuth = async (provider = 'google', options = {}) => {
         try {
             loading.value = true;
@@ -123,6 +131,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
+    // Handles signing out
     const signOut = async () => {
         try {
             loading.value = true;
@@ -144,23 +153,27 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
-    const clearError = () => {
-        error.value = null;
-    };
+    // TODO: Error clearing
+    // Expose this or directly use error = null? Might be good cos it will be AuthStore.clearError() more readable?
+    // const clearError = () => {
+    //     error.value = null;
+    // };
 
+    // TODO: Hook up auth subscription with other stores with user data OR clear it here?
     // Clear user-specific data from other stores
-    const clearUserData = () => {
-        // const petStore = usePetStore();
-        // petStore.resetStore();
-    };
+    // User profile store, pet store, recipe store, etc
+    // const clearUserData = () => {
+    //     const petStore = usePetStore();
+    //     petStore.resetStore();
+    // };
 
     // Cleanup subscription when store is disposed
-    const cleanup = () => {
-        if (authSubscription) {
-            authSubscription.unsubscribe();
-            authSubscription = null;
-        }
-    };
+    // const cleanup = () => {
+    //     if (authSubscription) {
+    //         authSubscription.unsubscribe();
+    //         authSubscription = null;
+    //     }
+    // };
 
     return {
         // State
@@ -180,7 +193,5 @@ export const useAuthStore = defineStore('auth', () => {
         signInWithEmail,
         signInWithOAuth,
         signOut,
-        clearError,
-        cleanup,
     };
 });
