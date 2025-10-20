@@ -5,6 +5,10 @@ import { supabase } from '@/lib/supabaseClient';
 import { useUserStore } from './userStore';
 
 // Use for all things related to user authentication
+/**
+ * Auth store for managing authentication with supabase
+ * Handles signing in and out, authenticated logic
+ */
 export const useAuthStore = defineStore('auth', () => {
     // State
     const session = ref(null);

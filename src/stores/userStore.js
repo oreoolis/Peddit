@@ -8,7 +8,10 @@ import { useAuthStore } from './authStore';
 
 const { uploadImage, deleteImage } = useStorage();
 
-// Use for all things related to current user session
+/**
+ * User store for managing the current user's profile data
+ * Handles fetching, updating, and managing user profile information
+*/
 export const useUserStore = defineStore('user', () => {
     // Private
     const authStore = useAuthStore();
@@ -31,7 +34,10 @@ export const useUserStore = defineStore('user', () => {
     const followers = computed(() => profile.value?.follower_count || 0);
 
     // Actions
-    // Fetch the profile of current user session
+    /**
+     * Fetches the profile of the current authenticated user
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const fetchProfile = async () => {
         if (!userId) {
             return { success: false, error: 'No authenticated user' };
@@ -66,6 +72,11 @@ export const useUserStore = defineStore('user', () => {
     // username(Maybe not?), bio, display_name, is_private(Change this to to hide from other users)
     // Changing image is handled by uploadProfileImage
     // TODO: handle is_private
+    /**
+     * Updates the current user's profile information
+     * @param {object} updates - The profile fields to update (username(Maybe not?), bio, display_name, is_private(Change this to to hide from other users))
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const updateProfile = async (updates) => {
         if (!userId) {
             return { success: false, error: 'No authenticated user' };
@@ -97,9 +108,13 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
-    // Update profile image of current user
-    // Deletes the old profile image and upload new one using supabase storage
-    // Also calls updateProfile to update image link
+    /**
+     * Uploads a new profile image for the current user
+     * Deletes the old profile image and uploads the new one using Supabase storage
+     * Also calls updateProfile to update image link (Do not need to handle this)
+     * @param {File} file - The image file to upload
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const uploadProfileImage = async (file) => {
         if (!userId) {
             return { success: false, error: 'No authenticated user' };
@@ -130,8 +145,12 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
-    // Delete the user's profile image
-    // This will force it to use the OG Rick Astley image
+    /**
+     * Deletes the user's profile image
+     * Removes the image from storage and updates the profile
+     * This will force it to use the OG Rick Astley image
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const deleteProfileImage = async () => {
         if (!userId) {
             return { success: false, error: 'No authenticated user' };
