@@ -7,8 +7,9 @@ import { usePostStore } from "@/stores/postStore"
 import { storeToRefs } from "pinia"
 import { useCommentStore } from "@/stores/commentStore"
 import { useUserStore } from "@/stores/userStore"
+import { useAuthStore } from "@/stores/authStore"
 import { onMounted, ref } from "vue"
-
+import CreatePostModal from "./social/CreatePostModal.vue"
 const props = defineProps({
     foundProfiles:{
         type: Array,
@@ -31,6 +32,7 @@ const props = defineProps({
 )
 const postStore = usePostStore();
 const { posts } = storeToRefs(postStore);
+const authStore = useAuthStore();
 
 const commentStore = useCommentStore();
 const { comments, commentLoading: loading } = storeToRefs(commentStore);
@@ -45,6 +47,29 @@ onMounted(async () => {
     await postStore.fetchPosts();
 });
 
+const showCreatePostModal = ref(false);
+const handleCreatePost = async (postData) => {
+    if (!authStore.user) {
+        alert("You must be logged in to create a post.");
+        return;
+    }
+    
+    // Call the Pinia store action to create the post
+    console.log("--- New Post Data Received ---");
+    console.log("Author ID:", authStore.user.id);
+    console.log("Title:", postData.title);
+    console.log("Content:", postData.content);
+
+    // Check if an image file was included and log its details
+    if (postData.imageFile) {
+        console.log("Image File Attached:", postData.imageFile);
+        console.log("  - Name:", postData.imageFile.name);
+        console.log("  - Size:", postData.imageFile.size, "bytes");
+        console.log("  - Type:", postData.imageFile.type);
+    } else {
+        console.log("Image File Attached: None");
+    }
+};
 
 </script>
 
@@ -55,7 +80,7 @@ onMounted(async () => {
     <i class="bi bi-search"></i>
    </searchBar>
   <section class="section w-75 mx-auto">
-    <header class="section-header">
+    <header class="section-header border-bottom mb-2">
       <div class="badge mx-2">Profiles</div>
       <h1 class="section-title pb-2">Discover people</h1>
     </header>
@@ -74,7 +99,7 @@ onMounted(async () => {
 
 
 <section class="section mt-4 mx-auto w-75">
-    <header class="section-header">
+    <header class="section-header border-bottom mb-2">
       <div class="badge badge-alt mx-2">Posts</div>
       <h1 class="section-title pb-2">Trending posts</h1>
     </header>
@@ -92,6 +117,15 @@ onMounted(async () => {
       />
     </div>
   </section>
+  <!-- create post modal here -->
+   <div class="d-flex justify-content-center my-2">
+   <Button @click="showCreatePostModal = true" label="Create Post" ></Button>
+     <CreatePostModal 
+    :show="showCreatePostModal" 
+    @update:show="showCreatePostModal = $event"
+    @create-post="handleCreatePost"
+  />
+   </div>
 
 </template>
 <style scoped>

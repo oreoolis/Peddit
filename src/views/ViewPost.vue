@@ -1,6 +1,6 @@
 <script setup>
 // view of a single post with comment section
-import { onMounted, Text } from 'vue';
+import { onMounted, ref } from 'vue'; // Make sure ref is imported
 import Comment  from '../components/social/Comment.vue';
 import TextInput from '@/components/atoms/TextInput.vue';
 import searchBar from '@/components/atoms/searchBar.vue';
@@ -11,8 +11,8 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useUserStore } from '@/stores/userStore';
-
-
+import buttonTogglable from '@/components/atoms/buttonTogglable.vue';
+import Button from '@/components/atoms/button.vue';
 const router = useRouter();
 
 const props = defineProps({
@@ -34,11 +34,15 @@ const { user } = storeToRefs(authStore);
 const userStore = useUserStore();
 const { profile: authorProfile } = storeToRefs(userStore);
 
+// Add back the local state for tracking the like status
+const isLiked = ref(false);
+
 onMounted(async () =>{
     if (props.postId) {
         await postStore.fetchPostById(props.postId);
         await commentStore.fetchCommentsByPostID(props.postId);
-        console.log(currentPost.value);
+        // TODO: Set the initial 'isLiked' state from your store
+        // isLiked.value = await postStore.checkIfUserLikedPost(props.postId, user.value.id);
     } else {
         router.push('/');
     }
@@ -60,9 +64,15 @@ const handleCommentSubmit = async (content) => {
     });
 
     if (!result.success) {
-        // You could show a toast notification here with result.error
         console.error('Failed to submit comment:', result.error);
     }
+};
+
+// The toggle function now accepts the new state from the button's event
+const toggleLike = async (newLikeState) => {
+    isLiked.value = newLikeState;
+    console.log("Toggling like for post ID:", props.postId, "New state:", isLiked.value);
+    // TODO: implement like toggling logic
 };
 </script>
 
@@ -80,15 +90,25 @@ const handleCommentSubmit = async (content) => {
                 </div>
                 <p class="card-text mt-3 bodyFont" v-html="currentPost.content">
                 </p>
-                <div class="d-flex justify-content-end"> 
-                    <button class="btn  rounded-pill " type="button" id="LikeButton"><img src="../assets/Sprite/HomeIcons/Heart.png" alt=""> {{ currentPost.likes }}</button>
-                    <button class="btn  rounded-pill mx-3" type="button" id="CommentButton"><img src="../assets/Sprite/HomeIcons/Comment.png" alt=""> {{ currentPost.comments }}</button>
-                    <button class="btn  rounded-pill" type="button" id="ShareButton"><img src="../assets/Sprite/HomeIcons/Share.png" alt=""> {{ currentPost.shares }}</button>
+                <div class="d-flex justify-content-end "> 
+                    <!-- Pass the initial state and listen for the toggle event -->
+                    <buttonTogglable 
+                        class="mx-2" 
+                        colorON="primary" 
+                        :labelOFF="String(currentPost.vote_score)" 
+                        :labelON="String(currentPost.vote_score + 1)" 
+                        :initialState="isLiked"
+                        @toggle="toggleLike"
+                    ></buttonTogglable>
+                    <Button class="mx-2" label="Share"><i class="bi bi-share-fill mx-1"></i></Button>
                 </div>
                 </div>
         </div>
         </div>
         <div v-if="comments" class="w-75 card mx-auto" id="CommentSection">
+            <h3 class="card-header headingFont fw-bold">Comments
+                <span class="badge bg-primary px-4 ">{{ comments.length }}</span>
+            </h3>
              <Comment 
                 v-for="comment in comments" 
                 v-bind:key="comment.id"
