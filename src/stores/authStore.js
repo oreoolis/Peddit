@@ -22,10 +22,13 @@ export const useAuthStore = defineStore('auth', () => {
     let authSubscription = null;
 
     // Actions
-    // Initialises authenthication session
-    // This should be called once at the start only
-    // If the session exists, use existing session
-    // If not user will be empty (isAuthenticated will return false)
+    /**
+     * Initialises authenthication session
+     * This should be called once at the start only
+     * If the session exists, use existing session
+     * If not user will be empty (isAuthenticated will return false)
+     * @returns {Promise<{ success: boolean, error?: string }>}
+    */
     const initAuth = async () => {
         // Prevent multiple initialisations
         if (initialised.value) return;
@@ -77,7 +80,12 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
-    // Handles signing in with magic link
+    /**
+     * Handles signing in with a magic link sent to the user's email.
+     * @param {string} email - The user's email address to sign in with.
+     * @param {object} [options={}] - Additional options to pass to the sign-in method (e.g., custom data).
+     * @returns {Promise<{ success: boolean, error?: string }>}
+    */
     const signInWithEmail = async (email, options = {}) => {
         try {
             loading.value = true;
@@ -103,9 +111,14 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
-    // Handles signing in with OAuth
-    // Provider(s): Google
-    // TODO: GitHub(Future) 
+    /**
+     * Handles signing in with an OAuth provider.
+     * Provider(s): Google
+     * TODO: GitHub(Future) 
+     * @param {string} [provider='google'] - The OAuth provider to use for sign-in (e.g., 'google').
+     * @param {object} [options={}] - Additional options to pass to the sign-in method (e.g., custom data).
+     * @returns {Promise<{ success: boolean, error?: string }>}
+    */
     const signInWithOAuth = async (provider = 'google', options = {}) => {
         try {
             loading.value = true;
@@ -131,7 +144,10 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
-    // Handles signing out
+    /**
+     * Handles signing out
+     * @returns {Promise<{ success: boolean, error?: string }>}
+    */
     const signOut = async () => {
         try {
             loading.value = true;
@@ -146,7 +162,6 @@ export const useAuthStore = defineStore('auth', () => {
             return { success: true };
         } catch (err) {
             error.value = err.message;
-            console.error('Sign-out error:', err);
             return { success: false, error: err.message };
         } finally {
             loading.value = false;
