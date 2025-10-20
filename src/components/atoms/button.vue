@@ -62,7 +62,6 @@ export default {
     }
 }
 button.app-button {
-  overflow: hidden;
   transition: box-shadow .18s ease, transform .12s ease;
   will-change: transform, box-shadow;
 }
