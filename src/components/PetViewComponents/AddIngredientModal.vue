@@ -1,7 +1,9 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { onUnmounted } from 'vue'
-
+import Button from '../atoms/button.vue';
+import searchBar from '../atoms/searchBar.vue';
+import SelectAndOption from '../atoms/SelectAndOption.vue';
 const props = defineProps({
     show: {
         type: Boolean,
@@ -33,33 +35,33 @@ const closeModal = () => {
         <div class="modal-content bg-white" @click.stop>
             <div class="modal-header d-flex">
                 <h5 class="modal-title primary">Add an Ingredient</h5>
-                <button type="button" class="btn-close ms-auto" @click="closeModal"></button>
+                <Button label="X" outline color="danger" class="ms-auto" @click="closeModal"></Button>
             </div>
             <form>
                 <div class="modal-body">
                     <!-- File Input -->
-                    <div class="input-group mb-3">
-                        <label class="input-group-text headingText" for="inputGroupSelect01">Food Item</label>
-                        <select class="form-select" id="inputGroupSelect01">
-                            <option selected>Choose...</option>
-                            <!-- render from API -->
-                            <option value="1">Beef Steak</option>
-                            <option value="2">Orangle</option>
-                            <option value="3">Three</option>
-                        </select>
+                    <div class="mb-3">
+                        <label class="form-label headingFont fw-bold h5" for="inputGroupSelect01">Food Item</label>
+                        <SelectAndOption defaultLabel="Select an option..."
+                            :options="[
+                                { value: 'beef', label: 'Beef Steak' },
+                                { value: 'orange', label: 'Orange' },
+                                { value: 'chicken', label: 'Chicken Breast' },
+                            ]">
+                        </SelectAndOption>
                     </div>
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">Amount</span>
-                        <input type="number" class="form-control" aria-label="Amount (to the nearest dollar)">
-                        <span class="input-group-text">g (grams)</span>
+                    <div class="mb-3">
+                        <span class="form-label headingFont fw-bold h5">Amount (in grams)</span>
+                        <!-- can add v-model into the searchbar -->
+                        <searchBar class="form-control" placeholder="Enter amount in grams" type="number"></searchBar>
                     </div>
 
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" @click="closeModal">
-                        Submit
-                    </button>
+                    <Button type="submit" label="Submit" @click="closeModal">
+                        <i class="bi bi-check-lg mx-1"></i>
+                    </Button>
                 </div>
             </form>
         </div>
@@ -95,11 +97,13 @@ const closeModal = () => {
     display: flex;
     justify-content: between;
     align-items: center;
+    background-color:white;
 }
 
 .modal-title {
     margin: 0;
     font-weight: 600;
+
 }
 
 .modal-body {

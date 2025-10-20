@@ -1,15 +1,6 @@
 <script setup>
 import Button from "./button.vue"
-// const props = defineProps({
-//   label: {
-//     type: String,
-//     default: 'Label',
-//   },
-//   type: {
-//     type: String,
-//     default: 'button',
-//   },
-// });
+
 import { ref, defineEmits, defineProps, computed } from 'vue';
 
 // Define props
@@ -44,106 +35,96 @@ const handleSubmit = () => {
 </script>
 
 <template>
-    <form @submit.prevent="handleSubmit" class="wave-group w-100 p-3">
-  <input 
-    v-model="inputValue" 
-    required="" 
-    type="text" 
-    class="input"
-    :disabled="disabled"
-  >
-  <span class="bar"></span>
-  <label class="label">
-    <span class="label-char" style="--index: 0">C</span>
-    <span class="label-char" style="--index: 1">o</span>
-    <span class="label-char" style="--index: 2">m</span>
-    <span class="label-char" style="--index: 3">m</span>
-        <span class="label-char" style="--index: 4">e</span>
-    <span class="label-char" style="--index: 5">n</span>
-    <span class="label-char" style="--index: 6">t</span>
-  </label>
-  <Button label="Comment" type="submit" :disabled="disabled" />
-</form>
+    <form @submit.prevent="handleSubmit" class="text-input-wrapper pill-layout">
+        <div class="wave-group">
+            <input 
+                v-model="inputValue" 
+                required 
+                type="text" 
+                class="input"
+                :disabled="disabled"
+            >
+            <span class="bar"></span>
+            <label class="label">
+                <span v-for="(char, index) in label" :key="index" class="label-char" :style="{ '--index': index }">
+                    {{ char === ' ' ? '\u00A0' : char }}
+                </span>
+            </label>
+        </div>
+        <Button type="submit" :disabled="disabled" label="Send">
+            <i class="bi bi-send-fill pe-2"></i>
+        </Button>
+    </form>
 </template>
 
 <style scoped>
+.text-input-wrapper.pill-layout {
+  position: relative;
+  display: flex;
+  align-items: center; /* Center vertically */
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+  border-radius: 50rem; /* Pill shape */
+  background: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+  transition: box-shadow 0.2s ease;
+}
+.text-input-wrapper.pill-layout:focus-within {
+  box-shadow: 0 5px 20px rgba(var(--bs-primary-rgb), 0.15);
+}
+
 .wave-group {
   position: relative;
-  width: 100%;
-  box-sizing: border-box;
+  flex-grow: 1;
 }
 
-/* make input fill available space instead of fixed width */
 .wave-group .input {
   font-size: 16px;
-  padding: 10px 10px 10px 5px;
-  display: block;
-  width: 100%;            /* <-- responsive */
-  box-sizing: border-box; /* ensures padding is included in width */
+  padding: 10px 1rem;
+  width: 100%;
   border: none;
-  border-bottom: 1px solid #515151;
   background: transparent;
 }
+.wave-group .input:focus { outline: none; }
 
-.wave-group .input:focus {
-  outline: none;
-}
+/* Hide the bar in this design */
+.wave-group .bar { display: none; }
 
-/* floating label */
 .wave-group .label {
   color: #999;
-  font-size: 18px;
-  font-weight: normal;
+  font-size: 16px;
   position: absolute;
   pointer-events: none;
-  left: 8px;   /* small padding so label sits nicely with responsive input */
+  left: 1rem;
   top: 10px;
   display: flex;
 }
 
 .wave-group .label-char {
   transition: 0.2s ease all;
-  transition-delay: calc(var(--index) * .05s);
+  transition-delay: calc(var(--index) * .01s);
 }
 
-.wave-group .input:focus ~ label .label-char,
-.wave-group .input:valid ~ label .label-char {
-  transform: translateY(-20px);
-  font-size: 14px;
-  color: #5264AE;
+.wave-group .input:focus ~ .label .label-char,
+.wave-group .input:valid ~ .label .label-char {
+  transform: translateY(-18px) ;
+  font-size: 11px;
+  color: var(--bs-primary);
+  background: white;
+  padding: 0 0.05rem;
 }
 
-/* make the underline/bar span the full width of the control */
-.wave-group .bar {
-  position: relative;
-  display: block;
-  width: 100%;            /* <-- changed from fixed 200px */
-  box-sizing: border-box;
+.icon-button {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
-.wave-group .bar:before,.wave-group .bar:after {
-  content: '';
-  height: 2px;
-  width: 0;
-  bottom: 1px;
-  position: absolute;
-  background: #5264AE;
-  transition: 0.2s ease all;
-  -moz-transition: 0.2s ease all;
-  -webkit-transition: 0.2s ease all;
-}
-
-/* centered draw animation still works when bar is full width */
-.wave-group .bar:before {
-  left: 50%;
-}
-
-.wave-group .bar:after {
-  right: 50%;
-}
-
-.wave-group .input:focus ~ .bar:before,
-.wave-group .input:focus ~ .bar:after {
-  width: 50%;
+.icon-button .bi {
+  font-size: 1rem;
+  margin-left: 2px; /* Optical alignment */
 }
 </style>

@@ -1,10 +1,18 @@
-<script>
+<script setup>
+const props = defineProps({
+    /* You can pass in a label prop to customize the text */
+    label: {
+        type: String,
+        default: 'Rectangle'
+    }
+});
+
 </script>
 <template>
     <div class="custom-checkbox-container">
         <input class="custom-checkbox-input" id="modernCheckbox1" type="checkbox" />
         <label class="custom-checkbox-label" for="modernCheckbox1">
-            <span class="custom-checkbox-text bodyFont">Rectange</span>
+            <span class="custom-checkbox-text bodyFont">{{props.label}}</span>
         </label>
         <button class="delete-button mt-2 mx-2">
             <svg class="delete-svgIcon" viewBox="0 0 448 512">
@@ -76,8 +84,8 @@
 
 /* Checked state */
 .custom-checkbox-input:checked+.custom-checkbox-label:before {
-    background: linear-gradient(135deg, #00b7ff 0%, #00b7ff 100%);
-    border-color: #00b7ff;
+    background: linear-gradient(135deg, var(--bs-primary) 0%,var(--bs-primary) 100%);
+    border: none;
     overflow: hidden;
 }
 
@@ -129,12 +137,11 @@
 }
 
 .custom-checkbox-container:hover .custom-checkbox-text {
-    color: #00b7ff;
+    color: var(--bs-primary);
 }
 
 /* Focus state with transition */
 .custom-checkbox-input:focus+.custom-checkbox-label:before {
-    outline: 2px solid #00b7ff;
     outline-offset: 3px;
     transition: outline 0.1s ease-in-out;
     /* Added fast transition for outline */
@@ -191,7 +198,7 @@
     width: 90px;
     border-radius: 50px;
     transition-duration: 0.3s;
-    background-color: rgb(255, 69, 69);
+    background-color: var(--bs-danger);
     align-items: center;
 }
 

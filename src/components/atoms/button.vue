@@ -23,7 +23,7 @@ export default {
     },
     computed:{
       buttonClasses(){
-        const classes = ['app-button'];
+        const classes = ['app-button', 'd-inline-flex'];
         if(this.outline) {
           classes.push(`btn-outline-${this.color}`);
           classes.push('btn');
@@ -48,9 +48,20 @@ export default {
 </template>
 
 <style scoped>
+@keyframes shine {
+    0% {
+        left: -100px;
+    }
 
+    60% {
+        left: 100%;
+    }
+
+    to {
+        left: 100%;
+    }
+}
 button.app-button {
-  overflow: hidden;
   transition: box-shadow .18s ease, transform .12s ease;
   will-change: transform, box-shadow;
 }
@@ -104,5 +115,6 @@ button.app-button:disabled {
     transform: none;
     box-shadow: none;
 }
+
 
 </style>

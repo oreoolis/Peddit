@@ -26,7 +26,7 @@
             <img 
                 :src="petImage"
                 :alt="petName" 
-                class="pet-image " 
+                class="pet-image" 
             />
         </div>
 

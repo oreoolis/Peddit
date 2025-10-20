@@ -7,7 +7,9 @@ import { usePostStore } from "@/stores/postStore"
 import { storeToRefs } from "pinia"
 import { useCommentStore } from "@/stores/commentStore"
 import { useUserStore } from "@/stores/userStore"
+import { useAuthStore } from "@/stores/authStore"
 import { onMounted, ref } from "vue"
+import CreatePostModal from "./social/CreatePostModal.vue"
 const props = defineProps({
     foundProfiles:{
         type: Array,
@@ -25,39 +27,19 @@ const props = defineProps({
                 }
             ]
     } ,
-    foundPosts: {
-        type: Array,
-        default:[
-            {
-                link : 0,
-                title: "Best Meal for a baby dog",
-                Name: "@bernardcks",
-                Image: "src/assets/person.jpg",
-            },
-            {
-                link : 1,
-                title: "Eat Healthier for cats!",
-                Name: "@MaryJane",
-                Image: "src/assets/person.jpg",
-            },
-            {
-                link : 2,
-                title: "Milk Brands for pets ranked",
-                Name: "@johnDoe",
-                Image: "src/assets/person.jpg",               
-            },
-        ]
-    }
+
 }
 )
 const postStore = usePostStore();
 const { posts } = storeToRefs(postStore);
+const authStore = useAuthStore();
 
 const commentStore = useCommentStore();
 const { comments, commentLoading: loading } = storeToRefs(commentStore);
 
 const userStore = useUserStore();
-
+const { profile: authorProfile } = storeToRefs(userStore);
+console.log("Author Profile in Search View: ", authorProfile.value);
 // Store comments by post ID
 const commentsByPostId = ref({});
 
@@ -65,15 +47,40 @@ onMounted(async () => {
     await postStore.fetchPosts();
 });
 
+const showCreatePostModal = ref(false);
+const handleCreatePost = async (postData) => {
+    if (!authStore.user) {
+        alert("You must be logged in to create a post.");
+        return;
+    }
+    
+    // Call the Pinia store action to create the post
+    console.log("--- New Post Data Received ---");
+    console.log("Author ID:", authStore.user.id);
+    console.log("Title:", postData.title);
+    console.log("Content:", postData.content);
+
+    // Check if an image file was included and log its details
+    if (postData.imageFile) {
+        console.log("Image File Attached:", postData.imageFile);
+        console.log("  - Name:", postData.imageFile.name);
+        console.log("  - Size:", postData.imageFile.size, "bytes");
+        console.log("  - Type:", postData.imageFile.type);
+    } else {
+        console.log("Image File Attached: None");
+    }
+};
 
 </script>
 
 
 <template>
   <!-- search bar -->
-   <searchBar class="w-75"></searchBar>
+   <searchBar class="w-75" placeholder="Search...">
+    <i class="bi bi-search"></i>
+   </searchBar>
   <section class="section w-75 mx-auto">
-    <header class="section-header">
+    <header class="section-header border-bottom mb-2">
       <div class="badge mx-2">Profiles</div>
       <h1 class="section-title pb-2">Discover people</h1>
     </header>
@@ -92,11 +99,10 @@ onMounted(async () => {
 
 
 <section class="section mt-4 mx-auto w-75">
-    <header class="section-header">
+    <header class="section-header border-bottom mb-2">
       <div class="badge badge-alt mx-2">Posts</div>
-      <h2 class="section-title">Trending posts</h2>
+      <h1 class="section-title pb-2">Trending posts</h1>
     </header>
-
     <div class="grid">
       <PostSearch
         v-for="post in posts"
@@ -106,9 +112,20 @@ onMounted(async () => {
         :Name="post.profiles.display_name"
         :Image="post.profiles.avatar_url"
         class=""
+        :CommentCount="post.comment_count"
+        :VoteScore="post.vote_score"
       />
     </div>
   </section>
+  <!-- create post modal here -->
+   <div class="d-flex justify-content-center my-2">
+   <Button @click="showCreatePostModal = true" label="Create Post" ></Button>
+     <CreatePostModal 
+    :show="showCreatePostModal" 
+    @update:show="showCreatePostModal = $event"
+    @create-post="handleCreatePost"
+  />
+   </div>
 
 </template>
 <style scoped>
