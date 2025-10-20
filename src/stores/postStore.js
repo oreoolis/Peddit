@@ -104,11 +104,17 @@ export const usePostStore = defineStore('posts', () => {
         }
     }
 
+    /**
+     * Fetches posts from the database with optional filtering and pagination
+     * @param {string} postId - The postId of post you trying to fetch
+     * @returns {Promise<{ success: boolean, error?: string }>}
+    */
     const fetchPostById = async (postId) => {
         try {
             loading.value = true;
             error.value = null;
 
+            // Join post with author
             const { data, error: supabaseError } = await supabase
                 .from('posts')
                 .select(`
@@ -141,6 +147,15 @@ export const usePostStore = defineStore('posts', () => {
         }
     }
 
+    // TODO: Make post lock to current user only
+    // const authStore = useAuthStore();
+    // const userId = computed(() => authStore.userId);
+    /**
+     * Create a post and tie it to current user
+     * @param {string} userId - The userId author of the post
+     * @param {string} postData - The post fields to update (title, content, is_public, nsfw(Gorey pet image like injuries))
+     * @returns {Promise<{ success: boolean, error?: string }>}
+    */
     const createPost = async (userId, postData) => {
         try {
             loading.value = true;
@@ -190,6 +205,12 @@ export const usePostStore = defineStore('posts', () => {
         }
     }
 
+    /**
+     * Update post by postId
+     * @param {string} postId - The postId of post you trying to update
+     * @param {Object} updates - The post fields to update (title, content, is_public, nsfw(Gorey pet image like injuries))
+     * @returns {Promise<{ success: boolean, error?: string }>}
+    */
     const updatePost = async (postId, updates) => {
         try {
             loading.value = true;
@@ -240,6 +261,12 @@ export const usePostStore = defineStore('posts', () => {
         }
     }
 
+    /**
+     * Deletes the post by postId
+     * TODO: Only can delete own post, check with auth
+     * @param {string} postId - The postId of post you trying to delete
+     * @returns {Promise<{ success: boolean, error?: string }>}
+    */
     const deletePost = async (postId) => {
         try {
             loading.value = true;
@@ -272,6 +299,13 @@ export const usePostStore = defineStore('posts', () => {
     }
 
     // Vote actions
+    /**
+     * Upvote, downvote or remove vote on post
+     * @param {string} postId - The postId of post you voting
+     * @param {string} userId - The userId of user voting
+     * @param {int} voteValue - The vote value of the post, (-1, 0, 1)
+     * @returns {Promise<{ success: boolean, error?: string }>}
+    */
     const voteOnPost = async (postId, userId, voteValue) => {
         try {
             // voteValue should be 1 (upvote), -1 (downvote), or 0 (remove vote)
@@ -318,7 +352,7 @@ export const usePostStore = defineStore('posts', () => {
             
             // Upload to storage
             const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('post-media')  // You'll need to create this bucket
+                .from('post-media')  // TODO: Create this bucket
                 .upload(filePath, file, {
                     cacheControl: '3600',
                     upsert: false
