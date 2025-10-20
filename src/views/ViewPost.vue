@@ -3,6 +3,7 @@
 import { onMounted, Text } from 'vue';
 import Comment  from '../components/social/Comment.vue';
 import TextInput from '@/components/atoms/TextInput.vue';
+import searchBar from '@/components/atoms/searchBar.vue';
 import { usePostStore } from '@/stores/postStore';
 import { storeToRefs } from 'pinia';
 import { useCommentStore } from '@/stores/commentStore';

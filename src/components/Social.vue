@@ -26,29 +26,7 @@ const props = defineProps({
                 }
             ]
     } ,
-    foundPosts: {
-        type: Array,
-        default:[
-            {
-                link : 0,
-                title: "Best Meal for a baby dog",
-                Name: "@bernardcks",
-                Image: "src/assets/person.jpg",
-            },
-            {
-                link : 1,
-                title: "Eat Healthier for cats!",
-                Name: "@MaryJane",
-                Image: "src/assets/person.jpg",
-            },
-            {
-                link : 2,
-                title: "Milk Brands for pets ranked",
-                Name: "@johnDoe",
-                Image: "src/assets/person.jpg",               
-            },
-        ]
-    }
+
 }
 )
 const postStore = usePostStore();
@@ -98,9 +76,8 @@ onMounted(async () => {
 <section class="section mt-4 mx-auto w-75">
     <header class="section-header">
       <div class="badge badge-alt mx-2">Posts</div>
-      <h2 class="section-title">Trending posts</h2>
+      <h1 class="section-title pb-2">Trending posts</h1>
     </header>
-
     <div class="grid">
       <PostSearch
         v-for="post in posts"
@@ -110,6 +87,8 @@ onMounted(async () => {
         :Name="post.profiles.display_name"
         :Image="post.profiles.avatar_url"
         class=""
+        :CommentCount="post.comment_count"
+        :VoteScore="post.vote_score"
       />
     </div>
   </section>
