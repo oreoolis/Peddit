@@ -87,7 +87,7 @@ export const useAuthStore = defineStore('auth', () => {
     /**
      * Handles signing in with a magic link sent to the user's email.
      * @param {string} email - The user's email address to sign in with.
-     * @param {object} [options={}] - Additional options to pass to the sign-in method (e.g., custom data).
+     * @param {object} [options={}] - Additional options to pass to the sign-in method (e.g. captchaToken, data, emailRedirectTo, shouldCreateUser).
      * @returns {Promise<{ success: boolean, error?: string }>}
     */
     const signInWithEmail = async (email, options = {}) => {
@@ -120,7 +120,7 @@ export const useAuthStore = defineStore('auth', () => {
      * Provider(s): Google
      * TODO: GitHub(Future) 
      * @param {string} [provider='google'] - The OAuth provider to use for sign-in (e.g., 'google').
-     * @param {object} [options={}] - Additional options to pass to the sign-in method (e.g., custom data).
+     * @param {object} [options={}] - Additional options to pass to the sign-in method (e.g., queryParams, redirectTo, scopes, skipBrowserRedirect).
      * @returns {Promise<{ success: boolean, error?: string }>}
     */
     const signInWithOAuth = async (provider = 'google', options = {}) => {
