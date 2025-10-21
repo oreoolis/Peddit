@@ -10,30 +10,25 @@ import { useRoute, useRouter } from 'vue-router'
 
 const petStore = usePetStore();
 const authStore = useAuthStore();
-const route = useRoute(); // get route params - pet ID
+const route = useRoute(); // get route params - retrieve info from state
 const router = useRouter(); // naivgate to next page
 
 const showSuccess = ref(false);
 
-const petId = computed(() => route.params.petId)
+const currentPet = ref(petStore.getPetById(route.query.id))
 
-const currentPet = petStore.getPetById(petId.value);
-
-console.log(currentPet.name);
 
 // Form data
 const form = ref({
-    name: currentPet.name,
-    kind: currentPet.kind,
-    breed: currentPet.breed,
-    gender: currentPet.gender,
-    birthdate: currentPet.birthdate,
-    weight_kg: currentPet.weight_kg,
-    allergies: currentPet.allergies,
-    neutered: currentPet.neutered
+    name: currentPet.value.name,
+    kind: currentPet.value.kind,
+    breed: currentPet.value.breed,
+    gender: currentPet.value.gender,
+    birthdate: currentPet.value.birthdate,
+    weight_kg: currentPet.value.weight_kg,
+    allergies: currentPet.value.allergies,
+    neutered: currentPet.value.neutered
 })
-
-console.log(form);
 
 const imageFile = ref(null);
 const imagePreview = ref(null);

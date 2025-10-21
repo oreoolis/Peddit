@@ -109,7 +109,7 @@ const router = createRouter({
       meta: { requiresAuth: false }
     },
     {
-      path: '/edit-pet/:petId',
+      path: '/edit-pet',
       name: 'edit-pet',
       component: () => import('@/views/EditPet.vue'),
       meta: { requiresAuth: true }
