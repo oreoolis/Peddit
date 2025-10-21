@@ -6,34 +6,32 @@ import { useAuthStore } from '@/stores/authStore';
 import { storeToRefs } from 'pinia';
 import { useDebounceFn } from '@vueuse/core';
 
-// ============================================
-// STORES
-// ============================================
+// Components
+import BasePageHeader from '@/components/atoms/BasePageHeader.vue';
+import PetInfoCard from '@/components/molecules/nutrition/PetInfoCard.vue';
+import NutritionRequirementsCard from '@/components/molecules/nutrition/NutritionRequirementsCard.vue';
+import RecipeNutritionTotals from '@/components/molecules/nutrition/RecipeNutritionTotals.vue';
+import NutritionComparisonBars from '@/components/molecules/nutrition/NutritionComparisonBars.vue';
+import BaseButton from '@/components/atomic/BaseButton.vue';
+import BaseIcon from '@/components/atomic/BaseIcon.vue';
+
+// Stores
 const nutritionStore = usePetNutritionStore();
 const petStore = usePetStore();
 const authStore = useAuthStore();
 
 const { userId } = storeToRefs(authStore);
 const { pets } = storeToRefs(petStore);
-const { 
-  nutritionProfiles, 
-  ingredients, 
-  recipes, 
-  loading 
-} = storeToRefs(nutritionStore);
+const { nutritionProfiles, ingredients, recipes, loading } = storeToRefs(nutritionStore);
 
-// ============================================
-// PET INFORMATION STATE
-// ============================================
+// Pet Information State
 const selectedPet = ref(null);
 const petKind = ref('dog');
 const petLifeStage = ref('adult_maintenance');
 const petWeight = ref(10);
 const nutritionRequirements = ref(null);
 
-// ============================================
-// RECIPE STATE
-// ============================================
+// Recipe State
 const currentRecipe = ref(null);
 const recipeName = ref('');
 const recipeDescription = ref('');
@@ -44,17 +42,13 @@ const ingredientQuantity = ref(100);
 const recipeNutrition = ref(null);
 const nutritionComparison = ref(null);
 
-// ============================================
-// UI STATE
-// ============================================
+// UI State
 const activeTab = ref('pet-info');
 const showRecipeForm = ref(false);
 const successMessage = ref('');
 const errorMessage = ref('');
 
-// ============================================
-// COMPUTED
-// ============================================
+// Computed
 const canCreateRecipe = computed(() => {
   return recipeName.value.trim() && selectedIngredients.value.length > 0;
 });
@@ -74,30 +68,22 @@ const filteredIngredients = computed(() => {
     .slice(0, 10);
 });
 
-// ============================================
-// LIFECYCLE
-// ============================================
+// Lifecycle
 onMounted(async () => {
   await Promise.all([
     nutritionStore.fetchNutritionProfiles(),
     nutritionStore.fetchIngredients(),
   ]);
   
-  // Fetch recipes if logged in
   if (userId.value) {
     await nutritionStore.fetchRecipes(userId.value);
     await petStore.fetchPets(userId.value);
   }
   
-  // Log nutrition data for debugging
-  console.log('Nutrition Profiles:', nutritionProfiles.value);
-  console.log('Sample Ingredients:', ingredients.value.slice(0, 3));
-  
-  // Fetch initial requirements
   await fetchNutritionRequirements();
 });
 
-// Watch for authentication changes
+// Watchers
 watch(userId, async (newUserId) => {
   if (newUserId) {
     await nutritionStore.fetchRecipes(newUserId);
@@ -105,7 +91,6 @@ watch(userId, async (newUserId) => {
   }
 });
 
-// Watch for pet selection changes
 watch(selectedPet, async (newPet) => {
   if (newPet) {
     petKind.value = newPet.kind;
@@ -114,81 +99,52 @@ watch(selectedPet, async (newPet) => {
   }
 });
 
-// Watch for manual changes to kind/life stage
 watch([petKind, petLifeStage], async () => {
   await fetchNutritionRequirements();
 });
 
-// Recalculate nutrition when ingredients change
 watch(selectedIngredients, () => {
   calculateNutrition();
 }, { deep: true });
 
-// ============================================
-// METHODS
-// ============================================
-
-/**
- * Fetch nutrition requirements for current pet
- */
+// Methods
 const fetchNutritionRequirements = async () => {
   const result = await nutritionStore.getNutritionProfile(
     petKind.value,
     petLifeStage.value
   );
   
-  console.log('Nutrition Requirements Result:', result);
-  
   if (result.success) {
     nutritionRequirements.value = result.data;
-    console.log('Loaded Nutrition Requirements:', nutritionRequirements.value);
     calculateComparison();
-  } else {
-    console.error('Failed to load nutrition requirements:', result.error);
   }
 };
 
-/**
- * Select ingredient from dropdown with debounce
- */
 const selectIngredient = (ingredient) => {
   selectedIngredients.value.push({
     ingredient,
     quantity: ingredientQuantity.value
   });
   
-  // Reset search
   ingredientSearchQuery.value = '';
   showIngredientDropdown.value = false;
   ingredientQuantity.value = 100;
 };
 
-/**
- * Handle search input with debounce
- */
 const handleSearchInput = useDebounceFn(() => {
   showIngredientDropdown.value = ingredientSearchQuery.value.length > 0;
 }, 300);
 
-/**
- * Remove ingredient from recipe
- */
 const removeIngredient = (index) => {
   selectedIngredients.value.splice(index, 1);
 };
 
-/**
- * Update ingredient quantity
- */
 const updateQuantity = (index, newQuantity) => {
   if (newQuantity > 0) {
     selectedIngredients.value[index].quantity = parseFloat(newQuantity);
   }
 };
 
-/**
- * Calculate total nutrition for current recipe
- */
 const calculateNutrition = () => {
   if (selectedIngredients.value.length === 0) {
     recipeNutrition.value = null;
@@ -196,20 +152,15 @@ const calculateNutrition = () => {
     return;
   }
 
-  // Transform selectedIngredients to match store format
   const recipeIngredientsFormat = selectedIngredients.value.map(si => ({
     quantity_g: si.quantity,
     food_ingredients: si.ingredient
   }));
 
   recipeNutrition.value = nutritionStore.calculateRecipeNutrition(recipeIngredientsFormat);
-console.log('Calculated Recipe Nutrition:', recipeNutrition.value);
   calculateComparison();
 };
 
-/**
- * Calculate comparison with requirements
- */
 const calculateComparison = () => {
   if (!recipeNutrition.value || !nutritionRequirements.value) {
     nutritionComparison.value = null;
@@ -221,27 +172,20 @@ const calculateComparison = () => {
     nutritionRequirements.value,
     petWeight.value
   );
-
-  console.log('Nutrition Comparison:', nutritionComparison.value);
 };
 
-/**
- * Create a new recipe
- */
 const createRecipe = async () => {
   if (!canCreateRecipe.value) {
     showError('Please provide a recipe name and add at least one ingredient');
     return;
   }
 
-  
   if (!userId.value) {
     showError('Please login to save recipes');
     return;
   }
 
   try {
-    // Create recipe
     const recipeResult = await nutritionStore.createRecipe({
       recipe_name: recipeName.value,
       description: recipeDescription.value,
@@ -255,8 +199,6 @@ const createRecipe = async () => {
 
     const recipeId = recipeResult.data.id;
 
-    // Add all ingredients to recipe
-    console.log(recipeId);
     for (const si of selectedIngredients.value) {
       await nutritionStore.addIngredientToRecipe(
         recipeId,
@@ -267,22 +209,17 @@ const createRecipe = async () => {
 
     showSuccess('Recipe created successfully!');
     
-    // Reset form
     recipeName.value = '';
     recipeDescription.value = '';
     selectedIngredients.value = [];
     showRecipeForm.value = false;
 
-    // Refresh recipes
     await nutritionStore.fetchRecipes(userId.value);
   } catch (err) {
     showError('Failed to create recipe: ' + err.message);
   }
 };
 
-/**
- * Load an existing recipe
- */
 const loadRecipe = async (recipe) => {
   const result = await nutritionStore.getRecipe(recipe.id);
   
@@ -291,7 +228,6 @@ const loadRecipe = async (recipe) => {
     recipeName.value = result.data.recipe_name;
     recipeDescription.value = result.data.description || '';
     
-    // Transform recipe ingredients to selectedIngredients format
     selectedIngredients.value = result.data.recipe_ingredients.map(ri => ({
       ingredient: ri.food_ingredients,
       quantity: ri.quantity_g
@@ -302,9 +238,6 @@ const loadRecipe = async (recipe) => {
   }
 };
 
-/**
- * Delete a recipe
- */
 const deleteRecipe = async (recipeId) => {
   if (!confirm('Are you sure you want to delete this recipe?')) return;
 
@@ -312,7 +245,7 @@ const deleteRecipe = async (recipeId) => {
   
   if (result.success) {
     showSuccess('Recipe deleted successfully');
-    if (userId.value) {  // Add this check
+    if (userId.value) {
       await nutritionStore.fetchRecipes(userId.value);
     }
   } else {
@@ -320,46 +253,14 @@ const deleteRecipe = async (recipeId) => {
   }
 };
 
-/**
- * Show success message
- */
 const showSuccess = (message) => {
   successMessage.value = message;
   setTimeout(() => successMessage.value = '', 3000);
 };
 
-/**
- * Show error message
- */
 const showError = (message) => {
   errorMessage.value = message;
   setTimeout(() => errorMessage.value = '', 5000);
-};
-
-/**
- * Get status color for nutritional comparison
- */
-const getStatusColor = (status) => {
-  const colors = {
-    excellent: '#10b981',
-    good: '#f59e0b',
-    fair: '#f97316',
-    poor: '#ef4444'
-  };
-  return colors[status] || '#6b7280';
-};
-
-/**
- * Get status label
- */
-const getStatusLabel = (status) => {
-  const labels = {
-    excellent: 'Excellent',
-    good: 'Good',
-    fair: 'Fair',
-    poor: 'Needs Improvement'
-  };
-  return labels[status] || 'Unknown';
 };
 </script>
 
@@ -367,23 +268,19 @@ const getStatusLabel = (status) => {
   <div class="nutrition-test-page">
     <div class="container py-4">
       <!-- Header -->
-      <div class="page-header mb-4">
-        <h1 class="page-title">
-          <i class="bi bi-clipboard-data me-2"></i>
-          Pet Nutrition Management System
-        </h1>
-        <p class="page-subtitle">
-          Create custom recipes and analyze nutritional values for your pets
-        </p>
-      </div>
+      <BasePageHeader 
+        title="Pet Nutrition Management System" 
+        subtitle="Create custom recipes and analyze nutritional values for your pets"
+        icon="clipboard-data"
+      />
 
       <!-- Messages -->
       <div v-if="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>
+        <BaseIcon name="check-circle" size="sm" class="me-2" />
         {{ successMessage }}
       </div>
       <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i>
+        <BaseIcon name="exclamation-triangle" size="sm" class="me-2" />
         {{ errorMessage }}
       </div>
 
@@ -399,122 +296,19 @@ const getStatusLabel = (status) => {
       <div v-else class="row">
         <!-- Left Column: Pet Info & Requirements -->
         <div class="col-lg-4 mb-4">
-          <!-- Pet Information Card -->
-          <div class="card info-card mb-3">
-            <div class="card-header">
-              <h5 class="mb-0">
-                <i class="bi bi-heart-fill me-2"></i>
-                Pet Information
-              </h5>
-            </div>
-            <div class="card-body">
-              <!-- Select Existing Pet -->
-              <div class="mb-3" v-if="pets && pets.length > 0">
-                <label class="form-label fw-semibold">Select Your Pet</label>
-                <select v-model="selectedPet" class="form-select">
-                  <option :value="null">-- Or enter manually --</option>
-                  <option v-for="pet in pets" :key="pet.id" :value="pet">
-                    {{ pet.name }} ({{ pet.kind }})
-                  </option>
-                </select>
-              </div>
+          <PetInfoCard 
+            :pets="pets"
+            v-model:selected-pet="selectedPet"
+            v-model:pet-kind="petKind"
+            v-model:pet-life-stage="petLifeStage"
+            v-model:pet-weight="petWeight"
+            class="mb-3"
+          />
 
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Pet Kind</label>
-                <select v-model="petKind" class="form-select">
-                  <option value="dog">Dog</option>
-                  <option value="cat">Cat</option>
-                </select>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Life Stage</label>
-                <select v-model="petLifeStage" class="form-select">
-                  <option value="adult_maintenance">Adult</option>
-                  <option value="growth_and_reproduction">Baby or Mother</option>
-                </select>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Weight (kg)</label>
-                <input 
-                  type="number" 
-                  v-model.number="petWeight" 
-                  class="form-control"
-                  min="0.1"
-                  step="0.1"
-                  @change="calculateComparison"
-                >
-              </div>
-            </div>
-          </div>
-
-          <!-- Nutrition Requirements Card -->
-          <div class="card info-card" v-if="nutritionRequirements">
-            <div class="card-header">
-              <h5 class="mb-0">
-                <i class="bi bi-clipboard-check me-2"></i>
-                Daily Requirements (per 1000 kcal)
-              </h5>
-            </div>
-            <!-- Break down into componenets -->
-            <div class="card-body">
-              <div class="requirement-item">
-                <span class="requirement-label">Protein (min):</span>
-                <span class="requirement-value">
-                  {{ nutritionRequirements.min_protein_g }}g
-                </span>
-              </div>
-              <div class="requirement-item">
-                <span class="requirement-label">Fat (min):</span>
-                <span class="requirement-value">
-                  {{ nutritionRequirements.min_fat_g }}g
-                </span>
-              </div>
-              <div class="requirement-item" v-if="nutritionRequirements.max_fat_g">
-                <span class="requirement-label">Fat (max):</span>
-                <span class="requirement-value">
-                  {{ nutritionRequirements.max_fat_g }}g
-                </span>
-              </div>
-              <div class="requirement-item">
-                <span class="requirement-label">Calcium (min):</span>
-                <span class="requirement-value">
-                  {{ nutritionRequirements.min_calcium_g }}g
-                </span>
-              </div>
-              <div class="requirement-item">
-                <span class="requirement-label">Calcium (max):</span>
-                <span class="requirement-value">
-                  {{ nutritionRequirements.max_calcium_g }}g
-                </span>
-              </div>
-              <div class="requirement-item">
-                <span class="requirement-label">Phosphorus (min):</span>
-                <span class="requirement-value">
-                  {{ nutritionRequirements.min_phosphorus_g }}g
-                </span>
-              </div>
-              <div class="requirement-item">
-                <span class="requirement-label">Phosphorus (max):</span>
-                <span class="requirement-value">
-                  {{ nutritionRequirements.max_phosphorus_g }}g
-                </span>
-              </div>
-              <div class="requirement-item">
-                <span class="requirement-label">Phosphorus (max):</span>
-                <span class="requirement-value">
-                  {{ nutritionRequirements.max_phosphorus_g }}g
-                </span>
-              </div>
-              <div class="requirement-item">
-                <span class="requirement-label">Phosphorus (max):</span>
-                <span class="requirement-value">
-                  {{ nutritionRequirements.max_phosphorus_g }}g
-                </span>
-              </div>
-            </div>
-          </div>
+          <NutritionRequirementsCard 
+            v-if="nutritionRequirements"
+            :nutrition-requirements="nutritionRequirements"
+          />
         </div>
 
         <!-- Right Column: Recipe Builder -->
@@ -523,16 +317,17 @@ const getStatusLabel = (status) => {
           <div class="card recipe-card mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
               <h5 class="mb-0">
-                <i class="bi bi-journal-text me-2"></i>
+                <BaseIcon name="journal-text" size="md" class="me-2" />
                 Recipe Builder
               </h5>
-              <button 
-                class="btn btn-primary btn-sm"
+              <BaseButton 
+                variant="primary" 
+                size="sm"
+                :icon="showRecipeForm ? 'x' : 'plus'"
                 @click="showRecipeForm = !showRecipeForm"
               >
-                <i class="bi" :class="showRecipeForm ? 'bi-x' : 'bi-plus'"></i>
                 {{ showRecipeForm ? 'Cancel' : 'New Recipe' }}
-              </button>
+              </BaseButton>
             </div>
             <div class="card-body">
               <!-- Recipe Form -->
@@ -630,12 +425,12 @@ const getStatusLabel = (status) => {
                             >
                           </td>
                           <td>
-                            <button 
-                              class="btn btn-danger btn-sm"
+                            <BaseButton 
+                              variant="danger" 
+                              size="sm"
+                              icon="trash"
                               @click="removeIngredient(index)"
-                            >
-                              <i class="bi bi-trash"></i>
-                            </button>
+                            />
                           </td>
                         </tr>
                       </tbody>
@@ -643,15 +438,14 @@ const getStatusLabel = (status) => {
                   </div>
                 </div>
 
-                <!-- Create Recipe Button -->
-                <button 
-                  class="btn btn-primary"
+                <BaseButton 
+                  variant="primary"
+                  icon="save"
                   :disabled="!canCreateRecipe"
                   @click="createRecipe"
                 >
-                  <i class="bi bi-save me-2"></i>
                   Save Recipe
-                </button>
+                </BaseButton>
               </div>
 
               <!-- Existing Recipes List -->
@@ -670,18 +464,20 @@ const getStatusLabel = (status) => {
                           {{ recipe.description || 'No description' }}
                         </p>
                         <div class="d-flex gap-2">
-                          <button 
-                            class="btn btn-sm btn-outline-primary"
+                          <BaseButton 
+                            variant="outline-primary" 
+                            size="sm"
+                            icon="eye"
                             @click="loadRecipe(recipe)"
                           >
-                            <i class="bi bi-eye"></i> View
-                          </button>
-                          <button 
-                            class="btn btn-sm btn-outline-danger"
+                            View
+                          </BaseButton>
+                          <BaseButton 
+                            variant="outline-danger" 
+                            size="sm"
+                            icon="trash"
                             @click="deleteRecipe(recipe.id)"
-                          >
-                            <i class="bi bi-trash"></i>
-                          </button>
+                          />
                         </div>
                       </div>
                     </div>
@@ -691,8 +487,10 @@ const getStatusLabel = (status) => {
 
               <!-- Empty State -->
               <div v-if="!showRecipeForm && recipes.length === 0" class="text-center py-4">
-                <i class="bi bi-journal-x" style="font-size: 3rem; color: #cbd5e0;"></i>
-                <p class="text-muted mt-2">No recipes yet. {{ userId ? 'Create your first recipe!' : 'Login to create and save recipes.' }}</p>
+                <BaseIcon name="journal-x" size="xl" variant="muted" />
+                <p class="text-muted mt-2">
+                  No recipes yet. {{ userId ? 'Create your first recipe!' : 'Login to create and save recipes.' }}
+                </p>
               </div>
             </div>
           </div>
@@ -701,102 +499,13 @@ const getStatusLabel = (status) => {
           <div class="card analysis-card" v-if="recipeNutrition && nutritionComparison">
             <div class="card-header">
               <h5 class="mb-0">
-                <i class="bi bi-bar-chart-fill me-2"></i>
+                <BaseIcon name="bar-chart-fill" size="md" class="me-2" />
                 Nutritional Analysis
               </h5>
             </div>
             <div class="card-body">
-              <!-- Recipe Totals -->
-              <div class="nutrition-totals mb-4">
-                <h6 class="fw-semibold mb-3">Recipe Totals</h6>
-                <div class="row g-2">
-                  <div class="col-6 col-md-4">
-                    <div class="stat-box">
-                      <div class="stat-label">Total Weight</div>
-                      <div class="stat-value">{{ recipeNutrition.total_weight_g }}g</div>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="stat-box">
-                      <div class="stat-label">Protein</div>
-                      <div class="stat-value">{{ recipeNutrition.protein_g.toFixed(1) }}g</div>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="stat-box">
-                      <div class="stat-label">Fat</div>
-                      <div class="stat-value">{{ recipeNutrition.fat_g.toFixed(1) }}g</div>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="stat-box">
-                      <div class="stat-label">Calcium</div>
-                      <div class="stat-value">{{ recipeNutrition.calcium_g.toFixed(2) }}g</div>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="stat-box">
-                      <div class="stat-label">Phosphorus</div>
-                      <div class="stat-value">{{ recipeNutrition.phosphorus_g.toFixed(2) }}g</div>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="stat-box">
-                      <div class="stat-label">Fiber</div>
-                      <div class="stat-value">{{ recipeNutrition.fiber_g.toFixed(1) }}g</div>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="stat-box">
-                      <div class="stat-label">Iron</div>
-                      <div class="stat-value">{{ recipeNutrition.iron_mg.toFixed(1) }}mg</div>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="stat-box">
-                      <div class="stat-label">Taurine</div>
-                      <div class="stat-value">{{ recipeNutrition.taurine_g.toFixed(2) }}g</div>
-                    </div>
-                  </div>
-                  <div class="col-6 col-md-4">
-                    <div class="stat-box">
-                      <div class="stat-label">EPA+DHA</div>
-                      <div class="stat-value">{{ recipeNutrition.epa_dha_g.toFixed(2) }}g</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Comparison Bars -->
-              <div class="nutrition-comparison">
-                <h6 class="fw-semibold mb-3">Requirement Comparison</h6>
-                
-                <div 
-                  v-for="(nutrient, key) in nutritionComparison" 
-                  :key="key"
-                  class="comparison-item mb-3"
-                >
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="fw-semibold text-capitalize">{{ key }}</span>
-                    <span class="text-muted">
-                      {{ nutrient.actual.toFixed(1) }} / {{ nutrient.required.toFixed(1) }}
-                      ({{ Math.round(nutrient.percentage) }}%)
-                    </span>
-                  </div>
-                  <div class="progress" style="height: 25px;">
-                    <div 
-                      class="progress-bar"
-                      :style="{ 
-                        width: Math.min(nutrient.percentage, 100) + '%',
-                        backgroundColor: getStatusColor(nutrient.status)
-                      }"
-                      role="progressbar"
-                    >
-                      {{ getStatusLabel(nutrient.status) }}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <RecipeNutritionTotals :nutrition="recipeNutrition" />
+              <NutritionComparisonBars :comparison="nutritionComparison" />
             </div>
           </div>
         </div>
@@ -806,7 +515,13 @@ const getStatusLabel = (status) => {
 </template>
 
 <style scoped>
-/* Autocomplete Styles */
+.nutrition-test-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding-bottom: 2rem;
+}
+
+/* Autocomplete */
 .autocomplete-wrapper {
   position: relative;
 }
@@ -841,50 +556,7 @@ const getStatusLabel = (status) => {
   background-color: #f7fafc;
 }
 
-/* Requirements Scroll */
-.requirements-scroll {
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.requirement-section-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #667eea;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.25rem;
-  border-bottom: 2px solid #667eea;
-}
-
-/* Other */
-
-.nutrition-test-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding-bottom: 2rem;
-}
-
-.page-header {
-  text-align: center;
-  padding: 2rem 0 1rem;
-}
-
-.page-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 0.5rem;
-}
-
-.page-subtitle {
-  font-size: 1.1rem;
-  color: #718096;
-  margin: 0;
-}
-
 /* Cards */
-.info-card,
 .recipe-card,
 .analysis-card {
   border-radius: 12px;
@@ -904,29 +576,6 @@ const getStatusLabel = (status) => {
   font-weight: 600;
 }
 
-/* Requirements */
-.requirement-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.requirement-item:last-child {
-  border-bottom: none;
-}
-
-.requirement-label {
-  font-weight: 500;
-  color: #4a5568;
-}
-
-.requirement-value {
-  font-weight: 600;
-  color: #2d3748;
-}
-
-/* Recipe Items */
 .recipe-item {
   border: 2px solid #e2e8f0;
   transition: all 0.3s ease;
@@ -936,55 +585,5 @@ const getStatusLabel = (status) => {
   border-color: #667eea;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-}
-
-/* Stat Boxes */
-.stat-box {
-  background: #f7fafc;
-  border-radius: 8px;
-  padding: 0.75rem;
-  text-align: center;
-  border: 2px solid #e2e8f0;
-}
-
-.stat-label {
-  font-size: 0.75rem;
-  color: #718096;
-  text-transform: uppercase;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 0.25rem;
-}
-
-.stat-value {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #2d3748;
-}
-
-/* Comparison */
-.comparison-item {
-  padding: 0.5rem 0;
-}
-
-.progress-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: white;
-  transition: width 0.6s ease;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .page-title {
-    font-size: 1.75rem;
-  }
-
-  .page-subtitle {
-    font-size: 1rem;
-  }
 }
 </style>
