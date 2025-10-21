@@ -8,7 +8,15 @@ import { useAuthStore } from './authStore';
 
 const { uploadImage, deleteImage } = useStorage();
 
+/**
+ * User store for managing the current user's profile data
+ * Handles fetching, updating, and managing user profile information
+*/
 export const useUserStore = defineStore('user', () => {
+    // Private
+    const authStore = useAuthStore();
+    const userId = computed(() => authStore.userId);
+
     // State
     const profile = ref(null);
     const loading = ref(false);
@@ -26,11 +34,12 @@ export const useUserStore = defineStore('user', () => {
     const followers = computed(() => profile.value?.follower_count || 0);
 
     // Actions
+    /**
+     * Fetches the profile of the current authenticated user
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const fetchProfile = async () => {
-        const authStore = useAuthStore();
-        const userId = authStore.userId;
-        
-        if (!userId) {
+        if (!userId.value) {
             console.warn('No authenticated user found');
             return { success: false, error: 'No authenticated user' };
         }
@@ -42,7 +51,7 @@ export const useUserStore = defineStore('user', () => {
             const { data, error: fetchError } = await supabase
                 .from('profiles')
                 .select('*')
-                .eq('id', userId)
+                .eq('id', userId.value)
                 .single();
 
             if (fetchError) throw fetchError;
@@ -59,11 +68,18 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
+    // Update current user profile
+    // Things allowed to update:
+    // username(Maybe not?), bio, display_name, is_private(Change this to to hide from other users)
+    // Changing image is handled by uploadProfileImage
+    // TODO: handle is_private
+    /**
+     * Updates the current user's profile information
+     * @param {object} updates - The profile fields to update (username(Maybe not?), bio, display_name, is_private(Change this to to hide from other users))
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const updateProfile = async (updates) => {
-        const authStore = useAuthStore();
-        const userId = authStore.userId;
-        
-        if (!userId) {
+        if (!userId.value) {
             return { success: false, error: 'No authenticated user' };
         }
 
@@ -77,7 +93,7 @@ export const useUserStore = defineStore('user', () => {
                     ...updates,
                     updated_at: new Date().toISOString()
                 })
-                .eq('id', userId)
+                .eq('id', userId.value)
                 .select()
                 .single();
 
@@ -93,11 +109,15 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
+    /**
+     * Uploads a new profile image for the current user
+     * Deletes the old profile image and uploads the new one using Supabase storage
+     * Also calls updateProfile to update image link (Do not need to handle this)
+     * @param {File} file - The image file to upload
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const uploadProfileImage = async (file) => {
-        const authStore = useAuthStore();
-        const userId = authStore.userId;
-        
-        if (!userId) {
+        if (!userId.value) {
             return { success: false, error: 'No authenticated user' };
         }
 
@@ -110,7 +130,7 @@ export const useUserStore = defineStore('user', () => {
             }
 
             // Upload new profile image
-            const storagePath = `${userId}/${Date.now()}-${file.name}`;
+            const storagePath = `${userId.value}/${Date.now()}-${file.name}`;
             const { error: uploadError } = await uploadImage('avatars', file, storagePath);
             if (uploadError) throw uploadError;
 
@@ -126,11 +146,14 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
+    /**
+     * Deletes the user's profile image
+     * Removes the image from storage and updates the profile
+     * This will force it to use the OG Rick Astley image
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const deleteProfileImage = async () => {
-        const authStore = useAuthStore();
-        const userId = authStore.userId;
-        
-        if (!userId) {
+        if (!userId.value) {
             return { success: false, error: 'No authenticated user' };
         }
 
@@ -152,10 +175,11 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
-    const clearProfile = () => {
-        profile.value = null;
-        error.value = null;
-    };
+    // Clear profile value and errors, call this when sign out
+    // const clearProfile = () => {
+    //     profile.value = null;
+    //     error.value = null;
+    // };
 
     return {
         // State
@@ -173,7 +197,6 @@ export const useUserStore = defineStore('user', () => {
         // Actions 
         fetchProfile,
         updateProfile,
-        clearProfile,
         uploadProfileImage,
         deleteProfileImage
     };

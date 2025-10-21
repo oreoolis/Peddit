@@ -1,7 +1,9 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch, defineEmits } from 'vue';
 
-const emit = defineEmits(['click']);
+// Define the 'toggle' & click event
+const emit = defineEmits(['click', 'toggle']);
+
 const handleClick = () => {
     emit('click');
 }
@@ -37,9 +39,16 @@ const props = defineProps({
     }
 });
 
+
+// The component uses its own internal state, initialized by the prop
 const isToggled = ref(props.initialState);
 
-// Generate a unique ID for the input and label pair to avoid conflicts
+// When the internal state changes (due to a click), emit the 'toggle' event to the parent
+watch(isToggled, (newValue) => {
+    emit('toggle', newValue);
+});
+
+// Generate a unique ID for the input and label pair
 const uniqueId = `toggle-${Math.random().toString(36).substr(2, 9)}`;
 
 const buttonClasses = computed(() => {
@@ -66,9 +75,11 @@ const iconClass = computed(() => {
 </script>
 
 <template>
-    <!-- The checkbox handles the state, but is visually hidden -->
-    <input type="checkbox" :id="uniqueId" v-model="isToggled">
-
+    <!-- Wrap in a single div to allow class inheritance -->
+    <div>
+        <!-- The checkbox handles the state, but is visually hidden -->
+        <input type="checkbox" :id="uniqueId" v-model="isToggled">
+    </div>
     <!-- The label is the visible, clickable button -->
     <label :for="uniqueId" :class="buttonClasses" @click = "handleClick">
         <i :class="iconClass"></i>

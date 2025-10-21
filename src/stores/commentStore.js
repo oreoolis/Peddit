@@ -6,6 +6,10 @@ import { ref } from "vue";
 
 const { getPublicImage } = useStorage();
 
+/**
+ * Comment store for managing post comments
+ * Handles fetching and creating comments for posts
+*/
 export const useCommentStore = defineStore('comments', () => {
     // State
     const comments = ref([]);
@@ -14,6 +18,11 @@ export const useCommentStore = defineStore('comments', () => {
     const submitting = ref(false);
 
     // Actions
+    /**
+     * Fetches all comments for a specific post
+     * @param {string} postId - The ID of the post to fetch comments for
+     * @returns {Promise<{ success: boolean, data?: Array, error?: string }>}
+    */
     const fetchCommentsByPostID = async (postId) => {
         try {
             loading.value = true;
@@ -54,6 +63,15 @@ export const useCommentStore = defineStore('comments', () => {
         }
     }
 
+    /**
+     * Creates a new comment on a post with optimistic UI updates
+     * @param {object} params - Comment creation parameters
+     * @param {string} params.postId - The ID of the post to comment on
+     * @param {string} params.authorId - The ID of the user creating the comment
+     * @param {string} params.content - The comment content
+     * @param {object} params.authorProfile - The author's profile data for optimistic rendering
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
     const createComment = async ({ postId, authorId, content, authorProfile }) => {
         if (!postId || !authorId || !content?.trim()) {
             return { success: false, error: 'Post ID, Author ID, and content are required.' };
