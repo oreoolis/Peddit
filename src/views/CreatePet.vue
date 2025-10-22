@@ -32,7 +32,7 @@ watch([petKind, isFetchingBreeds], () => {
 
 const form = ref({
   name: '',
-  kind: petKind,
+  kind: petKind.value,
   breed: '',
   gender: 'unknown',
   birthdate: '',
@@ -114,9 +114,7 @@ const resetForm = () => {
 
 const selectPetKind = (kind) => {
   petKind.value = kind;
-  console.log(kind);
-  console.log(breedNameList.value);
-
+  form.value.kind = kind;
   showToast(`You have chosen ${kind.charAt(0).toUpperCase() + kind.slice(1)}!`);
 }
 
@@ -147,15 +145,21 @@ const showToast = (text) => {
     <form @submit.prevent="handleSubmit" class="pet-form">
       <!-- Pet Species Selector -->
       <div class="pet-selector mt-4 mb-5">
-        <h1 class="headingFont display-3 text-center fw-semibold mb-4">Create Your Pet</h1>
-        <div class="row justify-content-center g-4">
-          <div class="col-12 col-md-5">
-            <div @click="selectPetKind('dog')" class="pet-breed-card dog-breed-card">
+        <div class="row d-flex justify-content-evenly">
+          <div class="col-lg-8">
+            <h1 class="headingFont display-3 text-start fw-semibold">Create Your Pet</h1>
+          </div>
+        </div>
+        <div class="row justify-content-center mt-3 mb-3">
+          <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
+            <div @click="selectPetKind('dog')" class="dog-breed-card"
+              :class="{ 'selected-pet': form.kind === 'dog', 'dimmed-pet': form.kind === 'cat' }" id="dog-breed-card">
               <p class="pet-title brandFont text-light display-1">Dog</p>
             </div>
           </div>
-          <div class="col-12 col-md-5">
-            <div @click="selectPetKind('cat')" class="pet-breed-card cat-breed-card">
+          <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
+            <div @click="selectPetKind('cat')" class="cat-breed-card"
+              :class="{ 'selected-pet': form.kind === 'cat', 'dimmed-pet': form.kind === 'dog' }" id="cat-breed-card">
               <p class="pet-title brandFont text-light display-1">Cat</p>
             </div>
           </div>
@@ -215,7 +219,7 @@ const showToast = (text) => {
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Breed</label>
-                <BreedSelect defaultLabel="Select Breed..." :options="breedNameList" v-model="form.breed"/>
+              <BreedSelect defaultLabel="Select Breed..." :options="breedNameList" v-model="form.breed" />
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Weight</label>
@@ -273,54 +277,119 @@ const showToast = (text) => {
   text-shadow: 1px 5px 5px black;
 }
 
-.pet-breed-card {
-  box-sizing: border-box;
-  width: 100%;
-  height: 300px;
-  /* Default height for mobile */
-  background-position: center;
-  background-size: cover;
-  border: 1px solid white;
-  box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
-  border-radius: 17px;
-  cursor: pointer;
-  transition: all 0.5s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-  font-weight: bolder;
-}
-
 .dog-breed-card {
-  background-image: url("../assets/Pixel Art/dog (1).png");
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 600px;
+    height: 300px;
+    background-image: url("../assets/Pixel Art/dog (1).png");
+    background-position: center;
+    background-size: cover;
+    border: 1px solid white;
+    box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(6px);
+    border-radius: 17px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.5s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    font-weight: bolder;
+    color: black;
+    margin: 0 auto;
 }
 
 .cat-breed-card {
-  background-image: url("../assets/Pixel Art/cat (5).png");
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 600px;
+    height: 300px;
+    background-image: url("../assets/Pixel Art/cat (5).png");
+    background-position: center;
+    background-size: cover;
+    border: 1px solid white;
+    box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(6px);
+    border-radius: 17px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.5s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    font-weight: bolder;
+    color: black;
+    margin: 0 auto;
 }
 
-/* Responsive heights for larger screens */
+/* Responsive heights using Bootstrap breakpoints */
 @media (min-width: 576px) {
-  .pet-breed-card {
-    height: 350px;
-  }
+
+    .dog-breed-card,
+    .cat-breed-card {
+        height: 350px;
+    }
+}
+
+@media (min-width: 768px) {
+
+    .dog-breed-card,
+    .cat-breed-card {
+        height: 400px;
+    }
 }
 
 @media (min-width: 992px) {
-  .pet-breed-card {
-    height: 450px;
-  }
+
+    .dog-breed-card,
+    .cat-breed-card {
+        height: 450px;
+    }
 }
 
-.pet-breed-card:hover {
-  border: 1px solid black;
-  transform: scale(1.05);
+@media (min-width: 1200px) {
+
+    .dog-breed-card,
+    .cat-breed-card {
+        height: 500px;
+    }
 }
 
-.pet-breed-card:active {
-  transform: scale(0.95) rotateZ(1.7deg);
+.dog-breed-card:hover,
+.cat-breed-card:hover {
+    border: 1px solid black;
+    transform: scale(1.05);
 }
+
+.dog-breed-card:active,
+.cat-breed-card:active {
+    transform: scale(0.95) rotateZ(1.7deg);
+}
+
+/* Selected pet card styling */
+.selected-pet {
+    border: 5px solid #407dff !important;
+    box-shadow: 0 0 30px rgba(64, 125, 255, 0.7) !important;
+    transform: scale(1.03);
+    position: relative;
+}
+
+/* Dimmed/unselected pet card */
+.dimmed-pet {
+    opacity: 0.5;
+    filter: grayscale(60%);
+    transform: scale(0.97);
+}
+
+.dimmed-pet:hover {
+    opacity: 0.7;
+    filter: grayscale(40%);
+    transform: scale(1);
+}
+
 
 /* --- Custom Radio Buttons for Gender --- */
 .radio-inputs {
