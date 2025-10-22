@@ -9,18 +9,14 @@ import { supabase } from '@/lib/supabaseClient';
  * Schema uses JSONB for nutrition data
  */
 export const usePetNutritionStore = defineStore('petNutrition', () => {
-  // ============================================
   // STATE
-  // ============================================
   const nutritionProfiles = ref([]);
   const ingredients = ref([]);
   const recipes = ref([]);
   const loading = ref(false);
   const error = ref(null);
 
-  // ============================================
-  // COMPUTED
-  // ============================================
+  // Getters
   const totalIngredients = computed(() => ingredients.value.length);
   const totalRecipes = computed(() => recipes.value.length);
 
