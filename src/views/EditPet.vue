@@ -6,6 +6,8 @@ import { useAuthStore } from '@/stores/authStore';
 //import { storeToRefs } from 'pinia';
 import { onMounted, ref, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
+import { usePetInfoApi } from '@/composables/usePetInfoApi';
+import BreedSelect from '@/components/molecules/BreedSelect.vue';
 
 
 const petStore = usePetStore();
@@ -16,6 +18,20 @@ const router = useRouter(); // naivgate to next page
 const showSuccess = ref(false);
 
 const currentPet = ref(petStore.getPetById(route.query.id))
+
+// initial form data
+const petKind = ref('dog'); // default value
+const { breedNames, error: breedError, isFetching: isFetchingBreeds } = usePetInfoApi(petKind);
+
+// dynamically update breed list
+const breedNameList = ref([]);
+
+watch([petKind, isFetchingBreeds], () => {
+    if (isFetchingBreeds.value) {
+        return;
+    }
+    breedNameList.value = breedNames.value;
+})
 
 
 // Form data
@@ -64,13 +80,13 @@ const handleSubmit = async () => {
         return
     }
 
-    const result = await petStore.updatePet(petId.value, { ...form.value, photo_url: null })
+    const result = await petStore.updatePet(route.query.id, { ...form.value, photo_url: null })
 
     if (result.success) {
 
         // If image was selected, upload it
         if (imageFile.value) {
-            const imageResult = await petStore.uploadPetImage(authStore.userId, petId.value, imageFile.value);
+            const imageResult = await petStore.uploadPetImage(authStore.userId, route.query.id, imageFile.value);
             if (!imageResult.success) {
                 console.error('Failed to upload image:', imageResult.error);
             }
@@ -80,7 +96,7 @@ const handleSubmit = async () => {
         resetForm();
         router.push({
             path: '/pet',
-            state: { showOpSuccess: true, message: currentPet.name + "has been updated."}
+            state: { showOpSuccess: true, message: currentPet.name + "has been updated." }
         });
 
         // Hide success message after 3 seconds
@@ -243,10 +259,9 @@ const showToast = (text) => {
                                 aria-describedby="helpId" v-model="form.birthdate" />
                         </div>
 
-                        <div class="mb-3 input-group-lg">
-                            <label for="" class="form-label headingFont fw-bold h5">Breed</label>
-                            <input type="text" name="" id="" class="form-control bodyFont"
-                                placeholder="e.g. Golden Retriever" aria-describedby="helpId" v-model="form.breed" />
+                        <div class="mb-3">
+                            <label class="form-label headingFont fw-bold h5">Breed</label>
+                            <BreedSelect defaultLabel="Select Breed..." :options="breedNameList" v-model="form.breed" />
                         </div>
 
                         <div class="mb-3 input-group-lg">

@@ -7,6 +7,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import searchBar from '@/components/atoms/searchBar.vue';
+import { usePetInfoApi } from '@/composables/usePetInfoApi';
+import BreedSelect from '@/components/molecules/BreedSelect.vue';
 
 const petStore = usePetStore();
 const authStore = useAuthStore();
@@ -14,10 +16,23 @@ const router = useRouter(); // push to next page
 
 const showSuccess = ref(false);
 
-// Form data
+// initial form data
+const petKind = ref('dog'); // default value
+const { breedNames, error: breedError, isFetching: isFetchingBreeds } = usePetInfoApi(petKind);
+
+// dynamically update breed list
+const breedNameList = ref([]);
+
+watch([petKind, isFetchingBreeds], () => {
+  if (isFetchingBreeds.value) {
+    return;
+  }
+  breedNameList.value = breedNames.value;
+})
+
 const form = ref({
   name: '',
-  kind: '',
+  kind: petKind,
   breed: '',
   gender: 'unknown',
   birthdate: '',
@@ -69,9 +84,9 @@ const handleSubmit = async () => {
     showSuccess.value = true;
     resetForm();
     router.push({
-            path: '/pet',
-            state: { showOpSuccess: true, message: form.value.name + "has been created!"}
-        });
+      path: '/pet',
+      state: { showOpSuccess: true, message: form.value.name + "has been created!" }
+    });
 
 
     // Hide success message after 3 seconds
@@ -98,7 +113,10 @@ const resetForm = () => {
 }
 
 const selectPetKind = (kind) => {
-  form.value.kind = kind;
+  petKind.value = kind;
+  console.log(kind);
+  console.log(breedNameList.value);
+
   showToast(`You have chosen ${kind.charAt(0).toUpperCase() + kind.slice(1)}!`);
 }
 
@@ -157,7 +175,8 @@ const showToast = (text) => {
               <label for="pet-photo-input" class="form-label headingFont fw-bold h5">Upload Pet Photo</label>
               <input id="pet-photo-input" type="file" accept="image/*" @change="handleImageSelect" class="d-none" />
               <label for="pet-photo-input" class="d-block" style="cursor: pointer;">
-                <searchBar :model-value="imageFile ? imageFile.name : ''" placeholder="Click to select an image..." readonly>
+                <searchBar :model-value="imageFile ? imageFile.name : ''" placeholder="Click to select an image..."
+                  readonly>
                   <template #icon><i class="bi bi-upload"></i></template>
                 </searchBar>
               </label>
@@ -168,7 +187,8 @@ const showToast = (text) => {
               <h6 class="preview-title">Preview</h6>
               <div class="position-relative d-inline-block">
                 <img :src="imagePreview" alt="Preview" class="preview-image rounded object-fit-cover" />
-                <button type="button" @click="removeImage" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle">×</button>
+                <button type="button" @click="removeImage"
+                  class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle">×</button>
               </div>
               <p class="text-muted small mt-1 mb-0">{{ imageFile?.name }} ({{ formatFileSize(imageFile?.size) }})</p>
             </div>
@@ -181,9 +201,12 @@ const showToast = (text) => {
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Gender</label>
               <div class="radio-inputs bodyFont mt-2">
-                <label class="radio"><input checked name="radio" type="radio" value="male" v-model="form.gender" /><span class="name">Male</span></label>
-                <label class="radio"><input name="radio" type="radio" value="female" v-model="form.gender" /><span class="name">Female</span></label>
-                <label class="radio"><input name="radio" type="radio" value="unknown" v-model="form.gender" /><span class="name">Unknown</span></label>
+                <label class="radio"><input checked name="radio" type="radio" value="male" v-model="form.gender" /><span
+                    class="name">Male</span></label>
+                <label class="radio"><input name="radio" type="radio" value="female" v-model="form.gender" /><span
+                    class="name">Female</span></label>
+                <label class="radio"><input name="radio" type="radio" value="unknown" v-model="form.gender" /><span
+                    class="name">Unknown</span></label>
               </div>
             </div>
             <div class="mb-3">
@@ -192,24 +215,15 @@ const showToast = (text) => {
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Breed</label>
-              <searchBar type="text" placeholder="e.g. Golden Retriever" v-model="form.breed" />
+                <BreedSelect defaultLabel="Select Breed..." :options="breedNameList" v-model="form.breed"/>
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Weight</label>
-              <searchBar type="number" placeholder="Weight in kg" v-model="form.weight_kg" />
+              <searchBar type="number" placeholder="Weight (KG)" v-model="form.weight_kg" />
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Allergies (Optional)</label>
               <searchBar type="text" placeholder="e.g. Pollen, Dust" v-model="form.allergies" />
-            </div>
-
-            <!-- Form Actions -->
-            <div class="form-actions text-center my-4">
-              <button type="button" @click="resetForm" class="btn btn-secondary me-2" :disabled="petStore.loading">Reset</button>
-              <button type="submit" class="btn btn-primary" :disabled="petStore.loading || !form.name || !form.kind">
-                <span v-if="petStore.loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                {{ petStore.loading ? 'Creating...' : 'Add Pet' }}
-              </button>
             </div>
 
             <div class="mb-3 input-group-lg">
@@ -232,18 +246,6 @@ const showToast = (text) => {
 
           </div>
 
-
-          <!-- size: btn-lg -->
-          <!-- <div class="form-actions text-center">
-            <button type="button" @click="resetForm" class="btn btn-secondary" :disabled="petStore.loading">
-              Reset
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="petStore.loading || !form.name || !form.kind">
-              <span v-if="petStore.loading" class="spinner"></span>
-              {{ petStore.loading ? 'Creating...' : 'Add Pet' }}
-            </button>
-          </div> -->
-
           <div class="form-actions d-flex justify-content-center">
             <button class="button-recommend bodyFont d-inline" type="button" @click="resetForm"
               :disabled="petStore.loading">
@@ -255,12 +257,6 @@ const showToast = (text) => {
               {{ petStore.loading ? 'Creating...' : 'Add Pet' }}
             </button>
           </div>
-          <!-- <button type="button" class="btn btn-lg bg-primary h-100 headingFont text-light fw-bold shadow"
-            :disabled="petStore.loading || !form.name || !form.kind">
-            <span v-if="petStore.loading" class="spinner">
-              {{ petStore.loading ? 'Creating Pet...' : 'Add Pet' }}
-            </span>
-          </button> -->
         </div>
       </div>
 
@@ -280,7 +276,8 @@ const showToast = (text) => {
 .pet-breed-card {
   box-sizing: border-box;
   width: 100%;
-  height: 300px; /* Default height for mobile */
+  height: 300px;
+  /* Default height for mobile */
   background-position: center;
   background-size: cover;
   border: 1px solid white;
@@ -305,10 +302,15 @@ const showToast = (text) => {
 
 /* Responsive heights for larger screens */
 @media (min-width: 576px) {
-  .pet-breed-card { height: 350px; }
+  .pet-breed-card {
+    height: 350px;
+  }
 }
+
 @media (min-width: 992px) {
-  .pet-breed-card { height: 450px; }
+  .pet-breed-card {
+    height: 450px;
+  }
 }
 
 .pet-breed-card:hover {
@@ -356,7 +358,7 @@ const showToast = (text) => {
   transition: all 0.2s ease;
 }
 
-.radio-inputs .radio input:checked + .name {
+.radio-inputs .radio input:checked+.name {
   background: var(--bs-primary);
   color: white;
   font-weight: 600;
