@@ -69,6 +69,8 @@ const handleCreatePost = async (postData) => {
     } else {
         console.log("Image File Attached: None");
     }
+
+    postStore.createPost(authStore.user.id, postData);
 };
 
 </script>
@@ -94,6 +96,17 @@ const handleCreatePost = async (postData) => {
         class="card card-profile"
       />
     </div>
+    <!-- <div class="grid">
+      <ProfileSearch
+        v-for="(profile, idx) in props.foundProfiles"
+        :key="profile.Name + '_' + idx"
+        :Name="profile.Name"
+        :Image="profile.Image"
+        :Followers="profile."
+        :Following="profile."
+        class="card card-profile"
+      />
+    </div> -->
   </section>
 
 
