@@ -35,8 +35,7 @@ const StatusDetails = computed(() =>{
 });
 </script>
 <template>
-    <div class="pet-card card overflow-hidden shadow p-3 mb-5 bg-body-tertiary rounded-4 h-100 d-flex flex-column position-relative
-    w-100">
+    <div class="pet-card card overflow-hidden shadow p-3 mb-5 bg-body-tertiary rounded-4 h-100 d-flex flex-column position-relative w-90">
         <div class="card-header p-0 text-center bg-transparent border-0">
             <div class="row d-fill justify-content-between">
                 <div class="col-9 my-auto ">
