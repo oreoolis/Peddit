@@ -76,8 +76,8 @@ onMounted(() => {
                 <h1 class="headingFont" style="color: lightcoral">No pets. Create a pet.</h1>
             </div>
             <!-- To do v-if if there is no pets rendered from DB, else show current screen -->
-            <div class="row justify-content-center gx-5 gy-5 g-5 px-4 pb-5">
-                <div v-for="pet in petStore.pets" :key="pet.id" class="col-xl-3 col-md-5 mb-4 m-3">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3 g-4 gy-4 justify-content-center ">
+                <div v-for="pet in petStore.pets" :key="pet.id" class="col-xl-3 col-md-5 mb-4 ">
                     <PetCards :id="pet.id" :name="pet.name" :kind="pet.kind" :gender="pet.gender" :breed="pet.breed"
                         :birthday="pet.birthdate" :weight="pet.weight_kg" :allergies="pet.allergies"
                         :photo_url="pet.photo_url" />
