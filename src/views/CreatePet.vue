@@ -369,8 +369,8 @@ const showToast = (text) => {
 
 /* Selected pet card styling */
 .selected-pet {
-    border: 5px solid #407dff !important;
-    box-shadow: 0 0 30px rgba(64, 125, 255, 0.7) !important;
+    border: 5px solid var(--bs-primary) !important;
+    box-shadow: 0 0 30px var(--bs-primary, 0.7)!important;
     transform: scale(1.03);
     position: relative;
 }
@@ -628,8 +628,8 @@ const showToast = (text) => {
   inset: -2px;
   border-radius: inherit;
   background: linear-gradient(45deg,
-      rgba(59, 130, 246, 0.5),
-      rgba(37, 99, 235, 0.5));
+      rgba(--bs-primary, 0.5),
+      rgba(--bs-primary, 0.5));
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -647,84 +647,6 @@ const showToast = (text) => {
     opacity: 1;
   }
 }
-
-@keyframes shine {
-  0% {
-    left: -100px;
-  }
-
-  60% {
-    left: 100%;
-  }
-
-  to {
-    left: 100%;
-  }
-}
-
-/* Recommend Meal */
-.button-recommend {
-  position: relative;
-  transition: all 0.3s ease-in-out;
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-  padding-block: 0.5rem;
-  padding-inline: 1.25rem;
-  background-color: rgb(78, 78, 78);
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #ffff;
-  gap: 10px;
-  font-weight: bold;
-  border: 3px solid #ffffff4d;
-  outline: none;
-  overflow: hidden;
-  font-size: 18px;
-}
-
-.button-recommend:hover {
-  transform: scale(1.05);
-  border-color: #fff9;
-}
-
-.button-recommend:hover .icon {
-  transform: translate(4px);
-}
-
-.button-recommend:hover::before {
-  animation: shine 1.5s ease-out infinite;
-}
-
-.button-recommend::before {
-  content: "";
-  position: absolute;
-  width: 100px;
-  height: 100%;
-  background-image: linear-gradient(120deg,
-      rgba(255, 255, 255, 0) 30%,
-      rgba(255, 255, 255, 0.8),
-      rgba(255, 255, 255, 0) 70%);
-  top: 0;
-  left: -100px;
-  opacity: 0.6;
-}
-
-@keyframes shine {
-  0% {
-    left: -100px;
-  }
-
-  60% {
-    left: 100%;
-  }
-
-  to {
-    left: 100%;
-  }
-}
-
 
 
 
