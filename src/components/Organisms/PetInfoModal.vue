@@ -11,19 +11,20 @@ const petStore = usePetStore();
 const router = useRouter();
 
 const props = defineProps({
-  id: String,
-  name: String,
-  kind: String,
-  gender: String,
-  breed: String,
-  birthday: String,
-  weight: Number,
-  allergies: String,
-  photo_url: String,
-  show: {
-    type: Boolean,
-    default: false
-  }
+    id: String,
+    name: String,
+    kind: String,
+    gender: String,
+    breed: String,
+    birthday: String,
+    weight: Number,
+    allergies: String,
+    neutered: String,
+    photo_url: String,
+    show: {
+        type: Boolean,
+        default: false
+    }
 });
 
 const emit = defineEmits(['update:show', 'uploaded', 'error', 'click']);
@@ -38,7 +39,10 @@ watch(() => props.show, (newVal) => {
 });
 
 const editPet = () => {
-    router.push("/edit-pet/" + props.id);
+    router.push({
+        path: '/edit-pet',
+        query: { id: props.id }
+    });
 }
 
 
@@ -73,41 +77,28 @@ const closeModal = () => {
             <form>
                 <div class="modal-body">
                     <div class="row">
-                    <img :src="photo_url" class=" col-8 img-fluid container-fluid p-0 rounded-start-5 shadow "
-                        alt="...">
-                    <PetInfoCard class="col-4 p-0 rounded-end-5"
-                            :name="name"
-                            :gender="gender"
-                            :birthday="birthday"
-                            :breed="breed"
-                            :weight="weight"
-                            :allergies="allergies"
-                            />
+                        <img :src="photo_url" class=" col-8 img-fluid container-fluid p-0 rounded-start-5 shadow "
+                            alt="...">
+                        <PetInfoCard class="col-4 p-0 rounded-end-5" :name="name" :gender="gender" :birthday="birthday"
+                            :breed="breed" :weight="weight" :allergies="allergies" :neutered="neutered"/>
                     </div>
                     <div class="preferred-meal-container container py-5 px-5 mt-4 rounded-5 bg-light shadow">
                         <h2 class="headingFont fw-semibold">Preferred Meal</h2>
-                            <div class = "row d-flex justify-content-center">
-                                <div class = "col-lg-5">
-                                    <MealPlanCards/>
-                                </div>
+                        <div class="row d-flex justify-content-center">
+                            <div class="col-lg-5">
+                                <MealPlanCards />
                             </div>
+                        </div>
                     </div>
                 </div>
-<!-- NOTE: this should only be seen if this summary page is the pet's owner -->
+                <!-- NOTE: this should only be seen if this summary page is the pet's owner -->
                 <div class="modal-footer ">
-                  <buttonTogglable class="px-4 mx-1"
-                  iconLinkON="bi-pen-fill"
-                  labelON="Editing..."
-                  colorON="primary"
-                  iconLinkOFF="bi-pen"
-                  labelOFF="Edit"
-                  colorOFF="primary"
-                  @click = "editPet"
-                  ></buttonTogglable> 
+                    <buttonTogglable class="px-4 mx-1" iconLinkON="bi-pen-fill" labelON="Editing..." colorON="primary"
+                        iconLinkOFF="bi-pen" labelOFF="Edit" colorOFF="primary" @click="editPet"></buttonTogglable>
 
-                  <Button label="Delete" class="px-4" color="danger" type = "button" @click = "deletePet">
-                    <i class="bi bi-trash3 mx-1"></i>
-                  </Button>
+                    <Button label="Delete" class="px-4" color="danger" type="button" @click="deletePet">
+                        <i class="bi bi-trash3 mx-1"></i>
+                    </Button>
                 </div>
             </form>
         </div>
@@ -162,7 +153,7 @@ const closeModal = () => {
     gap: 0.5rem;
 }
 
-.img-fluid{
+.img-fluid {
     object-fit: cover;
 }
 
@@ -172,59 +163,79 @@ p {
 
 /* entrance for the whole modal content (subtle scale + fade) */
 @keyframes modalPop {
-  from { opacity: 0; transform: translateY(15px) scale(.950); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(.950);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 /* staggered pop for internal data boxes */
 @keyframes floatIn {
-  from { opacity: 0; transform: translateY(8px) scale(.950); }
-  60%  { opacity: 1; transform: translateY(-5px) scale(1.05); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(.950);
+    }
+
+    60% {
+        opacity: 1;
+        transform: translateY(-5px) scale(1.05);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 /* apply modal entrance animation when backdrop is shown */
 .modal-backdrop .modal-content {
-  animation: modalPop .28s cubic-bezier(.2,.9,.2,1) both;
+    animation: modalPop .28s cubic-bezier(.2, .9, .2, 1) both;
 }
 
 /* animate data containers with a small stagger for nicer UX */
 
 .preferred-meal-container {
-  opacity: 0;
-  transform-origin: top center;
-  animation: floatIn .36s cubic-bezier(.2,.9,.2,1) both;
+    opacity: 0;
+    transform-origin: top center;
+    animation: floatIn .36s cubic-bezier(.2, .9, .2, 1) both;
 }
 
 /* gentle stagger delays */
-.pet-info-card { animation-delay: .06s; }
-.preferred-meal-container { animation-delay: .14s; }
+.pet-info-card {
+    animation-delay: .06s;
+}
+
+.preferred-meal-container {
+    animation-delay: .14s;
+}
 
 /* refine interior children micro-motion (useful if those sections contain cards) */
-.pet-info-card > * , .preferred-meal-container > * {
-  will-change: transform, opacity;
-  transition: transform .18s cubic-bezier(.2,.9,.2,1), box-shadow .18s ease;
+.pet-info-card>*,
+.preferred-meal-container>* {
+    will-change: transform, opacity;
+    transition: transform .18s cubic-bezier(.2, .9, .2, 1), box-shadow .18s ease;
 }
 
 /* slight lift on hover for card-like children (still rely on Bootstrap for structure) */
 .preferred-meal-container .card,
 .pet-info-card {
-  transition: transform .18s cubic-bezier(.2,.9,.2,1), box-shadow .18s ease;
+    transition: transform .18s cubic-bezier(.2, .9, .2, 1), box-shadow .18s ease;
 }
 
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .container:hover,
-  .container:focus-within {
-    animation: none !important;
-    transition: none !important;
-    transform: none !important;
-    box-shadow: none !important;
-  }
+
+    .container:hover,
+    .container:focus-within {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
 }
-
-
-
-
-
 </style>

@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 /**
  * Pet Nutrition Store
  * Manages all pet nutrition data including profiles, ingredients, and recipes
+ * Schema uses JSONB for nutrition data
  */
 export const usePetNutritionStore = defineStore('petNutrition', () => {
   // ============================================
@@ -29,7 +30,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
   
   /**
    * Fetch all pet nutrition profiles
-   * @returns {Promise<Object>} { success: boolean, data?: Array, error?: string }
+   * Table: nutrition_profiles (not pet_nutrition_profiles)
    */
   const fetchNutritionProfiles = async () => {
     loading.value = true;
@@ -56,9 +57,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Get nutrition profile for specific pet
-   * @param {string} kind - Pet kind (dog/cat)
-   * @param {string} lifeStage - Life stage (puppy/kitten/adult/senior)
-   * @returns {Promise<Object>} { success: boolean, data?: Object, error?: string }
+   * Life stages: 'adult_maintenance', 'growth_and_reproduction'
    */
   const getNutritionProfile = async (kind, lifeStage) => {
     loading.value = true;
@@ -90,7 +89,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Fetch all food ingredients
-   * @returns {Promise<Object>} { success: boolean, data?: Array, error?: string }
+   * Nutrition data is in JSONB format
    */
   const fetchIngredients = async () => {
     loading.value = true;
@@ -117,8 +116,6 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Create a new ingredient
-   * @param {Object} ingredient - Ingredient data
-   * @returns {Promise<Object>} { success: boolean, data?: Object, error?: string }
    */
   const createIngredient = async (ingredient) => {
     loading.value = true;
@@ -146,9 +143,6 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Update an ingredient
-   * @param {string} id - Ingredient ID
-   * @param {Object} updates - Fields to update
-   * @returns {Promise<Object>} { success: boolean, data?: Object, error?: string }
    */
   const updateIngredient = async (id, updates) => {
     loading.value = true;
@@ -181,8 +175,6 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Delete an ingredient
-   * @param {string} id - Ingredient ID
-   * @returns {Promise<Object>} { success: boolean, error?: string }
    */
   const deleteIngredient = async (id) => {
     loading.value = true;
@@ -213,10 +205,9 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Fetch all recipes with their ingredients
-   * @param {string} userId - Optional user ID to filter recipes
-   * @returns {Promise<Object>} { success: boolean, data?: Array, error?: string }
+   * Schema: recipes table with author_id, recipe_name
    */
-  const fetchRecipes = async (userId = null) => {
+  const fetchRecipes = async (authorId = null) => {
     loading.value = true;
     error.value = null;
 
@@ -227,27 +218,19 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
           *,
           recipe_ingredients (
             id,
-            quantity_grams,
+            quantity_g,
             food_ingredients (
               id,
               name,
-              calories_per_100g,
-              protein_g_per_100g,
-              fat_g_per_100g,
-              carbohydrates_g_per_100g,
-              fiber_g_per_100g,
-              calcium_mg_per_100g,
-              phosphorus_mg_per_100g,
-              vitamin_a_iu_per_100g,
-              vitamin_d_iu_per_100g,
-              vitamin_e_mg_per_100g
+              type,
+              nutrition
             )
           )
         `)
         .order('created_at', { ascending: false });
 
-      if (userId) {
-        query = query.eq('user_id', userId);
+      if (authorId) {
+        query = query.eq('author_id', authorId);
       }
 
       const { data, error: fetchError } = await query;
@@ -267,8 +250,6 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Get a single recipe by ID with ingredients
-   * @param {string} recipeId - Recipe ID
-   * @returns {Promise<Object>} { success: boolean, data?: Object, error?: string }
    */
   const getRecipe = async (recipeId) => {
     loading.value = true;
@@ -281,20 +262,12 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
           *,
           recipe_ingredients (
             id,
-            quantity_grams,
+            quantity_g,
             food_ingredients (
               id,
               name,
-              calories_per_100g,
-              protein_g_per_100g,
-              fat_g_per_100g,
-              carbohydrates_g_per_100g,
-              fiber_g_per_100g,
-              calcium_mg_per_100g,
-              phosphorus_mg_per_100g,
-              vitamin_a_iu_per_100g,
-              vitamin_d_iu_per_100g,
-              vitamin_e_mg_per_100g
+              type,
+              nutrition
             )
           )
         `)
@@ -315,8 +288,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Create a new recipe
-   * @param {Object} recipe - Recipe data (name, description, pet_id, user_id)
-   * @returns {Promise<Object>} { success: boolean, data?: Object, error?: string }
+   * Schema uses: recipe_name, author_id, description, notes
    */
   const createRecipe = async (recipe) => {
     loading.value = true;
@@ -343,9 +315,6 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Update a recipe
-   * @param {string} recipeId - Recipe ID
-   * @param {Object} updates - Fields to update
-   * @returns {Promise<Object>} { success: boolean, data?: Object, error?: string }
    */
   const updateRecipe = async (recipeId, updates) => {
     loading.value = true;
@@ -373,23 +342,12 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Delete a recipe
-   * @param {string} recipeId - Recipe ID
-   * @returns {Promise<Object>} { success: boolean, error?: string }
    */
   const deleteRecipe = async (recipeId) => {
     loading.value = true;
     error.value = null;
 
     try {
-      // Delete recipe ingredients first (cascade should handle this, but being explicit)
-      const { error: deleteIngredientsError } = await supabase
-        .from('recipe_ingredients')
-        .delete()
-        .eq('recipe_id', recipeId);
-
-      if (deleteIngredientsError) throw deleteIngredientsError;
-
-      // Delete recipe
       const { error: deleteError } = await supabase
         .from('recipes')
         .delete()
@@ -414,10 +372,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Add an ingredient to a recipe
-   * @param {string} recipeId - Recipe ID
-   * @param {string} ingredientId - Ingredient ID
-   * @param {number} quantityGrams - Quantity in grams
-   * @returns {Promise<Object>} { success: boolean, data?: Object, error?: string }
+   * Schema uses: quantity_g (not quantity_grams)
    */
   const addIngredientToRecipe = async (recipeId, ingredientId, quantityGrams) => {
     loading.value = true;
@@ -429,7 +384,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
         .insert([{
           recipe_id: recipeId,
           ingredient_id: ingredientId,
-          quantity_grams: quantityGrams
+          quantity_g: quantityGrams
         }])
         .select()
         .single();
@@ -448,9 +403,6 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Update recipe ingredient quantity
-   * @param {string} recipeIngredientId - Recipe ingredient junction ID
-   * @param {number} quantityGrams - New quantity in grams
-   * @returns {Promise<Object>} { success: boolean, data?: Object, error?: string }
    */
   const updateRecipeIngredient = async (recipeIngredientId, quantityGrams) => {
     loading.value = true;
@@ -459,7 +411,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
     try {
       const { data, error: updateError } = await supabase
         .from('recipe_ingredients')
-        .update({ quantity_grams: quantityGrams })
+        .update({ quantity_g: quantityGrams })
         .eq('id', recipeIngredientId)
         .select()
         .single();
@@ -478,8 +430,6 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Remove an ingredient from a recipe
-   * @param {string} recipeIngredientId - Recipe ingredient junction ID
-   * @returns {Promise<Object>} { success: boolean, error?: string }
    */
   const removeIngredientFromRecipe = async (recipeIngredientId) => {
     loading.value = true;
@@ -504,61 +454,109 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
   };
 
   // ============================================
-  // UTILITY FUNCTIONS
+  // UTILITY FUNCTIONS - JSONB AWARE
   // ============================================
 
   /**
    * Calculate total nutritional values for a recipe
-   * @param {Array} recipeIngredients - Array of recipe ingredients with food_ingredients data
-   * @returns {Object} Total nutritional values
+   * Handles JSONB nutrition data from ingredients
    */
   const calculateRecipeNutrition = (recipeIngredients) => {
     if (!recipeIngredients || recipeIngredients.length === 0) {
       return {
-        total_weight_grams: 0,
-        calories: 0,
+        total_weight_g: 0,
         protein_g: 0,
         fat_g: 0,
-        carbohydrates_g: 0,
         fiber_g: 0,
-        calcium_mg: 0,
-        phosphorus_mg: 0,
+        calcium_g: 0,
+        phosphorus_g: 0,
+        magnesium_mg: 0,
+        iron_mg: 0,
+        zinc_mg: 0,
         vitamin_a_iu: 0,
         vitamin_d_iu: 0,
-        vitamin_e_mg: 0
+        vitamin_e_iu: 0,
+        thiamine_mg: 0,
+        riboflavin_mg: 0,
+        niacin_mg: 0,
+        vitamin_b6_mg: 0,
+        vitamin_b12_mg: 0,
+        choline_mg: 0,
+        taurine_g: 0,
+        linoleic_acid_g: 0,
+        alpha_linolenic_acid_g: 0,
+        epa_dha_g: 0,
+        arachidonic_acid_g: 0
       };
     }
 
     const totals = {
-      total_weight_grams: 0,
-      calories: 0,
+      total_weight_g: 0,
       protein_g: 0,
       fat_g: 0,
-      carbohydrates_g: 0,
       fiber_g: 0,
-      calcium_mg: 0,
-      phosphorus_mg: 0,
+      calcium_g: 0,
+      phosphorus_g: 0,
+      magnesium_mg: 0,
+      iron_mg: 0,
+      zinc_mg: 0,
       vitamin_a_iu: 0,
       vitamin_d_iu: 0,
-      vitamin_e_mg: 0
+      vitamin_e_iu: 0,
+      thiamine_mg: 0,
+      riboflavin_mg: 0,
+      niacin_mg: 0,
+      vitamin_b6_mg: 0,
+      vitamin_b12_mg: 0,
+      choline_mg: 0,
+      taurine_g: 0,
+      linoleic_acid_g: 0,
+      alpha_linolenic_acid_g: 0,
+      epa_dha_g: 0,
+      arachidonic_acid_g: 0
     };
 
     recipeIngredients.forEach(recipeIng => {
-      const quantity = recipeIng.quantity_grams;
-      const ing = recipeIng.food_ingredients;
+      const quantity = recipeIng.quantity_g;
+      const nutrition = recipeIng.food_ingredients.nutrition;
       const multiplier = quantity / 100; // Convert per 100g to actual quantity
 
-      totals.total_weight_grams += quantity;
-      totals.calories += (ing.calories_per_100g || 0) * multiplier;
-      totals.protein_g += (ing.protein_g_per_100g || 0) * multiplier;
-      totals.fat_g += (ing.fat_g_per_100g || 0) * multiplier;
-      totals.carbohydrates_g += (ing.carbohydrates_g_per_100g || 0) * multiplier;
-      totals.fiber_g += (ing.fiber_g_per_100g || 0) * multiplier;
-      totals.calcium_mg += (ing.calcium_mg_per_100g || 0) * multiplier;
-      totals.phosphorus_mg += (ing.phosphorus_mg_per_100g || 0) * multiplier;
-      totals.vitamin_a_iu += (ing.vitamin_a_iu_per_100g || 0) * multiplier;
-      totals.vitamin_d_iu += (ing.vitamin_d_iu_per_100g || 0) * multiplier;
-      totals.vitamin_e_mg += (ing.vitamin_e_mg_per_100g || 0) * multiplier;
+      totals.total_weight_g += quantity;
+
+      // Extract values from JSONB
+      if (nutrition.protein?.value) totals.protein_g += nutrition.protein.value * multiplier;
+      if (nutrition.fat?.value) totals.fat_g += nutrition.fat.value * multiplier;
+      if (nutrition.fiber?.value) totals.fiber_g += nutrition.fiber.value * multiplier;
+      
+      // Handle g to mg conversion for calcium
+      if (nutrition.calcium?.value) {
+        const unit = nutrition.calcium.unit;
+        totals.calcium_g += unit === 'g' ? nutrition.calcium.value * multiplier : (nutrition.calcium.value / 1000) * multiplier;
+      }
+      
+      // Handle g to mg conversion for phosphorus
+      if (nutrition.phosphorus?.value) {
+        const unit = nutrition.phosphorus.unit;
+        totals.phosphorus_g += unit === 'g' ? nutrition.phosphorus.value * multiplier : (nutrition.phosphorus.value / 1000) * multiplier;
+      }
+      
+      if (nutrition.magnesium?.value) totals.magnesium_mg += nutrition.magnesium.value * multiplier;
+      if (nutrition.iron?.value) totals.iron_mg += nutrition.iron.value * multiplier;
+      if (nutrition.zinc?.value) totals.zinc_mg += nutrition.zinc.value * multiplier;
+      if (nutrition.vitamin_a?.value) totals.vitamin_a_iu += nutrition.vitamin_a.value * multiplier;
+      if (nutrition.vitamin_d?.value) totals.vitamin_d_iu += nutrition.vitamin_d.value * multiplier;
+      if (nutrition.vitamin_e?.value) totals.vitamin_e_iu += nutrition.vitamin_e.value * multiplier;
+      if (nutrition.thiamine?.value) totals.thiamine_mg += nutrition.thiamine.value * multiplier;
+      if (nutrition.riboflavin?.value) totals.riboflavin_mg += nutrition.riboflavin.value * multiplier;
+      if (nutrition.niacin?.value) totals.niacin_mg += nutrition.niacin.value * multiplier;
+      if (nutrition.vitamin_b6?.value) totals.vitamin_b6_mg += nutrition.vitamin_b6.value * multiplier;
+      if (nutrition.vitamin_b12?.value) totals.vitamin_b12_mg += nutrition.vitamin_b12.value * multiplier;
+      if (nutrition.choline?.value) totals.choline_mg += nutrition.choline.value * multiplier;
+      if (nutrition.taurine?.value) totals.taurine_g += nutrition.taurine.value * multiplier;
+      if (nutrition.linoleic_acid?.value) totals.linoleic_acid_g += nutrition.linoleic_acid.value * multiplier;
+      if (nutrition.alpha_linolenic_acid?.value) totals.alpha_linolenic_acid_g += nutrition.alpha_linolenic_acid.value * multiplier;
+      if (nutrition.epa_dha?.value) totals.epa_dha_g += nutrition.epa_dha.value * multiplier;
+      if (nutrition.arachidonic_acid?.value) totals.arachidonic_acid_g += nutrition.arachidonic_acid.value * multiplier;
     });
 
     // Round all values to 2 decimal places
@@ -571,71 +569,70 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
   /**
    * Compare recipe nutrition with pet requirements
-   * @param {Object} recipeNutrition - Calculated recipe nutrition
-   * @param {Object} requirements - Pet nutrition requirements
-   * @param {number} petWeight - Pet weight in kg
-   * @returns {Object} Comparison results with percentages
+   * Uses new schema with min_* columns
    */
   const compareNutrition = (recipeNutrition, requirements, petWeight) => {
     if (!requirements || !petWeight) {
       return null;
     }
 
-    // Calculate daily requirements based on pet weight
-    const dailyRequirements = {
-      calories: requirements.calories_per_kg * petWeight,
-      protein_g: requirements.protein_percent_min * petWeight * 10, // Rough estimate
-      fat_g: requirements.fat_percent_min * petWeight * 10,
-      calcium_mg: requirements.calcium_percent_min * petWeight * 1000,
-      phosphorus_mg: requirements.phosphorus_percent_min * petWeight * 1000
-    };
-
-    // Calculate percentages
-    const comparison = {
-      calories: {
-        actual: recipeNutrition.calories,
-        required: dailyRequirements.calories,
-        percentage: (recipeNutrition.calories / dailyRequirements.calories) * 100,
-        status: getStatus(recipeNutrition.calories, dailyRequirements.calories)
-      },
-      protein: {
-        actual: recipeNutrition.protein_g,
-        required: dailyRequirements.protein_g,
-        percentage: (recipeNutrition.protein_g / dailyRequirements.protein_g) * 100,
-        status: getStatus(recipeNutrition.protein_g, dailyRequirements.protein_g)
-      },
-      fat: {
-        actual: recipeNutrition.fat_g,
-        required: dailyRequirements.fat_g,
-        percentage: (recipeNutrition.fat_g / dailyRequirements.fat_g) * 100,
-        status: getStatus(recipeNutrition.fat_g, dailyRequirements.fat_g)
-      },
-      calcium: {
-        actual: recipeNutrition.calcium_mg,
-        required: dailyRequirements.calcium_mg,
-        percentage: (recipeNutrition.calcium_mg / dailyRequirements.calcium_mg) * 100,
-        status: getStatus(recipeNutrition.calcium_mg, dailyRequirements.calcium_mg)
-      },
-      phosphorus: {
-        actual: recipeNutrition.phosphorus_mg,
-        required: dailyRequirements.phosphorus_mg,
-        percentage: (recipeNutrition.phosphorus_mg / dailyRequirements.phosphorus_mg) * 100,
-        status: getStatus(recipeNutrition.phosphorus_mg, dailyRequirements.phosphorus_mg)
+    const comparison = {};
+    
+    // Helper to add nutrient comparison
+    const addComparison = (key, actualValue, requiredField, unit = '') => {
+      const required = requirements[requiredField] || 0;
+      if (required > 0) {
+        comparison[key] = {
+          actual: actualValue || 0,
+          required: required,
+          unit: unit,
+          percentage: (actualValue / required) * 100,
+          status: getStatus(actualValue, required)
+        };
       }
     };
+    
+    // Macronutrients
+    addComparison('protein', recipeNutrition.protein_g, 'min_protein_g', 'g');
+    addComparison('fat', recipeNutrition.fat_g, 'min_fat_g', 'g');
+    
+    // Fatty Acids
+    addComparison('linoleic_acid', recipeNutrition.linoleic_acid_g, 'min_linoleic_acid_g', 'g');
+    addComparison('alpha_linolenic_acid', recipeNutrition.alpha_linolenic_acid_g, 'min_alpha_linolenic_acid_g', 'g');
+    addComparison('epa_dha', recipeNutrition.epa_dha_g, 'min_epa_dha_g', 'g');
+    addComparison('arachidonic_acid', recipeNutrition.arachidonic_acid_g, 'min_arachidonic_acid_g', 'g');
+    
+    // Minerals
+    addComparison('calcium', recipeNutrition.calcium_g, 'min_calcium_g', 'g');
+    addComparison('phosphorus', recipeNutrition.phosphorus_g, 'min_phosphorus_g', 'g');
+    addComparison('magnesium', recipeNutrition.magnesium_mg, 'min_magnesium_mg', 'mg');
+    addComparison('iron', recipeNutrition.iron_mg, 'min_iron_mg', 'mg');
+    addComparison('zinc', recipeNutrition.zinc_mg, 'min_zinc_mg', 'mg');
+    
+    // Vitamins
+    addComparison('vitamin_a', recipeNutrition.vitamin_a_iu, 'min_vitamin_a_iu', 'IU');
+    addComparison('vitamin_d', recipeNutrition.vitamin_d_iu, 'min_vitamin_d_iu', 'IU');
+    addComparison('vitamin_e', recipeNutrition.vitamin_e_iu, 'min_vitamin_e_iu', 'IU');
+    addComparison('thiamine', recipeNutrition.thiamine_mg, 'min_thiamine_mg', 'mg');
+    addComparison('riboflavin', recipeNutrition.riboflavin_mg, 'min_riboflavin_mg', 'mg');
+    addComparison('niacin', recipeNutrition.niacin_mg, 'min_niacin_mg', 'mg');
+    addComparison('vitamin_b6', recipeNutrition.vitamin_b6_mg, 'min_vitamin_b6_mg', 'mg');
+    addComparison('vitamin_b12', recipeNutrition.vitamin_b12_mg, 'min_vitamin_b12_mg', 'mg');
+    addComparison('choline', recipeNutrition.choline_mg, 'min_choline_mg', 'mg');
+    
+    // Amino Acids
+    addComparison('taurine', recipeNutrition.taurine_g, 'min_taurine_g', 'g');
 
     return comparison;
   };
 
   /**
    * Helper function to determine nutritional status
-   * @param {number} actual - Actual value
-   * @param {number} required - Required value
-   * @returns {string} Status: 'excellent', 'good', 'fair', 'poor'
    */
   const getStatus = (actual, required) => {
+    if (!required || required === 0) return 'unknown';
     const percentage = (actual / required) * 100;
-    if (percentage >= 90 && percentage <= 110) return 'excellent';
+    if (percentage >= 90 && percentage <= 120) return 'excellent';
     if (percentage >= 80 && percentage < 90) return 'good';
     if (percentage >= 70 && percentage < 80) return 'fair';
     return 'poor';

@@ -76,9 +76,8 @@ onMounted(() => {
                 <h1 class="headingFont" style="color: lightcoral">No pets. Create a pet.</h1>
             </div>
             <!-- To do v-if if there is no pets rendered from DB, else show current screen -->
-            <div
-                class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 gy-4 justify-content-center px-4 pb-5">
-                <div v-for="pet in petStore.pets" :key="pet.id" class="col d-flex align-items-stretch my-2">
+            <div class="row justify-content-center gx-5 gy-5 g-5 px-4 pb-5">
+                <div v-for="pet in petStore.pets" :key="pet.id" class="col-xl-3 col-md-5 mb-4 m-3">
                     <PetCards :id="pet.id" :name="pet.name" :kind="pet.kind" :gender="pet.gender" :breed="pet.breed"
                         :birthday="pet.birthdate" :weight="pet.weight_kg" :allergies="pet.allergies"
                         :photo_url="pet.photo_url" />
@@ -161,7 +160,7 @@ onMounted(() => {
                             </div>
                             <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
                                 <router-link to="/add-meal-plan" custom v-slot="{ href, navigate }">
-                                    <button class="icon-btn add-btn shadow" @click="navigate" :href="href">
+                                    <button class="icon-btn add-btn shadow" @click="navigate" :href="href" role="link">
                                         <div class="add-icon"></div>
                                         <div class="btn-txt">New Plan</div>
                                     </button>

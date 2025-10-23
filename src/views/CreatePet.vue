@@ -3,28 +3,43 @@ import MealPlanCards from '@/components/PetViewComponents/MealPlanCard.vue';
 import ImageUploadModal from '@/components/ImageUploadModal.vue';
 import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
-import { ref } from 'vue';
-import searchBar from '@/components/atoms/searchBar.vue';
+//import { storeToRefs } from 'pinia';
+import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import searchBar from '@/components/atoms/searchBar.vue';
+import { usePetInfoApi } from '@/composables/usePetInfoApi';
+import BreedSelect from '@/components/molecules/BreedSelect.vue';
 import Button from '@/components/atoms/button.vue';
-
 const petStore = usePetStore();
 const authStore = useAuthStore();
 const router = useRouter(); // push to next page
 
 const showSuccess = ref(false);
 
-// Form data
+// initial form data
+const petKind = ref('dog'); // default value
+const { breedNames, error: breedError, isFetching: isFetchingBreeds } = usePetInfoApi(petKind);
+
+// dynamically update breed list
+const breedNameList = ref([]);
+
+watch([petKind, isFetchingBreeds], () => {
+  if (isFetchingBreeds.value) {
+    return;
+  }
+  breedNameList.value = breedNames.value;
+})
+
 const form = ref({
   name: '',
-  kind: '',
+  kind: petKind.value,
   breed: '',
   gender: 'unknown',
   birthdate: '',
   weight_kg: null,
-  allergies: null,
-  neutered: null
-})
+  neutered: null,
+  allergies: ''
+});
 
 const imageFile = ref(null);
 const imagePreview = ref(null);
@@ -63,18 +78,15 @@ const handleSubmit = async () => {
 
   if (result.success) {
     if (imageFile.value) {
-      const imageResult = await petStore.uploadPetImage(authStore.userId, result.data.id, imageFile.value);
-      if (!imageResult.success) {
-        console.error('Failed to upload image:', imageResult.error);
-      }
+      await petStore.uploadPetImage(authStore.userId, result.data.id, imageFile.value);
     }
 
     showSuccess.value = true;
     resetForm();
     router.push({
-            path: '/pet',
-            state: { showOpSuccess: true, message: form.value.name + "has been created!"}
-        });
+      path: '/pet',
+      state: { showOpSuccess: true, message: form.value.name + "has been created!" }
+    });
 
 
     // Hide success message after 3 seconds
@@ -101,6 +113,7 @@ const resetForm = () => {
 }
 
 const selectPetKind = (kind) => {
+  petKind.value = kind;
   form.value.kind = kind;
   showToast(`You have chosen ${kind.charAt(0).toUpperCase() + kind.slice(1)}!`);
 }
@@ -132,23 +145,29 @@ const showToast = (text) => {
     <form @submit.prevent="handleSubmit" class="pet-form">
       <!-- Pet Species Selector -->
       <div class="pet-selector mt-4 mb-5">
-        <h1 class="headingFont display-3 text-center fw-semibold mb-4">Create Your Pet</h1>
-        <div class="row justify-content-center g-4">
-          <div class="col-12 col-md-5">
-            <div @click="selectPetKind('dog')" class="pet-breed-card dog-breed-card">
+        <div class="row d-flex justify-content-evenly">
+          <div class="col-lg-8">
+            <h1 class="headingFont display-3 text-start fw-semibold">Create Your Pet</h1>
+          </div>
+        </div>
+        <div class="row justify-content-center mt-3 mb-3">
+          <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
+            <div @click="selectPetKind('dog')" class="dog-breed-card"
+              :class="{ 'selected-pet': form.kind === 'dog', 'dimmed-pet': form.kind === 'cat' }" id="dog-breed-card">
               <p class="pet-title brandFont text-light display-1">Dog</p>
             </div>
           </div>
-          <div class="col-12 col-md-5">
-            <div @click="selectPetKind('cat')" class="pet-breed-card cat-breed-card">
+          <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
+            <div @click="selectPetKind('cat')" class="cat-breed-card"
+              :class="{ 'selected-pet': form.kind === 'cat', 'dimmed-pet': form.kind === 'dog' }" id="cat-breed-card">
               <p class="pet-title brandFont text-light display-1">Cat</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div v-if="form.kind== ''" class="text-center mb-4">
-        <h3 class="headingFont text-warning fw-semibold">Please select a species.</h3>
+      <div v-if="form.kind == ''" class="text-center mb-3">
+        <h3 class="headingFont warning fw-semibold">Please select a species.</h3>
       </div>
 
       <!-- Form Inputs -->
@@ -160,7 +179,8 @@ const showToast = (text) => {
               <label for="pet-photo-input" class="form-label headingFont fw-bold h5">Upload Pet Photo</label>
               <input id="pet-photo-input" type="file" accept="image/*" @change="handleImageSelect" class="d-none" />
               <label for="pet-photo-input" class="d-block" style="cursor: pointer;">
-                <searchBar :model-value="imageFile ? imageFile.name : ''" placeholder="Click to select an image..." readonly>
+                <searchBar :model-value="imageFile ? imageFile.name : ''" placeholder="Click to select an image..."
+                  readonly>
                   <template #icon><i class="bi bi-upload"></i></template>
                 </searchBar>
               </label>
@@ -171,7 +191,8 @@ const showToast = (text) => {
               <h6 class="preview-title">Preview</h6>
               <div class="position-relative d-inline-block">
                 <img :src="imagePreview" alt="Preview" class="preview-image rounded object-fit-cover" />
-                <button type="button" @click="removeImage" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle">×</button>
+                <button type="button" @click="removeImage"
+                  class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle">×</button>
               </div>
               <p class="text-muted small mt-1 mb-0">{{ imageFile?.name }} ({{ formatFileSize(imageFile?.size) }})</p>
             </div>
@@ -184,9 +205,12 @@ const showToast = (text) => {
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Gender</label>
               <div class="radio-inputs bodyFont mt-2">
-                <label class="radio"><input checked name="radio" type="radio" value="male" v-model="form.gender" /><span class="name">Male</span></label>
-                <label class="radio"><input name="radio" type="radio" value="female" v-model="form.gender" /><span class="name">Female</span></label>
-                <label class="radio"><input name="radio" type="radio" value="unknown" v-model="form.gender" /><span class="name">Unknown</span></label>
+                <label class="radio"><input checked name="radio" type="radio" value="male" v-model="form.gender" /><span
+                    class="name">Male</span></label>
+                <label class="radio"><input name="radio" type="radio" value="female" v-model="form.gender" /><span
+                    class="name">Female</span></label>
+                <label class="radio"><input name="radio" type="radio" value="unknown" v-model="form.gender" /><span
+                    class="name">Unknown</span></label>
               </div>
             </div>
             <div class="mb-3">
@@ -195,11 +219,11 @@ const showToast = (text) => {
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Breed</label>
-              <searchBar type="text" placeholder="e.g. Golden Retriever" v-model="form.breed" />
+              <BreedSelect defaultLabel="Select Breed..." :options="breedNameList" v-model="form.breed" />
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Weight</label>
-              <searchBar type="number" placeholder="Weight in kg" v-model="form.weight_kg" />
+              <searchBar type="number" placeholder="Weight (KG)" v-model="form.weight_kg" />
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Allergies (Optional)</label>
@@ -224,18 +248,7 @@ const showToast = (text) => {
               </div>
             </div>
 
-
-
-          <!-- size: btn-lg -->
-          <!-- <div class="form-actions text-center">
-            <button type="button" @click="resetForm" class="btn btn-secondary" :disabled="petStore.loading">
-              Reset
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="petStore.loading || !form.name || !form.kind">
-              <span v-if="petStore.loading" class="spinner"></span>
-              {{ petStore.loading ? 'Creating...' : 'Add Pet' }}
-            </button>
-          </div> -->
+          </div>
 
           <div class="form-actions d-flex justify-content-center">
             <Button class=" bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm" label="Reset"
@@ -246,14 +259,7 @@ const showToast = (text) => {
               <span v-if="petStore.loading" class="spinner"></span>
             </Button>
           </div>
-          <!-- <button type="button" class="btn btn-lg bg-primary h-100 headingFont text-light fw-bold shadow"
-            :disabled="petStore.loading || !form.name || !form.kind">
-            <span v-if="petStore.loading" class="spinner">
-              {{ petStore.loading ? 'Creating Pet...' : 'Add Pet' }}
-            </span>
-          </button> -->
         </div>
-      </div>
       </div>
 
       <!-- Success/Error Messages -->
@@ -269,48 +275,119 @@ const showToast = (text) => {
   text-shadow: 1px 5px 5px black;
 }
 
-.pet-breed-card {
-  box-sizing: border-box;
-  width: 100%;
-  height: 300px; /* Default height for mobile */
-  background-position: center;
-  background-size: cover;
-  border: 1px solid white;
-  box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
-  border-radius: 17px;
-  cursor: pointer;
-  transition: all 0.5s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-  font-weight: bolder;
-}
-
 .dog-breed-card {
-  background-image: url("../assets/Pixel Art/dog (1).png");
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 600px;
+    height: 300px;
+    background-image: url("../assets/Pixel Art/dog (1).png");
+    background-position: center;
+    background-size: cover;
+    border: 1px solid white;
+    box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(6px);
+    border-radius: 17px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.5s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    font-weight: bolder;
+    color: black;
+    margin: 0 auto;
 }
 
 .cat-breed-card {
-  background-image: url("../assets/Pixel Art/cat (5).png");
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 600px;
+    height: 300px;
+    background-image: url("../assets/Pixel Art/cat (5).png");
+    background-position: center;
+    background-size: cover;
+    border: 1px solid white;
+    box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(6px);
+    border-radius: 17px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.5s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    font-weight: bolder;
+    color: black;
+    margin: 0 auto;
 }
 
-/* Responsive heights for larger screens */
+/* Responsive heights using Bootstrap breakpoints */
 @media (min-width: 576px) {
-  .pet-breed-card { height: 350px; }
+
+    .dog-breed-card,
+    .cat-breed-card {
+        height: 350px;
+    }
 }
+
+@media (min-width: 768px) {
+
+    .dog-breed-card,
+    .cat-breed-card {
+        height: 400px;
+    }
+}
+
 @media (min-width: 992px) {
-  .pet-breed-card { height: 450px; }
+
+    .dog-breed-card,
+    .cat-breed-card {
+        height: 450px;
+    }
 }
 
-.pet-breed-card:hover {
-  border: 1px solid black;
-  transform: scale(1.05);
+@media (min-width: 1200px) {
+
+    .dog-breed-card,
+    .cat-breed-card {
+        height: 500px;
+    }
 }
 
-.pet-breed-card:active {
-  transform: scale(0.95) rotateZ(1.7deg);
+.dog-breed-card:hover,
+.cat-breed-card:hover {
+    border: 1px solid black;
+    transform: scale(1.05);
 }
+
+.dog-breed-card:active,
+.cat-breed-card:active {
+    transform: scale(0.95) rotateZ(1.7deg);
+}
+
+/* Selected pet card styling */
+.selected-pet {
+    border: 5px solid #407dff !important;
+    box-shadow: 0 0 30px rgba(64, 125, 255, 0.7) !important;
+    transform: scale(1.03);
+    position: relative;
+}
+
+/* Dimmed/unselected pet card */
+.dimmed-pet {
+    opacity: 0.5;
+    filter: grayscale(60%);
+    transform: scale(0.97);
+}
+
+.dimmed-pet:hover {
+    opacity: 0.7;
+    filter: grayscale(40%);
+    transform: scale(1);
+}
+
 
 /* --- Custom Radio Buttons for Gender --- */
 .radio-inputs {
@@ -348,7 +425,7 @@ const showToast = (text) => {
   transition: all 0.2s ease;
 }
 
-.radio-inputs .radio input:checked + .name {
+.radio-inputs .radio input:checked+.name {
   background: var(--bs-primary);
   color: white;
   font-weight: 600;
@@ -359,6 +436,455 @@ const showToast = (text) => {
 .radio-inputs .radio:hover .name {
   transform: translateY(-1px);
   box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.8);
+/* Animation */
+.radio-inputs .radio input:checked+.name {
+  animation: select 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Particles */
+.radio-inputs .radio .name::before,
+.radio-inputs .radio .name::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.radio-inputs .radio input:checked+.name::before,
+.radio-inputs .radio input:checked+.name::after {
+  animation: particles 0.8s ease-out forwards;
+}
+
+.radio-inputs .radio .name::before {
+  background: #60a5fa;
+  box-shadow: 0 0 6px #60a5fa;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.radio-inputs .radio .name::after {
+  background: #93c5fd;
+  box-shadow: 0 0 8px #93c5fd;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Sparkles */
+.radio-inputs .radio .name::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at var(--x, 50%) var(--y, 50%),
+      rgba(59, 130, 246, 0.3) 0%,
+      transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.radio-inputs .radio input:checked+.name::after {
+  opacity: 1;
+  animation: sparkle-bg 1s ease-out forwards;
+}
+
+/* Multiple particles */
+.radio-inputs .radio input:checked+.name {
+  overflow: visible;
+}
+
+.radio-inputs .radio input:checked+.name::before {
+  box-shadow:
+    0 0 6px #60a5fa,
+    10px -10px 0 #60a5fa,
+    -10px -10px 0 #60a5fa;
+  animation: multi-particles-top 0.8s ease-out forwards;
+}
+
+.radio-inputs .radio input:checked+.name::after {
+  box-shadow:
+    0 0 8px #93c5fd,
+    10px 10px 0 #93c5fd,
+    -10px 10px 0 #93c5fd;
+  animation: multi-particles-bottom 0.8s ease-out forwards;
+}
+
+@keyframes select {
+  0% {
+    transform: scale(0.95) translateY(2px);
+  }
+
+  50% {
+    transform: scale(1.05) translateY(-1px);
+  }
+
+  100% {
+    transform: scale(1) translateY(2px);
+  }
+}
+
+@keyframes multi-particles-top {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  40% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px) scale(0);
+    box-shadow:
+      0 0 6px transparent,
+      20px -20px 0 transparent,
+      -20px -20px 0 transparent;
+  }
+}
+
+@keyframes multi-particles-bottom {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  40% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px) scale(0);
+    box-shadow:
+      0 0 8px transparent,
+      20px 20px 0 transparent,
+      -20px 20px 0 transparent;
+  }
+}
+
+@keyframes sparkle-bg {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+/* Ripple effect */
+.radio-inputs .radio .name::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--x, 50%) var(--y, 50%),
+      rgba(255, 255, 255, 0.5) 0%,
+      transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.radio-inputs .radio input:checked+.name::before {
+  animation: ripple 0.8s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    opacity: 1;
+    transform: scale(0.2);
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(2.5);
+  }
+}
+
+/* Glowing border */
+.radio-inputs .radio input:checked+.name {
+  position: relative;
+}
+
+.radio-inputs .radio input:checked+.name::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(45deg,
+      rgba(59, 130, 246, 0.5),
+      rgba(37, 99, 235, 0.5));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: border-glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes border-glow {
+  0% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Add Pet */
+.button-add-pet {
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+  padding-block: 0.5rem;
+  padding-inline: 1.25rem;
+  background-color: rgb(0 107 179);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ffff;
+  gap: 10px;
+  font-weight: bold;
+  border: 3px solid #ffffff4d;
+  outline: none;
+  overflow: hidden;
+  font-size: 18px;
+}
+
+.button-add-pet:hover {
+  transform: scale(1.05);
+  border-color: #fff9;
+}
+
+.button-add-pet:hover .icon {
+  transform: translate(4px);
+}
+
+.button-add-pet:hover::before {
+  animation: shine 1.5s ease-out infinite;
+}
+
+.button-add-pet::before {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100%;
+  background-image: linear-gradient(120deg,
+      rgba(255, 255, 255, 0) 30%,
+      rgba(255, 255, 255, 0.8),
+      rgba(255, 255, 255, 0) 70%);
+  top: 0;
+  left: -100px;
+  opacity: 0.6;
+}
+
+.button-add-pet:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@keyframes shine {
+  0% {
+    left: -100px;
+  }
+
+  60% {
+    left: 100%;
+  }
+
+  to {
+    left: 100%;
+  }
+}
+
+/* Recommend Meal */
+.button-recommend {
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+  padding-block: 0.5rem;
+  padding-inline: 1.25rem;
+  background-color: rgb(78, 78, 78);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ffff;
+  gap: 10px;
+  font-weight: bold;
+  border: 3px solid #ffffff4d;
+  outline: none;
+  overflow: hidden;
+  font-size: 18px;
+}
+
+.button-recommend:hover {
+  transform: scale(1.05);
+  border-color: #fff9;
+}
+
+.button-recommend:hover .icon {
+  transform: translate(4px);
+}
+
+.button-recommend:hover::before {
+  animation: shine 1.5s ease-out infinite;
+}
+
+.button-recommend::before {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100%;
+  background-image: linear-gradient(120deg,
+      rgba(255, 255, 255, 0) 30%,
+      rgba(255, 255, 255, 0.8),
+      rgba(255, 255, 255, 0) 70%);
+  top: 0;
+  left: -100px;
+  opacity: 0.6;
+}
+
+@keyframes shine {
+  0% {
+    left: -100px;
+  }
+
+  60% {
+    left: 100%;
+  }
+
+  to {
+    left: 100%;
+  }
+}
+
+/* From Uiverse.io by mrhyddenn */
+.icon-btn {
+  width: 50px;
+  height: 50px;
+  border: 1px solid #cdcdcd;
+  background: white;
+  border-radius: 25px;
+  overflow: hidden;
+  position: relative;
+  transition: width 0.2s ease-in-out;
+  font-weight: 500;
+  font-family: inherit;
+}
+
+
+
+.add-btn:hover {
+  width: 120px;
+}
+
+.add-btn::before,
+.add-btn::after {
+  transition: width 0.2s ease-in-out, border-radius 0.2s ease-in-out;
+  content: "";
+  position: absolute;
+  height: 4px;
+  width: 10px;
+  top: calc(50% - 2px);
+  background: rgb(0, 0, 0);
+}
+
+.add-btn::after {
+  right: 14px;
+  overflow: hidden;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+}
+
+.add-btn::before {
+  left: 14px;
+  border-top-left-radius: 2px;
+  border-bottom-left-radius: 2px;
+}
+
+.icon-btn:focus {
+  outline: none;
+}
+
+.btn-txt {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.add-btn:hover::before,
+.add-btn:hover::after {
+  width: 4px;
+  border-radius: 2px;
+}
+
+.add-btn:hover .btn-txt {
+  opacity: 1;
+}
+
+.add-icon::after,
+.add-icon::before {
+  transition: all 0.2s ease-in-out;
+  content: "";
+  position: absolute;
+  height: 20px;
+  width: 2px;
+  top: calc(50% - 10px);
+  background: rgb(0, 0, 0);
+  overflow: hidden;
+}
+
+.add-icon::before {
+  left: 22px;
+  border-top-left-radius: 2px;
+  border-bottom-left-radius: 2px;
+}
+
+.add-icon::after {
+  right: 22px;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+}
+
+.add-btn:hover .add-icon::before {
+  left: 15px;
+  height: 4px;
+  top: calc(50% - 2px);
+}
+
+.add-btn:hover .add-icon::after {
+  right: 15px;
+  height: 4px;
+  top: calc(50% - 2px);
+}
+
+.image-preview-container {
+  text-align: center;
+  padding: 1rem;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  background: #f8f9fa;
 }
 
 /* --- Image Preview --- */

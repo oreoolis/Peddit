@@ -6,34 +6,45 @@ import { useAuthStore } from '@/stores/authStore';
 //import { storeToRefs } from 'pinia';
 import { onMounted, ref, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
+import { usePetInfoApi } from '@/composables/usePetInfoApi';
+import BreedSelect from '@/components/molecules/BreedSelect.vue';
 
 
 const petStore = usePetStore();
 const authStore = useAuthStore();
-const route = useRoute(); // get route params - pet ID
+const route = useRoute(); // get route params - retrieve info from state
 const router = useRouter(); // naivgate to next page
 
 const showSuccess = ref(false);
 
-const petId = computed(() => route.params.petId)
+const currentPet = ref(petStore.getPetById(route.query.id))
 
-const currentPet = petStore.getPetById(petId.value);
+// initial form data
+const petKind = ref(currentPet.value.kind); // default value on load
+const { breedNames, error: breedError, isFetching: isFetchingBreeds } = usePetInfoApi(petKind);
 
-console.log(currentPet.name);
+// dynamically update breed list
+const breedNameList = ref([]);
+
+watch([petKind, isFetchingBreeds], () => {
+    if (isFetchingBreeds.value) {
+        return;
+    }
+    breedNameList.value = breedNames.value;
+})
+
 
 // Form data
 const form = ref({
-    name: currentPet.name,
-    kind: currentPet.kind,
-    breed: currentPet.breed,
-    gender: currentPet.gender,
-    birthdate: currentPet.birthdate,
-    weight_kg: currentPet.weight_kg,
-    allergies: currentPet.allergies,
-    neutered: currentPet.neutered
+    name: currentPet.value.name,
+    kind: currentPet.value.kind,
+    breed: currentPet.value.breed,
+    gender: currentPet.value.gender,
+    birthdate: currentPet.value.birthdate,
+    weight_kg: currentPet.value.weight_kg,
+    allergies: currentPet.value.allergies,
+    neutered: currentPet.value.neutered
 })
-
-console.log(form);
 
 const imageFile = ref(null);
 const imagePreview = ref(null);
@@ -69,13 +80,13 @@ const handleSubmit = async () => {
         return
     }
 
-    const result = await petStore.updatePet(petId.value, { ...form.value, photo_url: null })
+    const result = await petStore.updatePet(route.query.id, { ...form.value, photo_url: null })
 
     if (result.success) {
 
         // If image was selected, upload it
         if (imageFile.value) {
-            const imageResult = await petStore.uploadPetImage(authStore.userId, petId.value, imageFile.value);
+            const imageResult = await petStore.uploadPetImage(authStore.userId, route.query.id, imageFile.value);
             if (!imageResult.success) {
                 console.error('Failed to upload image:', imageResult.error);
             }
@@ -85,7 +96,7 @@ const handleSubmit = async () => {
         resetForm();
         router.push({
             path: '/pet',
-            state: { showOpSuccess: true, message: currentPet.name + "has been updated."}
+            state: { showOpSuccess: true, message: currentPet.name + "has been updated." }
         });
 
         // Hide success message after 3 seconds
@@ -114,14 +125,10 @@ const resetForm = () => {
     showSuccess.value = false;
 }
 
-const selectCat = () => {
-    form.value.kind = "cat";
-    showToast("You have chosen Cat!")
-}
-
-const selectDog = () => {
-    form.value.kind = "dog";
-    showToast("You have chosen Dog!");
+const selectPetKind = (kind) => {
+  petKind.value = kind;
+  form.value.kind = kind;
+  showToast(`You have chosen ${kind.charAt(0).toUpperCase() + kind.slice(1)}!`);
 }
 
 const showToast = (text) => {
@@ -160,14 +167,14 @@ const showToast = (text) => {
                 </div>
                 <div class="row justify-content-center mt-3 mb-3">
                     <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
-                        <div @click="selectDog" class="dog-breed-card"
+                        <div @click="selectPetKind('dog')" class="dog-breed-card"
                             :class="{ 'selected-pet': form.kind === 'dog', 'dimmed-pet': form.kind === 'cat' }"
                             id="dog-breed-card">
                             <p class="pet-title brandFont text-light display-1">Dog</p>
                         </div>
                     </div>
                     <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
-                        <div @click="selectCat" class="cat-breed-card"
+                        <div @click="selectPetKind('cat')" class="cat-breed-card"
                             :class="{ 'selected-pet': form.kind === 'cat', 'dimmed-pet': form.kind === 'dog' }"
                             id="cat-breed-card">
                             <p class="pet-title brandFont text-light display-1">Cat</p>
@@ -218,7 +225,7 @@ const showToast = (text) => {
 
                         <div class="mb-3 input-group-lg">
                             <label for="" class="form-label headingFont fw-bold h5">Pet Name</label>
-                            <input type="text" name="" id="" class="form-control bodyFont" placeholder="{{form.name}}"
+                            <input type="text" name="" id="" class="form-control bodyFont" :placeholder="form.name"
                                 aria-describedby="helpId" v-model="form.name" />
                         </div>
 
@@ -244,25 +251,24 @@ const showToast = (text) => {
 
                         <div class="mb-3 input-group-lg">
                             <label for="" class="form-label headingFont fw-bold h5">Birthday</label>
-                            <input type="date" name="" id="" class="form-control bodyFont" placeholder=""
+                            <input type="date" name="" id="" class="form-control bodyFont" :placeholder="form.birthdate"
                                 aria-describedby="helpId" v-model="form.birthdate" />
                         </div>
 
-                        <div class="mb-3 input-group-lg">
-                            <label for="" class="form-label headingFont fw-bold h5">Breed</label>
-                            <input type="text" name="" id="" class="form-control bodyFont"
-                                placeholder="e.g. Golden Retriever" aria-describedby="helpId" v-model="form.breed" />
+                        <div class="mb-3">
+                            <label class="form-label headingFont fw-bold h5">Breed</label>
+                            <BreedSelect :defaultLabel="form.breed" :options="breedNameList" v-model="form.breed" />
                         </div>
 
                         <div class="mb-3 input-group-lg">
-                            <label for="" class="form-label headingFont fw-bold h5">Weight</label>
-                            <input type="number" name="" id="" class="form-control bodyFont" placeholder=""
+                            <label for="" class="form-label headingFont fw-bold h5">Weight (kg)</label>
+                            <input type="number" name="" id="" class="form-control bodyFont" :placeholder="form.weight_kg"
                                 aria-describedby="helpId" v-model="form.weight_kg" />
                         </div>
 
                         <div class="mb-3 input-group-lg">
                             <label for="" class="form-label headingFont fw-bold h5">Allergies (Optional)</label>
-                            <input type="text" name="" id="" class="form-control bodyFont" placeholder=""
+                            <input type="text" name="" id="" class="form-control bodyFont" :placeholder="form.allergies"
                                 aria-describedby="helpId" v-model="form.allergies" />
                         </div>
 
@@ -427,20 +433,6 @@ const showToast = (text) => {
     opacity: 0.7;
     filter: grayscale(40%);
     transform: scale(1);
-}
-
-/* Checkmark icon for selected card */
-.check-icon {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    font-size: 3rem;
-    color: #407dff;
-    background: white;
-    border-radius: 50%;
-    padding: 5px;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-    z-index: 10;
 }
 
 
