@@ -12,7 +12,9 @@ import { useStorage } from '@/composables/useStorage';
 export const useProfileStore = defineStore('profile', () => {
     // State
     const profile = ref(null);
+    const profiles = ref([]);
     const loading = ref(false);
+    const loadingProfiles = ref(false);
     const error = ref(null);
     const lastFetchedUsername = ref(null);
 
@@ -81,10 +83,52 @@ export const useProfileStore = defineStore('profile', () => {
         error.value = null;
     };
 
+    /**
+     * Fetch multiple profiles (exclude current user optionally)
+     * options: { excludeId, q, limit, offset }
+     */
+    const fetchProfiles = async (options = {}) => {
+        const { excludeId = null, q = null, limit = 12, offset = 0 } = options;
+        try {
+            loadingProfiles.value = true;
+            error.value = null;
+
+            let query = supabase
+                .from('profiles')
+                .select('*')
+                .order('display_name', { ascending: true });
+
+            if (excludeId) query = query.neq('id', excludeId);
+            if (q) query = query.ilike('display_name', `%${q}%`);
+
+            const start = offset;
+            const end = offset + Math.max(1, limit) - 1;
+            const { data, error: fetchError } = await query.range(start, end);
+            if (fetchError) throw fetchError;
+
+            const { getPublicImage } = useStorage();
+            const transformed = (data || []).map(p => {
+                if (p.avatar_url) p.avatar_url = getPublicImage('avatars', p.avatar_url);
+                return p;
+            });
+
+            profiles.value = transformed;
+            return { success: true, data: transformed };
+        } catch (err) {
+            console.error('fetchProfiles error', err);
+            error.value = err.message || String(err);
+            return { success: false, error: error.value };
+        } finally {
+            loadingProfiles.value = false;
+        }
+    };
+
     return {
         // State
         profile,
+        profiles,
         loading,
+        loadingProfiles,
         error,
 
         // Getters
@@ -96,6 +140,7 @@ export const useProfileStore = defineStore('profile', () => {
 
         // Actions 
         fetchProfile,
+        fetchProfiles,
         clearProfile
     };
 });

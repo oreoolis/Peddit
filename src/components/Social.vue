@@ -1,6 +1,6 @@
 <script setup>
-import ProfileSearch from "../components/social/ProfileSearch.vue"
-import PostSearch from "../components/social/PostSearch.vue"
+import ProfileSearch from "./molecules/social/ProfileSearch.vue"
+import PostSearch from "./molecules/social/PostSearch.vue"
 import Button from "../components/atoms/button.vue"
 import searchBar from "./atoms/searchBar.vue"
 import { usePostStore } from "@/stores/postStore"
@@ -8,31 +8,15 @@ import { storeToRefs } from "pinia"
 import { useCommentStore } from "@/stores/commentStore"
 import { useUserStore } from "@/stores/userStore"
 import { useAuthStore } from "@/stores/authStore"
+import { useProfileStore } from "@/stores/profileStore"
 import { onMounted, ref } from "vue"
-import CreatePostModal from "./social/CreatePostModal.vue"
-const props = defineProps({
-    foundProfiles:{
-        type: Array,
-        default:
-            [
-                {
-                    Name: "@bernardcks",
-                    Image: "/src/assets/person.jpg"
-                },{
-                    Name: "@johnDoe",
-                    Image: "/src/assets/person.jpg"
-                },{
-                    Name: "@MaryJane",
-                    Image: "/src/assets/person.jpg"
-                }
-            ]
-    } ,
+import CreatePostModal from "./Organisms/social/CreatePostModal.vue"
 
-}
-)
 const postStore = usePostStore();
 const { posts } = storeToRefs(postStore);
 const authStore = useAuthStore();
+const profileStore = useProfileStore();
+const { profiles } = storeToRefs(profileStore);
 
 const commentStore = useCommentStore();
 const { comments, commentLoading: loading } = storeToRefs(commentStore);
@@ -45,6 +29,9 @@ const commentsByPostId = ref({});
 
 onMounted(async () => {
     await postStore.fetchPosts();
+    // fetch profiles (exclude current user)
+    const excludeId = authStore.user?.id ?? null;
+    await profileStore.fetchProfiles({ excludeId, limit: 12 });
 });
 
 const showCreatePostModal = ref(false);
@@ -70,7 +57,7 @@ const handleCreatePost = async (postData) => {
         console.log("Image File Attached: None");
     }
 };
-
+console.log(profileStore)
 </script>
 
 
@@ -87,10 +74,12 @@ const handleCreatePost = async (postData) => {
 
     <div class="grid">
       <ProfileSearch
-        v-for="(profile, idx) in props.foundProfiles"
+        v-for="(profile, idx) in profiles"
         :key="profile.Name + '_' + idx"
-        :Name="profile.Name"
-        :Image="profile.Image"
+        :Name="profile.display_name"
+        :Image="profile.avatar_url"
+        :Following="profile.following_count"
+        :Followers="profile.follower_count"
         class="card card-profile"
       />
     </div>
@@ -125,6 +114,8 @@ const handleCreatePost = async (postData) => {
     @update:show="showCreatePostModal = $event"
     @create-post="handleCreatePost"
   />
+  <Button @click="showShareRecipePostModal = true" label="ShareRecipe"></Button>
+    
    </div>
 
 </template>

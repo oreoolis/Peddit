@@ -79,7 +79,7 @@ const iconClass = computed(() => {
     <div>
         <!-- The checkbox handles the state, but is visually hidden -->
         <input type="checkbox" :id="uniqueId" v-model="isToggled">
-    </div>
+
     <!-- The label is the visible, clickable button -->
     <label :for="uniqueId" :class="buttonClasses" @click = "handleClick">
         <i :class="iconClass"></i>
@@ -88,6 +88,7 @@ const iconClass = computed(() => {
             <span class="option-on">{{ labelON }}</span>
         </div>
     </label>
+    </div>
 </template>
 
 <style scoped>
@@ -136,7 +137,9 @@ input:checked + label .icon {
     grid-area: 1 / 1;
     transition: transform 0.4s ease, opacity 0.4s ease;
 }
-
+input:checked + label .icon {
+    animation: pop-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
 /* Initial state (OFF) */
 .action .option-off {
     transform: translateY(0%);

@@ -3,8 +3,8 @@ import { ref, onMounted, computed } from 'vue'
 import { usePostStore } from '@/stores/postStore'
 import { useUserStore } from '@/stores/userStore'
 import { storeToRefs } from 'pinia'
-import ProfileSearch from "../components/social/ProfileSearch.vue"
-import PostSearch from "../components/social/PostSearch.vue"
+import ProfileSearch from "./molecules/social/ProfileSearch.vue"
+import PostSearch from "./molecules/social/PostSearch.vue"
 
 const postStore = usePostStore()
 const userStore = useUserStore()

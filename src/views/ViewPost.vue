@@ -1,7 +1,7 @@
 <script setup>
 // view of a single post with comment section
-import { onMounted, ref, computed } from 'vue'; // 1. Removed watch/nextTick, added computed
-import Comment  from '../components/social/Comment.vue';
+import { onMounted, ref, computed } from 'vue';
+import Comment  from '../components/atoms/social/Comment.vue';
 import TextInput from '@/components/atoms/TextInput.vue';
 import searchBar from '@/components/atoms/searchBar.vue';
 import { usePostStore } from '@/stores/postStore';
@@ -11,8 +11,9 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useUserStore } from '@/stores/userStore';
-import buttonTogglable from '@/components/atoms/buttonTogglable.vue';
+
 import Button from '@/components/atoms/button.vue';
+import UpvoteControl from '@/components/molecules/social/VoteControl.vue';
 
 const router = useRouter();
 
@@ -36,6 +37,7 @@ const userStore = useUserStore();
 const { profile: authorProfile } = storeToRefs(userStore);
 
 const isLiked = ref(false);
+const serverVote = ref(0); // -1 | 0 | 1
 
 // --- 2. START: "Show More" Logic ---
 const INITIAL_COMMENT_COUNT = 3; // Number of comments to show initially
@@ -56,12 +58,22 @@ const displayedComments = computed(() => {
 
 
 onMounted(async () =>{
-    if (props.postId) {
-        await postStore.fetchPostById(props.postId);
-        await commentStore.fetchCommentsByPostID(props.postId);
-    } else {
-        router.push('/');
+  if (props.postId) {
+    await postStore.fetchPostById(props.postId);
+    await commentStore.fetchCommentsByPostID(props.postId);
+
+    if (user.value?.id && typeof postStore.getUserVote === 'function') {
+      const res = await postStore.getUserVote(props.postId, user.value.id);
+      if (res.success) {
+        serverVote.value = Number(res.vote || 0); // serverVote is the ref used by VoteControl
+        console.log('[VOTE] initial user vote:', serverVote.value);
+      } else {
+        console.warn('getUserVote failed:', res.error);
+      }
     }
+  } else {
+    router.push('/');
+  }
 });
 
 const handleCommentSubmit = async (content) => {
@@ -80,9 +92,26 @@ const handleCommentSubmit = async (content) => {
     }
 };
 
-const toggleLike = async (newLikeState) => {
-    isLiked.value = newLikeState;
-    console.log("Toggling like for post ID:", props.postId, "New state:", isLiked.value);
+
+const onVote = async (v) => {
+  const prevVote = serverVote.value;
+  const prevScore = currentPost.value?.vote_score ?? 0;
+
+  serverVote.value = v;
+  const delta = (v || 0) - (prevVote || 0);
+  if (currentPost.value) currentPost.value.vote_score = prevScore + delta;
+
+  const res = await postStore.voteOnPost(props.postId, user.value?.id, v);
+  console.log('[VOTE] voteOnPost result:', res);
+
+  if (res.success && res.updated) {
+    // sync with canonical server value to avoid any double-count/flicker
+    currentPost.value = res.updated;
+  } else if (!res.success) {
+    // revert
+    serverVote.value = prevVote;
+    if (currentPost.value) currentPost.value.vote_score = prevScore;
+  }
 };
 </script>
 
@@ -100,20 +129,35 @@ const toggleLike = async (newLikeState) => {
                     <div class="post-body bodyFont fs-5" v-html="currentPost.content"></div>
                 </div>
                 <div class="card-footer bg-transparent d-flex align-items-center gap-3 justify-content-end border-top">
-                    <buttonTogglable 
-                        class="mx-2" 
-                        colorON="primary" 
-                        :labelOFF="String(currentPost.vote_score)" 
-                        :labelON="String(currentPost.vote_score + 1)" 
-                        :initialState="isLiked"
-                        @toggle="toggleLike"
-                    />
+
                     <Button variant="subtle" label="Share"><i class="bi bi-share-fill me-2"></i></Button>
+                    <UpvoteControl
+                        :initialVote="serverVote"
+                        :score="currentPost.vote_score"
+                        @vote="onVote"
+                    />
                 </div>
             </div>
 
             <!-- Comment Section -->
             <div v-if="comments && comments.length > 0" class="card mt-4" id="CommentSection">
+                <div class="card-body">
+                    <h5 class="mb-4">Comments ({{ comments.length }})</h5>
+                    <TextInput class="mb-4" label="What are your thoughts?" @submit="handleCommentSubmit" :disabled="submitting" />
+                    <div class="comment-list">
+                        <!-- 3. Loop over the new 'displayedComments' computed property -->
+                        <Comment v-for="comment in displayedComments" :key="comment.id" :Name="comment.profiles.display_name" :Picture="comment.profiles.avatar_url" :Content="comment.content" :timestamp="comment.created_at" />
+                    </div>
+                    
+                    <!-- 4. "View More" Button -->
+                    <div v-if="hasMoreComments && !showAllComments" class="text-center mt-3 border-top pt-3">
+                        <button class="btn btn-link text-decoration-none" @click="showAllComments = true">
+                            View all {{ comments.length }} comments
+                        </button>
+                    </div>
+                </div>
+            </div>
+                <div v-else class="card mt-4" id="CommentSection">
                 <div class="card-body">
                     <h5 class="mb-4">Comments ({{ comments.length }})</h5>
                     <TextInput class="mb-4" label="What are your thoughts?" @submit="handleCommentSubmit" :disabled="submitting" />

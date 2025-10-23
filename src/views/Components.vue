@@ -10,9 +10,9 @@ import NutritionalOutputCard from "@/components/molecules/NutritionalOutputCard.
 import IngredientCard from "@/components/PetViewComponents/IngredientCard.vue";
 import ItemsChecklist from "@/components/PetViewComponents/ItemsChecklist.vue";
 import MealPlanCard from "@/components/PetViewComponents/MealPlanCard.vue";
-import comment from "@/components/social/Comment.vue";
-import PostSearch from "@/components/social/PostSearch.vue";
-import ProfileSearch from "@/components/social/ProfileSearch.vue";
+import comment from "@/components/atoms/social/Comment.vue";
+import PostSearch from "@/components/molecules/social/PostSearch.vue";
+import ProfileSearch from "@/components/molecules/social/ProfileSearch.vue";
 import RecipeData from "@/components/social/RecipeData.vue";
 import RecipePost from "@/components/social/RecipePost.vue";
 </script>

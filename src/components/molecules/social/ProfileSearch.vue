@@ -1,5 +1,5 @@
 <script setup>
-import Button from "../atoms/button.vue"
+import Button from "../../atoms/button.vue"
 const props = defineProps({
     Name: {
         required: true,

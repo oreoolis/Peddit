@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue';
-import Button from '../atoms/button.vue';
-import searchBar from '../atoms/searchBar.vue';
+import Button from '../../atoms/button.vue';
+import searchBar from '../../atoms/searchBar.vue';
 
 const props = defineProps({
     show: {
