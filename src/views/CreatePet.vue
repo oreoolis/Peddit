@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { ref } from 'vue';
 import searchBar from '@/components/atoms/searchBar.vue';
 import { useRouter } from 'vue-router';
+import Button from '@/components/atoms/button.vue';
 
 const petStore = usePetStore();
 const authStore = useAuthStore();
@@ -237,15 +238,13 @@ const showToast = (text) => {
           </div> -->
 
           <div class="form-actions d-flex justify-content-center">
-            <button class="button-recommend bodyFont d-inline" type="button" @click="resetForm"
+            <Button class=" bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm" label="Reset"
               :disabled="petStore.loading">
-              Reset
-            </button>
-            <button class="button-add-pet bodyFont d-inline" type="submit"
+            </Button>
+            <Button class="bodyFont d-inline mx-2" :label=" petStore.loading ? 'Creating...' : 'Add Pet' " type="submit"
               :disabled="petStore.loading || !form.name || !form.kind">
               <span v-if="petStore.loading" class="spinner"></span>
-              {{ petStore.loading ? 'Creating...' : 'Add Pet' }}
-            </button>
+            </Button>
           </div>
           <!-- <button type="button" class="btn btn-lg bg-primary h-100 headingFont text-light fw-bold shadow"
             :disabled="petStore.loading || !form.name || !form.kind">
@@ -254,6 +253,7 @@ const showToast = (text) => {
             </span>
           </button> -->
         </div>
+      </div>
       </div>
 
       <!-- Success/Error Messages -->

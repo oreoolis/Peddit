@@ -38,7 +38,7 @@ const props = defineProps({
 });
 
 // Define the 'toggle' event
-const emit = defineEmits(['toggle']);
+// const emit = defineEmits(['toggle']);
 
 // The component uses its own internal state, initialized by the prop
 const isToggled = ref(props.initialState);
@@ -88,6 +88,8 @@ const iconClass = computed(() => {
             <span class="option-on">{{ labelON }}</span>
         </div>
     </label>
+    </input>
+    </div>
 </template>
 
 <style scoped>
