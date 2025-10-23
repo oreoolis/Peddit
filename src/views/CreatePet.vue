@@ -436,6 +436,7 @@ const showToast = (text) => {
 .radio-inputs .radio:hover .name {
   transform: translateY(-1px);
   box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.8);
+}
 /* Animation */
 .radio-inputs .radio input:checked+.name {
   animation: select 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -647,62 +648,6 @@ const showToast = (text) => {
   }
 }
 
-/* Add Pet */
-.button-add-pet {
-  position: relative;
-  transition: all 0.3s ease-in-out;
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-  padding-block: 0.5rem;
-  padding-inline: 1.25rem;
-  background-color: rgb(0 107 179);
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #ffff;
-  gap: 10px;
-  font-weight: bold;
-  border: 3px solid #ffffff4d;
-  outline: none;
-  overflow: hidden;
-  font-size: 18px;
-}
-
-.button-add-pet:hover {
-  transform: scale(1.05);
-  border-color: #fff9;
-}
-
-.button-add-pet:hover .icon {
-  transform: translate(4px);
-}
-
-.button-add-pet:hover::before {
-  animation: shine 1.5s ease-out infinite;
-}
-
-.button-add-pet::before {
-  content: "";
-  position: absolute;
-  width: 100px;
-  height: 100%;
-  background-image: linear-gradient(120deg,
-      rgba(255, 255, 255, 0) 30%,
-      rgba(255, 255, 255, 0.8),
-      rgba(255, 255, 255, 0) 70%);
-  top: 0;
-  left: -100px;
-  opacity: 0.6;
-}
-
-.button-add-pet:disabled {
-  background-color: #ccc;
-  color: #666;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
 @keyframes shine {
   0% {
     left: -100px;
@@ -780,104 +725,9 @@ const showToast = (text) => {
   }
 }
 
-/* From Uiverse.io by mrhyddenn */
-.icon-btn {
-  width: 50px;
-  height: 50px;
-  border: 1px solid #cdcdcd;
-  background: white;
-  border-radius: 25px;
-  overflow: hidden;
-  position: relative;
-  transition: width 0.2s ease-in-out;
-  font-weight: 500;
-  font-family: inherit;
-}
 
 
 
-.add-btn:hover {
-  width: 120px;
-}
-
-.add-btn::before,
-.add-btn::after {
-  transition: width 0.2s ease-in-out, border-radius 0.2s ease-in-out;
-  content: "";
-  position: absolute;
-  height: 4px;
-  width: 10px;
-  top: calc(50% - 2px);
-  background: rgb(0, 0, 0);
-}
-
-.add-btn::after {
-  right: 14px;
-  overflow: hidden;
-  border-top-right-radius: 2px;
-  border-bottom-right-radius: 2px;
-}
-
-.add-btn::before {
-  left: 14px;
-  border-top-left-radius: 2px;
-  border-bottom-left-radius: 2px;
-}
-
-.icon-btn:focus {
-  outline: none;
-}
-
-.btn-txt {
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.add-btn:hover::before,
-.add-btn:hover::after {
-  width: 4px;
-  border-radius: 2px;
-}
-
-.add-btn:hover .btn-txt {
-  opacity: 1;
-}
-
-.add-icon::after,
-.add-icon::before {
-  transition: all 0.2s ease-in-out;
-  content: "";
-  position: absolute;
-  height: 20px;
-  width: 2px;
-  top: calc(50% - 10px);
-  background: rgb(0, 0, 0);
-  overflow: hidden;
-}
-
-.add-icon::before {
-  left: 22px;
-  border-top-left-radius: 2px;
-  border-bottom-left-radius: 2px;
-}
-
-.add-icon::after {
-  right: 22px;
-  border-top-right-radius: 2px;
-  border-bottom-right-radius: 2px;
-}
-
-.add-btn:hover .add-icon::before {
-  left: 15px;
-  height: 4px;
-  top: calc(50% - 2px);
-}
-
-.add-btn:hover .add-icon::after {
-  right: 15px;
-  height: 4px;
-  top: calc(50% - 2px);
-}
 
 .image-preview-container {
   text-align: center;
