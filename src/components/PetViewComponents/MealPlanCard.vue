@@ -29,7 +29,7 @@ const openMealInfo = () => {
 <template>
     <div class="recipeCard card overflow-hidden bg-primary shadow p-3 mb-5 rounded-5" style="width: 18rem; height: 27rem;">
         <!-- to show the first ingredient item -->
-        <img :src="Image" class="card-img-top img-thumbnail" alt="...">
+        <img :src="Image" class="card-img-top " alt="...">
         <div class="card-body">
             <div class="card-text text-center">
                 <h3 class="headingFont text-light">{{props.Recipe_Name}}</h3>
@@ -52,6 +52,7 @@ const openMealInfo = () => {
 <style>
 .recipeCard {
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    border: none;
 }
 
 .recipeCard:hover {
