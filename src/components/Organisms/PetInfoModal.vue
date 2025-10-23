@@ -4,8 +4,16 @@ import MealPlanCards from '../PetViewComponents/MealPlanCard.vue';
 import Button from '../atoms/button.vue';
 import PetInfoCard from '../molecules/PetInfoCard.vue';
 import buttonTogglable from '../atoms/buttonTogglable.vue';
+import { usePetStore } from '@/stores/petStore';
+import { useRouter } from 'vue-router';
+
+const petStore = usePetStore();
+const router = useRouter();
+
 const props = defineProps({
+  id: String,
   name: String,
+  kind: String,
   gender: String,
   breed: String,
   birthday: String,
@@ -18,7 +26,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:show', 'uploaded', 'error']);
+const emit = defineEmits(['update:show', 'uploaded', 'error', 'click']);
 
 const view = ref(false);
 
@@ -29,6 +37,25 @@ watch(() => props.show, (newVal) => {
     }
 });
 
+const editPet = () => {
+    router.push("/edit-pet/" + props.id);
+}
+
+
+const deletePet = async () => {
+    if (confirm("You are going to delete " + props.name + ". Are you sure?")) {
+        try {
+            const res = await petStore.deletePet(props.id);
+            if (!res.success) {
+                throw new Error(res.error);
+            }
+            alert(props.name + " has been successfully deleted.") // change to parent toast - QoL
+            router.push('/pet');
+        } catch (error) {
+            alert("Error deleting " + props.name + ". Please try again.");
+        }
+    }
+}
 
 const closeModal = () => {
     if (!view.value) {
@@ -74,10 +101,11 @@ const closeModal = () => {
                   colorON="primary"
                   iconLinkOFF="bi-pen"
                   labelOFF="Edit"
-                  colorOFF="secondary"
+                  colorOFF="primary"
+                  @click = "editPet"
                   ></buttonTogglable> 
 
-                  <Button label="Delete" class="px-4" color="danger">
+                  <Button label="Delete" class="px-4" color="danger" type = "button" @click = "deletePet">
                     <i class="bi bi-trash3 mx-1"></i>
                   </Button>
                 </div>

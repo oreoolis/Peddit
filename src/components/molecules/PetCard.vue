@@ -2,7 +2,7 @@
 import PetInfoModal from '@/components/Organisms/PetInfoModal.vue';
 import { ref, defineProps, computed } from 'vue';
 import Button from '../atoms/button.vue';
-const props = defineProps(['name', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'])
+const props = defineProps(['id', 'name', 'kind', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'])
 // TODO: calculation for score, not sure what we can do for this
 
 // this will denote the emoji shown
@@ -106,6 +106,7 @@ const StatusDetails = computed(() =>{
     </div>
     <!-- to pass in props here -->
     <PetInfoModal v-model:show="showPetInfo"
+        :id="id"
         :name="name"
         :gender="gender"
         :breed="breed"

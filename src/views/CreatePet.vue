@@ -5,9 +5,11 @@ import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
 import { ref } from 'vue';
 import searchBar from '@/components/atoms/searchBar.vue';
+import { useRouter } from 'vue-router';
 
 const petStore = usePetStore();
 const authStore = useAuthStore();
+const router = useRouter(); // push to next page
 
 const showSuccess = ref(false);
 
@@ -19,9 +21,9 @@ const form = ref({
   gender: 'unknown',
   birthdate: '',
   weight_kg: null,
-  neutered: null,
-  allergies: ''
-});
+  allergies: null,
+  neutered: null
+})
 
 const imageFile = ref(null);
 const imagePreview = ref(null);
@@ -60,13 +62,24 @@ const handleSubmit = async () => {
 
   if (result.success) {
     if (imageFile.value) {
-      await petStore.uploadPetImage(authStore.userId, result.data.id, imageFile.value);
+      const imageResult = await petStore.uploadPetImage(authStore.userId, result.data.id, imageFile.value);
+      if (!imageResult.success) {
+        console.error('Failed to upload image:', imageResult.error);
+      }
     }
+
     showSuccess.value = true;
     resetForm();
+    router.push({
+            path: '/pet',
+            state: { showOpSuccess: true, message: form.value.name + "has been created!"}
+        });
+
+
+    // Hide success message after 3 seconds
     setTimeout(() => {
       showSuccess.value = false;
-    }, 3000);
+    }, 3000)
   }
 }
 
@@ -133,7 +146,7 @@ const showToast = (text) => {
         </div>
       </div>
 
-      <div v-if="!form.kind" class="text-center mb-4">
+      <div v-if="form.kind== ''" class="text-center mb-4">
         <h3 class="headingFont text-warning fw-semibold">Please select a species.</h3>
       </div>
 
@@ -192,15 +205,54 @@ const showToast = (text) => {
               <searchBar type="text" placeholder="e.g. Pollen, Dust" v-model="form.allergies" />
             </div>
 
-            <!-- Form Actions -->
-            <div class="form-actions text-center my-4">
-              <button type="button" @click="resetForm" class="btn btn-secondary me-2" :disabled="petStore.loading">Reset</button>
-              <button type="submit" class="btn btn-primary" :disabled="petStore.loading || !form.name || !form.kind">
-                <span v-if="petStore.loading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                {{ petStore.loading ? 'Creating...' : 'Add Pet' }}
-              </button>
+            <div class="mb-3 input-group-lg">
+              <label for="" class="form-label headingFont fw-bold h5">Neutered:</label>
+              <div class="radio-inputs bodyFont mt-2">
+                <label class="radio">
+                  <input checked name="neutered" type="radio" value="Yes" id="n_yes" v-model="form.neutered" />
+                  <span class="name">Yes</span>
+                </label>
+                <label class="radio">
+                  <input name="neutered" type="radio" value="No" id="n_no" v-model="form.neutered" />
+                  <span class="name">No</span>
+                </label>
+                <label class="radio">
+                  <input name="neutered" type="radio" value="unknown" id="n_unknown" v-model="form.neutered" />
+                  <span class="name">Unknown</span>
+                </label>
+              </div>
             </div>
+
+
+
+          <!-- size: btn-lg -->
+          <!-- <div class="form-actions text-center">
+            <button type="button" @click="resetForm" class="btn btn-secondary" :disabled="petStore.loading">
+              Reset
+            </button>
+            <button type="submit" class="btn btn-primary" :disabled="petStore.loading || !form.name || !form.kind">
+              <span v-if="petStore.loading" class="spinner"></span>
+              {{ petStore.loading ? 'Creating...' : 'Add Pet' }}
+            </button>
+          </div> -->
+
+          <div class="form-actions d-flex justify-content-center">
+            <button class="button-recommend bodyFont d-inline" type="button" @click="resetForm"
+              :disabled="petStore.loading">
+              Reset
+            </button>
+            <button class="button-add-pet bodyFont d-inline" type="submit"
+              :disabled="petStore.loading || !form.name || !form.kind">
+              <span v-if="petStore.loading" class="spinner"></span>
+              {{ petStore.loading ? 'Creating...' : 'Add Pet' }}
+            </button>
           </div>
+          <!-- <button type="button" class="btn btn-lg bg-primary h-100 headingFont text-light fw-bold shadow"
+            :disabled="petStore.loading || !form.name || !form.kind">
+            <span v-if="petStore.loading" class="spinner">
+              {{ petStore.loading ? 'Creating Pet...' : 'Add Pet' }}
+            </span>
+          </button> -->
         </div>
       </div>
 

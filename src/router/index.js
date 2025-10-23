@@ -36,7 +36,7 @@ const router = createRouter({
       path: '/health',
       name: 'health',
       component: () => import('@/views/HealthView.vue'),
-	  meta: { requiresAuth: false } // true
+	  meta: { requiresAuth: true } // true
     },{
       path: '/profile',
       name: 'profile',
@@ -52,7 +52,7 @@ const router = createRouter({
       path: '/meal',
       name: 'meal',
       component: () => import('@/views/MealView.vue'),
-	  meta: { requiresAuth: false } // true
+	  meta: { requiresAuth: true } // true
     },{
       path: '/chatbot',
       name: 'chatbot',
@@ -62,7 +62,7 @@ const router = createRouter({
       path: '/social',
       name: 'social',
       component: () => import('@/views/SocialView.vue'),
-	  meta: { requiresAuth: false } // true
+	  meta: { requiresAuth: true } // true
     },{
       path: '/viewpost/:postId',
       name: 'publicPosts',
@@ -73,7 +73,7 @@ const router = createRouter({
       path: '/pet',
       name: 'pet',
       component: () => import('@/views/PetView.vue'),
-	  meta: { requiresAuth: false } // true
+	  meta: { requiresAuth: true } // true
     },
     {
       path: '/map',
@@ -101,7 +101,19 @@ const router = createRouter({
       path: '/temp',
       name: 'components',
       component: () => import('@/views/Components.vue'),
-    }   
+    },
+    {
+      path: '/nutrition-test',
+      name: 'nutrition-test',
+      component: () => import('@/views/PetNutritionTest.vue'),
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/edit-pet/:petId',
+      name: 'edit-pet',
+      component: () => import('@/views/EditPet.vue'),
+      meta: { requiresAuth: true }
+    }      
 
 
     // {

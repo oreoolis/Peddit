@@ -2,23 +2,23 @@
 import ItemsChecklist from '@/components/PetViewComponents/ItemsChecklist.vue';
 import MealPlanCards from '@/components/PetViewComponents/MealPlanCard.vue';
 import PetCards from '@/components/molecules/PetCard.vue';
-import { RouterLink } from 'vue-router';
-import { ref, watch } from 'vue';
+import { RouterLink, useRoute } from 'vue-router';
+import { ref, watch, onMounted } from 'vue';
 import ShoppingListModal from '@/components/PetViewComponents/ShoppingListModal.vue';
 import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
 import Button from '@/components/atoms/button.vue';
 
 const petStore = usePetStore();
-const {fetchPets} = petStore;
+const { fetchPets } = petStore;
 const authStore = useAuthStore();
-
+const route = useRoute();
 
 watch(() => authStore.userId, (newUserId) => {
-    if (newUserId){
+    if (newUserId) {
         fetchPets(newUserId);
     }
-}, {immediate: true});
+}, { immediate: true });
 
 const showShoppingList = ref(false);
 const openShoppingList = () => {
@@ -30,10 +30,34 @@ const openPetInfo = () => {
     showPetInfo.value = true;
 }
 
+onMounted(() => {
+    if (route.state?.showOpSuccess) { // if route state exists, load showEditSuccess
+        const toastElement = document.getElementById('liveToast');
+        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement, { autohide: true, delay: 3000 });
+        if (document.getElementById("message")) {
+            document.getElementById("message").innerText = route.state.message;
+            document.getElementById("message").style.fontWeight = "bold";
+        }
+        toastBootstrap.show();
+    }
+})
+
 </script>
 
 <template>
     <div class="pet-view">
+        <!-- Toast Message -->
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header bg-success">
+                    <strong class="me-auto text-light">Peddit</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body" id="message">
+                </div>
+            </div>
+        </div>
+
         <div class="pet-card-container container-fluid">
             <div class="row d-flex justify-content-center">
                 <div class="col-3">
@@ -49,24 +73,18 @@ const openPetInfo = () => {
                 </div>
             </div>
             <div v-if="!petStore.pets">
-                <h1>No pets. Create a pet.</h1>
+                <h1 class="headingFont" style="color: lightcoral">No pets. Create a pet.</h1>
             </div>
             <!-- To do v-if if there is no pets rendered from DB, else show current screen -->
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 gy-4 justify-content-center px-4 pb-5">
+            <div
+                class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 gy-4 justify-content-center px-4 pb-5">
                 <div v-for="pet in petStore.pets" :key="pet.id" class="col d-flex align-items-stretch my-2">
-                    <PetCards 
-                        :name="pet.name"
-                        :gender="pet.gender"
-                        :breed="pet.breed"
-                        :birthday="pet.birthdate"
-                        :weight="pet.weight_kg"
-                        :allergies="pet.allergies"
-                        :photo_url="pet.photo_url"
-                    />
+                    <PetCards :id="pet.id" :name="pet.name" :kind="pet.kind" :gender="pet.gender" :breed="pet.breed"
+                        :birthday="pet.birthdate" :weight="pet.weight_kg" :allergies="pet.allergies"
+                        :photo_url="pet.photo_url" />
                 </div>
             </div>
         </div>
-
 
         <div class="grocery-checklist container-fluid">
             <div class="row d-flex justify-content-center">
@@ -113,8 +131,9 @@ const openPetInfo = () => {
                         </div>
                         <div class="text-end px-1 py-1">
                             <!-- size: none -->
-                            <Button label="+ Edit" color="primary" class="button-edit-list fw-bold bodyFont" @click="openShoppingList">
-                                
+                            <Button label="+ Edit" color="primary" class="button-edit-list fw-bold bodyFont"
+                                @click="openShoppingList">
+
                             </Button>
                         </div>
                     </div>
@@ -127,7 +146,7 @@ const openPetInfo = () => {
                 <div class="col-lg-9">
                     <h1 class="headingFont fw-semibold display-4">My Meal Plans</h1>
                     <button class="button-recommend bodyFont">
-                      Auto Recommend
+                        Auto Recommend
                     </button>
                     <div class="meal-plan-cards container-fluid">
                         <div class="row justify-content-center px-5 py-5 gy-5 gx-4">
@@ -158,10 +177,6 @@ const openPetInfo = () => {
 </template>
 
 <style>
-
-
-
-
 /* Add Meal Plan */
 .icon-btn {
     width: 50px;
@@ -261,64 +276,64 @@ const openPetInfo = () => {
 
 /* Recommend Meal */
 .button-recommend {
-  position: relative;
-  transition: all 0.3s ease-in-out;
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-  padding-block: 0.5rem;
-  padding-inline: 1.25rem;
-  background-color: rgb(78, 78, 78);
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #ffff;
-  gap: 10px;
-  font-weight: bold;
-  border: 3px solid #ffffff4d;
-  outline: none;
-  overflow: hidden;
-  font-size: 18px;
+    position: relative;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+    padding-block: 0.5rem;
+    padding-inline: 1.25rem;
+    background-color: rgb(78, 78, 78);
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #ffff;
+    gap: 10px;
+    font-weight: bold;
+    border: 3px solid #ffffff4d;
+    outline: none;
+    overflow: hidden;
+    font-size: 18px;
 }
 
 .button-recommend:hover {
-  transform: scale(1.05);
-  border-color: #fff9;
+    transform: scale(1.05);
+    border-color: #fff9;
 }
 
 .button-recommend:hover .icon {
-  transform: translate(4px);
+    transform: translate(4px);
 }
 
 .button-recommend:hover::before {
-  animation: shine 1.5s ease-out infinite;
+    animation: shine 1.5s ease-out infinite;
 }
 
 .button-recommend::before {
-  content: "";
-  position: absolute;
-  width: 100px;
-  height: 100%;
-  background-image: linear-gradient(120deg,
-      rgba(255, 255, 255, 0) 30%,
-      rgba(255, 255, 255, 0.8),
-      rgba(255, 255, 255, 0) 70%);
-  top: 0;
-  left: -100px;
-  opacity: 0.6;
+    content: "";
+    position: absolute;
+    width: 100px;
+    height: 100%;
+    background-image: linear-gradient(120deg,
+            rgba(255, 255, 255, 0) 30%,
+            rgba(255, 255, 255, 0.8),
+            rgba(255, 255, 255, 0) 70%);
+    top: 0;
+    left: -100px;
+    opacity: 0.6;
 }
 
 @keyframes shine {
-  0% {
-    left: -100px;
-  }
+    0% {
+        left: -100px;
+    }
 
-  60% {
-    left: 100%;
-  }
+    60% {
+        left: 100%;
+    }
 
-  to {
-    left: 100%;
-  }
+    to {
+        left: 100%;
+    }
 }
 </style>
