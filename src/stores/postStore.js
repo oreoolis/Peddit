@@ -76,7 +76,7 @@ export const usePostStore = defineStore('posts', () => {
             const { data, error: supabaseError } = await query;
 
             // Change the avatar_url into the image URL inside supabase avatars storage bucket
-            transformedPosts = data.map(post => {
+            const transformedPosts = data.map(post => {
                 if (post.profiles?.avatar_url) {
                     post.profiles.avatar_url = getPublicImage('avatars', post.profiles.avatar_url);
                 }
@@ -308,9 +308,10 @@ export const usePostStore = defineStore('posts', () => {
     */
     const voteOnPost = async (postId, userId, voteValue) => {
         try {
-             // voteValue should be 1 (upvote), -1 (downvote), or 0 (remove vote)
+            // voteValue should be 1 (upvote), -1 (downvote), or 0 (remove vote)
             if (voteValue === 0) {
-              const { error: deleteError } = await supabase
+                // Remove existing vote
+                const { error: deleteError } = await supabase
                     .from('post_votes')
                     .delete()
                     .eq('post_id', postId)
@@ -318,7 +319,7 @@ export const usePostStore = defineStore('posts', () => {
 
                 if (deleteError) throw deleteError;
             } else {
-               // Upsert vote
+                // Upsert vote
                 const { error: upsertError } = await supabase
                     .from('post_votes')
                     .upsert({
@@ -332,18 +333,17 @@ export const usePostStore = defineStore('posts', () => {
                 if (upsertError) throw upsertError;
             }
 
-            
             // Refetch the post to get updated vote score
             await fetchPostById(postId);
 
             return { success: true };
+
         } catch (err) {
             error.value = err.message;
             console.error('Error voting on post:', err);
             return { success: false, error: err.message };
         }
     }
-
 
     // Media management
     const addPostMedia = async (postId, file) => {
@@ -396,8 +396,6 @@ export const usePostStore = defineStore('posts', () => {
             return { success: false, error: err.message };
         }
     }
-
-    
 
     // Utility methods
     const setCurrentPost = (post) => {
