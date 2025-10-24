@@ -26,7 +26,7 @@ const setVote = (val) => {
 
 <template>
   <div class="d-flex align-items-center gap-2">
-    <button class="btn btn-sm" :class="vote === 1 ? 'btn-primary' : 'btn-outline-secondary'" @click="setVote(1)">
+    <button class="btn btn-sm" :class="vote === 1 ? 'btn-success' : 'btn-outline-secondary'" @click="setVote(1)">
       <i :class="vote === 1 ? 'bi-hand-thumbs-up-fill' : 'bi-hand-thumbs-up'"></i>
     </button>
 
