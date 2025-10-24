@@ -94,7 +94,7 @@ watch(userId, async (newUserId) => {
 watch(selectedPet, async (newPet) => {
   if (newPet) {
     petKind.value = newPet.kind;
-    petWeight.value = newPet.weight_kg || 10;
+    petWeight.value = newPet.weight_kg || 5;
     await fetchNutritionRequirements();
   }
 });
@@ -116,6 +116,7 @@ const fetchNutritionRequirements = async () => {
   
   if (result.success) {
     nutritionRequirements.value = result.data;
+    console.log(nutritionRequirements.value);
     calculateComparison();
   }
 };

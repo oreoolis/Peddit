@@ -9,18 +9,14 @@ import { supabase } from '@/lib/supabaseClient';
  * Schema uses JSONB for nutrition data
  */
 export const usePetNutritionStore = defineStore('petNutrition', () => {
-  // ============================================
   // STATE
-  // ============================================
   const nutritionProfiles = ref([]);
   const ingredients = ref([]);
   const recipes = ref([]);
   const loading = ref(false);
   const error = ref(null);
 
-  // ============================================
-  // COMPUTED
-  // ============================================
+  // Getters
   const totalIngredients = computed(() => ingredients.value.length);
   const totalRecipes = computed(() => recipes.value.length);
 
@@ -62,13 +58,12 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
   const getNutritionProfile = async (kind, lifeStage) => {
     loading.value = true;
     error.value = null;
-
     try {
       const { data, error: fetchError } = await supabase
         .from('pet_nutrition_profiles')
         .select('*')
-        .eq('kind', kind.toLowerCase())
-        .eq('life_stage', lifeStage.toLowerCase())
+        .eq('kind')
+        .eq('life_stage')
         .single();
 
       if (fetchError) throw fetchError;

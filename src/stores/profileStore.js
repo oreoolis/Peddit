@@ -16,6 +16,9 @@ export const useProfileStore = defineStore('profile', () => {
     const error = ref(null);
     const lastFetchedUsername = ref(null);
 
+    const profiles = ref([]);
+    const query = ref('');
+
     // Getters
     const hasProfile = computed(() => !!profile.value);
     const avatarUrl = computed(() => {
@@ -26,6 +29,7 @@ export const useProfileStore = defineStore('profile', () => {
     const username = computed(() => profile.value?.display_name || profile.value?.username || 'user');
     const follows = computed(() => profile.value?.following_count || 0);
     const followers = computed(() => profile.value?.follower_count || 0);
+    const filteredProfiles = computed(() => profiles.value.filter(p => p.display_name.toLowerCase().includes(query.value.toLowerCase())));
 
     // Actions
     /**
@@ -72,6 +76,34 @@ export const useProfileStore = defineStore('profile', () => {
     };
 
     /**
+     * Fetches all user profiles
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
+    const fetchAllProfiles = async () => {
+        try {
+            loading.value = true;
+            error.value = null;
+
+            const { data, error: fetchError } = await supabase
+                .from('profiles')
+                .select('*');
+
+            if (fetchError) throw fetchError;
+
+            profile.value = data;
+            lastFetchedUsername.value = username;
+            
+            return { success: true, data };
+        } catch (err) {
+            error.value = err.message;
+            profile.value = null;
+            return { success: false, error: err.message };
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    /**
      * Clears the currently loaded profile data
      * @returns {void}
     */
@@ -88,6 +120,7 @@ export const useProfileStore = defineStore('profile', () => {
         profile,
         loading,
         error,
+        query,
 
         // Getters
         hasProfile,
@@ -95,6 +128,7 @@ export const useProfileStore = defineStore('profile', () => {
         avatarUrl,
         follows,
         followers,
+        filteredProfiles,
 
         // Actions 
         fetchProfile,

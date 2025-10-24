@@ -11,6 +11,8 @@ import { useAuthStore } from "@/stores/authStore"
 import { useProfileStore } from "@/stores/profileStore"
 import { onMounted, ref } from "vue"
 import CreatePostModal from "./Organisms/social/CreatePostModal.vue"
+import { useProfileStore } from "@/stores/profileStore"
+import { useDebounce } from "@vueuse/core"
 
 const postStore = usePostStore();
 const { posts } = storeToRefs(postStore);
@@ -24,6 +26,25 @@ const { profile: authorProfile } = storeToRefs(userStore);
 console.log("Author Profile in Search View: ", authorProfile.value);
 // Store comments by post ID
 const commentsByPostId = ref({});
+
+const profileStore = useProfileStore();
+const { query, filteredProfiles } = storeToRefs(profileStore);
+
+const deQuery = useDebounce(query, 1000);
+
+const handleInput = () => {
+  
+};
+
+const profileStore = useProfileStore();
+const { query, filteredProfiles } = storeToRefs(profileStore);
+
+const deQuery = useDebounce(query, 1000);
+
+const handleInput = () => {
+  
+};
+
 
 const props = defineProps({
     foundProfiles:{
@@ -83,6 +104,8 @@ const handleCreatePost = async (postData) => {
     } else {
         console.log("Image File Attached: None");
     }
+
+    postStore.createPost(authStore.user.id, postData);
 };
 
 </script>
@@ -110,6 +133,17 @@ const handleCreatePost = async (postData) => {
         class="card card-profile"
       />
     </div>
+    <!-- <div class="grid">
+      <ProfileSearch
+        v-for="(profile, idx) in props.foundProfiles"
+        :key="profile.Name + '_' + idx"
+        :Name="profile.Name"
+        :Image="profile.Image"
+        :Followers="profile."
+        :Following="profile."
+        class="card card-profile"
+      />
+    </div> -->
   </section>
 
 
