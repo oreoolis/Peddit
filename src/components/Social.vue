@@ -10,6 +10,8 @@ import { useUserStore } from "@/stores/userStore"
 import { useAuthStore } from "@/stores/authStore"
 import { onMounted, ref } from "vue"
 import CreatePostModal from "./social/CreatePostModal.vue"
+import { useProfileStore } from "@/stores/profileStore"
+import { useDebounce } from "@vueuse/core"
 const props = defineProps({
     foundProfiles:{
         type: Array,
@@ -42,6 +44,15 @@ const { profile: authorProfile } = storeToRefs(userStore);
 console.log("Author Profile in Search View: ", authorProfile.value);
 // Store comments by post ID
 const commentsByPostId = ref({});
+
+const profileStore = useProfileStore();
+const { query, filteredProfiles } = storeToRefs(profileStore);
+
+const deQuery = useDebounce(query, 1000);
+
+const handleInput = () => {
+  
+};
 
 onMounted(async () => {
     await postStore.fetchPosts();
