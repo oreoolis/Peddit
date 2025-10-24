@@ -72,71 +72,66 @@ export const useCommentStore = defineStore('comments', () => {
      * @param {object} params.authorProfile - The author's profile data for optimistic rendering
      * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
     */
-    const createComment = async (postId, authorId, body) => {
-      try {
-        loading.value = true;
-        error.value = null;
+    const createComment = async ({ postId, authorId, content, authorProfile }) => {
+        if (!postId || !authorId || !content?.trim()) {
+            return { success: false, error: 'Post ID, Author ID, and content are required.' };
+        }
 
-        const { data, error: supabaseError } = await supabase
-          .from('comments')
-          .insert([{
-            post_id: postId,
-            author_id: authorId,
-            body,
-            created_at: new Date().toISOString()
-          }])
-          .select()
-          .single();
+        try {
+            submitting.value = true;
+            error.value = null;
 
-        if (supabaseError) throw supabaseError;
+            // Optimistically add the comment to the UI for instant feedback
+            const optimisticComment = {
+                id: `temp-${Date.now()}`, // Temporary ID
+                post_id: postId,
+                author_id: authorId,
+                content: content.trim(),
+                created_at: new Date().toISOString(),
+                profiles: { ...authorProfile, avatar_url: getPublicImage('avatars', authorProfile.avatar_url)} // Attach author profile data
+            };
+            
+            // Prepend the optimistic comment to the list
+            comments.value.unshift(optimisticComment);
 
-        // add locally
-        comments.value.unshift(data);
+            // Now, actually insert the comment into the database
+            const { data, error: insertError } = await supabase
+                .from('comments')
+                .insert({
+                    post_id: postId,
+                    author_id: authorId,
+                    content: content.trim(),
+                })
+                .select() // Select the newly created row to get its real ID and timestamp
+                .single();
 
-        // Refresh the post so postStore recomputes comment_count / vote_score
-        // dynamic import to avoid circular import at module top-level
-        const { usePostStore } = await import('@/stores/postStore');
-        const postStore = usePostStore();
-        await postStore.fetchPostById(postId);
+            if (insertError) throw insertError;
 
-        return { success: true, data };
-      } catch (err) {
-        console.error('createComment error', err);
-        error.value = err.message || String(err);
-        return { success: false, error: error.value };
-      } finally {
-        loading.value = false;
-      }
-    };
+            // Replace the optimistic comment with the real one from the database
+            const realComment = {
+                ...data,
+                profiles: optimisticComment.profiles // Keep the profile data we already have
+            };
+            
+            // Find the temp comment and replace it
+            const index = comments.value.findIndex(c => c.id === optimisticComment.id);
+            if (index !== -1) {
+                comments.value[index] = realComment;
+            }
 
-    const deleteComment = async (commentId, postId) => {
-      try {
-        loading.value = true;
-        error.value = null;
+            return { success: true, data: realComment };
 
-        const { error: supabaseError } = await supabase
-          .from('comments')
-          .delete()
-          .eq('id', commentId);
-
-        if (supabaseError) throw supabaseError;
-
-        // update local cache
-        comments.value = comments.value.filter(c => c.id !== commentId);
-
-        // Refresh post so comment_count updates
-        const { usePostStore } = await import('@/stores/postStore');
-        const postStore = usePostStore();
-        await postStore.fetchPostById(postId);
-
-        return { success: true };
-      } catch (err) {
-        console.error('deleteComment error', err);
-        error.value = err.message || String(err);
-        return { success: false, error: error.value };
-      } finally {
-        loading.value = false;
-      }
+ } catch (err) {
+            error.value = err.message;
+            console.error('Error creating comment:', err);
+            
+            // If the insert failed, remove the optimistic comment
+            comments.value = comments.value.filter(c => c.id !== `temp-${Date.now()}`);
+            
+            return { success: false, error: err.message };
+        } finally {
+            submitting.value = false;
+        }
     };
 
     return {

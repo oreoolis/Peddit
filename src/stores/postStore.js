@@ -76,7 +76,7 @@ export const usePostStore = defineStore('posts', () => {
             const { data, error: supabaseError } = await query;
 
             // Change the avatar_url into the image URL inside supabase avatars storage bucket
-            const transformedPosts = (data || []).map(post => {
+            transformedPosts = data.map(post => {
                 if (post.profiles?.avatar_url) {
                     post.profiles.avatar_url = getPublicImage('avatars', post.profiles.avatar_url);
                 }
@@ -84,24 +84,6 @@ export const usePostStore = defineStore('posts', () => {
             });
 
             if (supabaseError) throw supabaseError;
-
-            // NEW: compute vote_score from post_votes for fetched posts
-            const ids = transformedPosts.map(p => p.id).filter(Boolean);
-            if (ids.length) {
-                const voteMap = await fetchVoteSums(ids);
-                transformedPosts.forEach(p => {
-                    p.vote_score = Number(voteMap[p.id] ?? p.vote_score ?? 0);
-                });
-            }
-
-            // --- NEW: fetch and set comment counts ---
-            if (ids.length) {
-              const commentMap = await fetchCommentCounts(ids);
-              transformedPosts.forEach(p => {
-                p.comment_count = Number(commentMap[p.id] ?? 0);
-              });
-            }
-            // --- END NEW CODE ---
 
             if (loadMore) {
                 posts.value = [...posts.value, ...transformedPosts];
@@ -152,30 +134,6 @@ export const usePostStore = defineStore('posts', () => {
             if (data.profiles?.avatar_url) {
                 data.profiles.avatar_url = getPublicImage('avatars', data.profiles.avatar_url);
             }
-
-            // compute vote_score from post_votes (single source of truth)
-            const { data: votes } = await supabase
-              .from('post_votes')
-              .select('vote')
-              .eq('post_id', postId);
-            data.vote_score = (votes || []).reduce((s, r) => s + (Number(r.vote) || 0), 0);
-
-            // --- NEW: fetch and set comment count ---
-            try {
-              const { data: commentRows, error: commentErr } = await supabase
-                .from('comments')
-                .select('id')
-                .eq('post_id', postId);
-
-              if (!commentErr) {
-                data.comment_count = (commentRows || []).length;
-              } else {
-                console.warn('Could not fetch comment count', commentErr);
-              }
-            } catch (e) {
-              console.warn('comment count compute error', e);
-            }
-            // --- END NEW CODE ---
 
             currentPost.value = data;
             return { success: true, data };
@@ -350,39 +308,42 @@ export const usePostStore = defineStore('posts', () => {
     */
     const voteOnPost = async (postId, userId, voteValue) => {
         try {
-            // upsert or delete depending on voteValue (0 = remove)
+             // voteValue should be 1 (upvote), -1 (downvote), or 0 (remove vote)
             if (voteValue === 0) {
-              await supabase.from('post_votes').delete().eq('post_id', postId).eq('voter_id', userId);
+              const { error: deleteError } = await supabase
+                    .from('post_votes')
+                    .delete()
+                    .eq('post_id', postId)
+                    .eq('voter_id', userId);
+
+                if (deleteError) throw deleteError;
             } else {
-              await supabase.from('post_votes')
-                .upsert({ post_id: postId, voter_id: userId, vote: voteValue }, { onConflict: ['post_id','voter_id'] });
+               // Upsert vote
+                const { error: upsertError } = await supabase
+                    .from('post_votes')
+                    .upsert({
+                        post_id: postId,
+                        voter_id: userId,
+                        vote: voteValue
+                    }, {
+                        onConflict: 'post_id,voter_id'
+                    });
+
+                if (upsertError) throw upsertError;
             }
 
-            // refresh canonical post (recomputes vote_score from post_votes)
+            
+            // Refetch the post to get updated vote score
             await fetchPostById(postId);
 
-            return { success: true, updated: currentPost.value };
+            return { success: true };
         } catch (err) {
-            return { success: false, error: err.message || String(err) };
+            error.value = err.message;
+            console.error('Error voting on post:', err);
+            return { success: false, error: err.message };
         }
     }
 
-    const getUserVote = async (postId, userId) => {
-        try {
-            const { data, error } = await supabase
-                .from('post_votes')
-                .select('vote')
-                .eq('post_id', postId)
-                .eq('voter_id', userId)
-                .maybeSingle(); // safe when no row
-
-            if (error) throw error;
-            return { success: true, vote: Number(data?.vote ?? 0) }; // -1 | 0 | 1
-        } catch (err) {
-            console.error('getUserVote error', err);
-            return { success: false, error: err.message || String(err) };
-        }
-    };
 
     // Media management
     const addPostMedia = async (postId, file) => {
@@ -436,57 +397,7 @@ export const usePostStore = defineStore('posts', () => {
         }
     }
 
-    // --- NEW: helper to fetch vote sums for multiple posts ---
-    const fetchVoteSums = async (postIds = []) => {
-      if (!postIds || postIds.length === 0) return {};
-      try {
-        const { data, error } = await supabase
-          .from('post_votes')
-          .select('post_id, vote')
-          .in('post_id', postIds);
-
-        if (error) {
-          console.error('fetchVoteSums error', error);
-          return {};
-        }
-
-        const map = {};
-        (data || []).forEach(r => {
-          map[r.post_id] = (map[r.post_id] || 0) + (Number(r.vote) || 0);
-        });
-        return map;
-      } catch (err) {
-        console.error('fetchVoteSums exception', err);
-        return {};
-      }
-    };
-    // --- END NEW HELPER ---
-
-    // --- NEW: helper to fetch comment counts for multiple posts ---
-    const fetchCommentCounts = async (postIds = []) => {
-      if (!postIds || postIds.length === 0) return {};
-      try {
-        const { data, error } = await supabase
-          .from('comments')
-          .select('post_id')
-          .in('post_id', postIds);
-
-        if (error) {
-          console.error('fetchCommentCounts error', error);
-          return {};
-        }
-
-        const map = {};
-        (data || []).forEach(r => {
-          map[r.post_id] = (map[r.post_id] || 0) + 1;
-        });
-        return map;
-      } catch (err) {
-        console.error('fetchCommentCounts exception', err);
-        return {};
-      }
-    };
-    // --- END NEW HELPER ---
+    
 
     // Utility methods
     const setCurrentPost = (post) => {
@@ -530,7 +441,6 @@ export const usePostStore = defineStore('posts', () => {
         updatePost,
         deletePost,
         voteOnPost,
-        getUserVote,
         addPostMedia,
         setCurrentPost,
         clearCurrentPost,
