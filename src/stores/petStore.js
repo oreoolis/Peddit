@@ -78,6 +78,7 @@ export const usePetStore = defineStore('pets', () => {
                     neutered: petData.neutered || null,
                     photo_url: petData.photo_url || null,
                     allergies: petData.allergies || null,
+                    preferred_recipe: petData.preferred_recipe || null,
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
                 }])
