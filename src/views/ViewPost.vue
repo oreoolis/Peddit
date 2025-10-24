@@ -58,22 +58,12 @@ const displayedComments = computed(() => {
 
 
 onMounted(async () =>{
-  if (props.postId) {
-    await postStore.fetchPostById(props.postId);
-    await commentStore.fetchCommentsByPostID(props.postId);
-
-    if (user.value?.id && typeof postStore.getUserVote === 'function') {
-      const res = await postStore.getUserVote(props.postId, user.value.id);
-      if (res.success) {
-        serverVote.value = Number(res.vote || 0); // serverVote is the ref used by VoteControl
-        console.log('[VOTE] initial user vote:', serverVote.value);
-      } else {
-        console.warn('getUserVote failed:', res.error);
-      }
+    if (props.postId) {
+        await postStore.fetchPostById(props.postId);
+        await commentStore.fetchCommentsByPostID(props.postId);
+    } else {
+        router.push('/');
     }
-  } else {
-    router.push('/');
-  }
 });
 
 const handleCommentSubmit = async (content) => {
@@ -100,8 +90,6 @@ const onVote = async (v) => {
   serverVote.value = v;
   const delta = (v || 0) - (prevVote || 0);
   if (currentPost.value) currentPost.value.vote_score = prevScore + delta;
-
-  const res = await postStore.voteOnPost(props.postId, user.value?.id, v);
   console.log('[VOTE] voteOnPost result:', res);
 
   if (res.success && res.updated) {

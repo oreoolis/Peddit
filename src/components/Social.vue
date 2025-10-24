@@ -15,8 +15,6 @@ import CreatePostModal from "./Organisms/social/CreatePostModal.vue"
 const postStore = usePostStore();
 const { posts } = storeToRefs(postStore);
 const authStore = useAuthStore();
-const profileStore = useProfileStore();
-const { profiles } = storeToRefs(profileStore);
 
 const commentStore = useCommentStore();
 const { comments, commentLoading: loading } = storeToRefs(commentStore);
@@ -27,11 +25,40 @@ console.log("Author Profile in Search View: ", authorProfile.value);
 // Store comments by post ID
 const commentsByPostId = ref({});
 
+const props = defineProps({
+    foundProfiles:{
+        type: Array,
+        default:
+            [
+                {
+                    Name: "@bernardcks",
+                    Image: "/src/assets/person.jpg",
+                    Following: 1,
+                    followers: 100,
+                },{
+                    Name: "@johnDoe",
+                    Image: "/src/assets/person.jpg",
+                    Following: 111,
+                    followers: 100,                    
+                },{
+                    Name: "@MaryJane",
+                    Image: "/src/assets/person.jpg",
+                    Following: 179,
+                    followers: 999,
+                }
+            ]
+    } ,
+
+}
+)
 onMounted(async () => {
-    await postStore.fetchPosts();
-    // fetch profiles (exclude current user)
-    const excludeId = authStore.user?.id ?? null;
-    await profileStore.fetchProfiles({ excludeId, limit: 12 });
+    try {
+        await postStore.fetchPosts();
+        // debug - shows what the store returned
+        console.log("Fetched posts:", posts.value);
+    } catch (err) {
+        console.error("Error fetching posts:", err);
+    }
 });
 
 const showCreatePostModal = ref(false);
@@ -57,7 +84,7 @@ const handleCreatePost = async (postData) => {
         console.log("Image File Attached: None");
     }
 };
-console.log(profileStore)
+
 </script>
 
 
@@ -74,10 +101,10 @@ console.log(profileStore)
 
     <div class="grid">
       <ProfileSearch
-        v-for="(profile, idx) in profiles"
+        v-for="(profile, idx) in props.foundProfiles"
         :key="profile.Name + '_' + idx"
-        :Name="profile.display_name"
-        :Image="profile.avatar_url"
+        :Name="profile.Name"
+        :Image="profile.Image"
         :Following="profile.following_count"
         :Followers="profile.follower_count"
         class="card card-profile"
@@ -87,25 +114,31 @@ console.log(profileStore)
 
 
 
-<section class="section mt-4 mx-auto w-75">
-    <header class="section-header border-bottom mb-2">
-      <div class="badge badge-alt mx-2">Posts</div>
-      <h1 class="section-title pb-2">Trending posts</h1>
-    </header>
-    <div class="grid">
-      <PostSearch
-        v-for="post in posts"
-        :key="post.id"
-        :link="post.id"
-        :title="post.title"
-        :Name="post.profiles.display_name"
-        :Image="post.profiles.avatar_url"
-        class=""
-        :CommentCount="post.comment_count"
-        :VoteScore="post.vote_score"
-      />
-    </div>
-  </section>
+    <section class="section mt-4 mx-auto w-75">
+        <header class="section-header border-bottom mb-2">
+            <div class="badge badge-alt mx-2">Posts</div>
+            <h1 class="section-title pb-2">Trending posts</h1>
+        </header>
+
+        <div class="grid">
+            <!-- friendly empty state / debug hint -->
+            <div v-if="(posts || []).length === 0" class="empty text-muted p-3">
+                No posts to display — check the console (Fetched posts:)
+            </div>
+
+            <!-- safer prop access for post fields so a missing `profiles` doesn't break rendering -->
+            <PostSearch
+                v-for="post in posts"
+                :key="post?.id ?? post?.link ?? post?.title"
+                :link="post?.id ?? post?.link"
+                :title="post?.title"
+                :Name="post?.profiles?.display_name || post?.profile?.display_name || post?.author_name || 'Unknown'"
+                :Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
+                :CommentCount="post?.comment_count"
+                :VoteScore="post?.vote_score"
+            />
+        </div>
+    </section>
   <!-- create post modal here -->
    <div class="d-flex justify-content-center my-2">
    <Button @click="showCreatePostModal = true" label="Create Post" ></Button>
