@@ -2,7 +2,7 @@
 import Button from "../components/atoms/button.vue"
 import searchBar from "@/components/atoms/searchBar.vue";
 
-import PetCard from "@/components/molecules/PetCard.vue";
+import PetCard from "@/components/molecules/create-edit-pet/PetCard.vue";
 import buttonTogglable from "@/components/atoms/buttonTogglable.vue";
 import SelectAndOption from "@/components/atoms/SelectAndOption.vue";
 import TextInput from "@/components/atoms/TextInput.vue";

@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { onMounted, ref, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
 import { usePetInfoApi } from '@/composables/usePetInfoApi';
-import BreedSelect from '@/components/molecules/BreedSelect.vue';
+import BreedSelect from '@/components/molecules/create-edit-pet/BreedSelect.vue';
 
 
 const petStore = usePetStore();

@@ -1,22 +1,26 @@
 <script setup>
 import ItemsChecklist from '@/components/PetViewComponents/ItemsChecklist.vue';
 import MealPlanCards from '@/components/PetViewComponents/MealPlanCard.vue';
-import PetCards from '@/components/molecules/PetCard.vue';
+import PetCards from '@/components/molecules/create-edit-pet/PetCard.vue';
 import { RouterLink, useRoute } from 'vue-router';
 import { ref, watch, onMounted } from 'vue';
 import ShoppingListModal from '@/components/PetViewComponents/ShoppingListModal.vue';
 import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
 import Button from '@/components/atoms/button.vue';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
 
 const petStore = usePetStore();
 const { fetchPets } = petStore;
 const authStore = useAuthStore();
+const nutritionStore = usePetNutritionStore();
+const { fetchRecipes } = nutritionStore;
 const route = useRoute();
 
 watch(() => authStore.userId, (newUserId) => {
     if (newUserId) {
         fetchPets(newUserId);
+        fetchRecipes(newUserId);
     }
 }, { immediate: true });
 
@@ -72,15 +76,14 @@ onMounted(() => {
                     </div>
                 </div>
             </div>
-            <div v-if="!petStore.pets">
-                <h1 class="headingFont" style="color: lightcoral">No pets. Create a pet.</h1>
+            <div v-if="petStore.pets.length == 0">
+                <h1 class="headingFont text-center" style="color: lightcoral">No pets. Create a pet.</h1>
             </div>
-            <!-- To do v-if if there is no pets rendered from DB, else show current screen -->
-            <div class="row justify-content-center gx-5 gy-5 g-5 px-4 pb-5">
-                <div v-for="pet in petStore.pets" :key="pet.id" class="col-xl-3 col-md-5 mb-4 m-3">
+            <div v-else class="row justify-content-center gx-5 gy-5 g-5 px-4 pb-5">
+                <div v-for="pet in petStore.pets" :key="pet.id" class="col-xl-3 col-lg-3 col-md-5 mb-4 m-3">
                     <PetCards :id="pet.id" :name="pet.name" :kind="pet.kind" :gender="pet.gender" :breed="pet.breed"
                         :birthday="pet.birthdate" :weight="pet.weight_kg" :allergies="pet.allergies"
-                        :photo_url="pet.photo_url" />
+                        :photo_url="pet.photo_url" :recipe_id="pet.preferred_recipe"/>
                 </div>
             </div>
         </div>
@@ -148,17 +151,14 @@ onMounted(() => {
                         Auto Recommend
                     </button>
                     <div class="meal-plan-cards container-fluid">
-                        <div class="row justify-content-center px-5 py-5 gy-5 gx-4">
-                            <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
-                                <MealPlanCards />
+                        <div v-if="!nutritionStore.recipes">
+                            <h1>No recipes. Create one now!</h1>
+                        </div>
+                        <div class="row">
+                            <div v-for="recipe in nutritionStore.recipes" class="col-sm-12 col-md-3 col-lg-4 d-flex justify-content-center">
+                                <MealPlanCards :rec_id="recipe.id" :name="recipe.recipe_name" :desc="recipe.description"/>
                             </div>
-                            <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
-                                <MealPlanCards />
-                            </div>
-                            <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
-                                <MealPlanCards />
-                            </div>
-                            <div class="col-sm-12 col-md-4 col-lg-3 d-flex justify-content-center">
+                            <div class="col-sm-12 col-md-3 col-lg-4 d-flex justify-content-center">
                                 <router-link to="/add-meal-plan" custom v-slot="{ href, navigate }">
                                     <button class="icon-btn add-btn shadow" @click="navigate" :href="href" role="link">
                                         <div class="add-icon"></div>

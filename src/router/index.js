@@ -113,7 +113,13 @@ const router = createRouter({
       name: 'edit-pet',
       component: () => import('@/views/EditPet.vue'),
       meta: { requiresAuth: true }
-    }      
+    },
+    {
+      path: '/edit-meal',
+      name: 'edit-meal',
+      component: () => import('@/views/EditMeal.vue'),
+      meta: { requiresAuth: true }
+    }
 
 
     // {

@@ -9,22 +9,25 @@ import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
 import { storeToRefs } from 'pinia';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 // stores
 const nutritionStore = usePetNutritionStore();
 const petStore = usePetStore();
 const authStore = useAuthStore();
 const router = useRouter();
-
+const route = useRoute(); // get id from route params
 
 const { ingredients, loading } = storeToRefs(nutritionStore);
 
+// current meal information
+const currentMeal = ref(nutritionStore.getRecipe(route.query.meal));
+
 // dynamic updating form values
-const recipeName = ref('');
-const recipeDescription = ref('');
-const notes = ref('');
-const selectedIngredients = ref([]);
+const recipeName = currentMeal.recipe_name;
+const recipeDescription = currentMeal.description;
+const notes = currentMeal.notes;
+const selectedIngredients = currentMeal.recipe_ingredients;
 const showSuccess = ref(false);
 
 // total nutrients

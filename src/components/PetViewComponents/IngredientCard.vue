@@ -3,7 +3,15 @@
 defineProps({
     name: {
         type: String,
-        default: 'Drum Meat'
+        required: true
+    },
+    type: {
+        type: String,
+        required: true
+    },
+    nutrition: {
+        type: String,
+        required: true
     },
     image: {
         type: String,
@@ -11,7 +19,7 @@ defineProps({
     },
     amount: {
         type: String,
-        default: '200g'
+        required: true
     }
 });
 </script>
@@ -24,8 +32,8 @@ defineProps({
             <img :src="image" class="card-img-top" alt="Ingredient Image">
         </div>
         <div class="card-body p-1">
-            <h6 class="card-title headingFont fw-bold mb-1">{{ name }}</h6>
-            <p class="card-text bodyFont text-muted small mb-0">{{ amount }}</p>
+            <h6 class="card-title headingFont fw-bold mb-1">{{name }}</h6>
+            <p class="card-text bodyFont text-muted small mb-0">{{ amount }}g</p>
         </div>
     </div>
 </template>
