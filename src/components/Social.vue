@@ -11,7 +11,6 @@ import { useAuthStore } from "@/stores/authStore"
 import { useProfileStore } from "@/stores/profileStore"
 import { onMounted, ref } from "vue"
 import CreatePostModal from "./Organisms/social/CreatePostModal.vue"
-import { useProfileStore } from "@/stores/profileStore"
 import { useDebounce } from "@vueuse/core"
 
 const postStore = usePostStore();
@@ -27,14 +26,7 @@ console.log("Author Profile in Search View: ", authorProfile.value);
 // Store comments by post ID
 const commentsByPostId = ref({});
 
-const profileStore = useProfileStore();
-const { query, filteredProfiles } = storeToRefs(profileStore);
 
-const deQuery = useDebounce(query, 1000);
-
-const handleInput = () => {
-  
-};
 
 const profileStore = useProfileStore();
 const { query, filteredProfiles } = storeToRefs(profileStore);
