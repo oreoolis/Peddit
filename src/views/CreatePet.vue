@@ -1,17 +1,17 @@
 <script setup>
-import MealPlanCards from '@/components/PetViewComponents/MealPlanCard.vue';
-import ImageUploadModal from '@/components/ImageUploadModal.vue';
 import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
-//import { storeToRefs } from 'pinia';
+import { usePetInfoApi } from '@/composables/usePetInfoApi';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import searchBar from '@/components/atoms/searchBar.vue';
-import { usePetInfoApi } from '@/composables/usePetInfoApi';
-import BreedSelect from '@/components/molecules/BreedSelect.vue';
-import Button from '@/components/atoms/button.vue';
+import BreedSelect from '@/components/molecules/create-edit-pet/BreedSelect.vue';
+import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelect.vue';
+
 const petStore = usePetStore();
 const authStore = useAuthStore();
+const nutritionStore = usePetNutritionStore();
 const router = useRouter(); // push to next page
 
 const showSuccess = ref(false);
@@ -19,6 +19,7 @@ const showSuccess = ref(false);
 // initial form data
 const petKind = ref('dog'); // default value
 const { breedNames, error: breedError, isFetching: isFetchingBreeds } = usePetInfoApi(petKind);
+const recipes = ref(null);
 
 // dynamically update breed list
 const breedNameList = ref([]);
@@ -30,6 +31,7 @@ watch([petKind, isFetchingBreeds], () => {
   breedNameList.value = breedNames.value;
 })
 
+// default form values
 const form = ref({
   name: '',
   kind: petKind.value,
@@ -38,7 +40,8 @@ const form = ref({
   birthdate: '',
   weight_kg: null,
   neutered: null,
-  allergies: ''
+  allergies: '',
+  preferred_recipe: null
 });
 
 const imageFile = ref(null);
@@ -105,7 +108,8 @@ const resetForm = () => {
     birthdate: '',
     weight_kg: null,
     neutered: null,
-    allergies: ''
+    allergies: '',
+    preferred_recipe: null
   };
   removeImage();
   petStore.clearError();
@@ -127,6 +131,13 @@ const showToast = (text) => {
   }
   toastBootstrap.show();
 }
+
+onMounted( async () => {
+  const res = await nutritionStore.fetchRecipes(authStore.userId);
+  if (res.success){
+    recipes.value = res.data;
+  }
+});
 </script>
 
 <template>
@@ -219,7 +230,7 @@ const showToast = (text) => {
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Breed</label>
-              <BreedSelect defaultLabel="Select Breed..." :options="breedNameList" v-model="form.breed" />
+              <BreedSelect defaultLabel="Select Breed..." :breedOptions="breedNameList" :isSearchable="true" v-model="form.breed" />
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Weight</label>
@@ -229,6 +240,11 @@ const showToast = (text) => {
               <label class="form-label headingFont fw-bold h5">Allergies (Optional)</label>
               <searchBar type="text" placeholder="e.g. Pollen, Dust" v-model="form.allergies" />
             </div>
+            <div class="mb-3">
+              <label class="form-label headingFont fw-bold h5">Selected Meal</label>
+              <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes" :isSearchable="true" v-model="form.preferred_recipe" />
+            </div>
+
 
             <div class="mb-3 input-group-lg">
               <label for="" class="form-label headingFont fw-bold h5">Neutered:</label>

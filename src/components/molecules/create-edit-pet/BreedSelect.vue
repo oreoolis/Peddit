@@ -1,9 +1,10 @@
 <script setup>
 import { ref, computed } from 'vue';
-import searchBar from '../atoms/searchBar.vue';
+import searchBar from '@/components/atoms/searchBar.vue';
+
 
 const props = defineProps({
-  options: {
+  breedOptions: {
     type: Array,
     default: () => []
   },
@@ -19,21 +20,21 @@ const searchQuery = ref('');
 
 // Normalize options to always have value/label structure
 const normalizedOptions = computed(() => {
-  if (!props.options || props.options.length === 0) {
+  if (!props.breedOptions || props.breedOptions.length === 0) {
     return [];
   }
 
   // Check if first item is a string
-  if (typeof props.options[0] === 'string') {
+  if (typeof props.breedOptions[0] === 'string') {
     // Convert strings to objects with value and label
-    return props.options.map(item => ({
+    return props.breedOptions.map(item => ({
       value: item,
       label: item
     }));
   }
 
   // Already in correct format
-  return props.options;
+  return props.breedOptions;
 });
 
 // Filter options based on search query
@@ -59,13 +60,13 @@ const selectedLabel = computed(() => {
   return selectedOption.value ? selectedOption.value.label : props.defaultLabel;
 });
 
-function selectOption(optionValue) {
+const selectOption = (optionValue) => {
   model.value = optionValue;
   isOpen.value = false;
   searchQuery.value = ''; // Clear search after selection
 }
 
-function toggleDropdown() {
+const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
     searchQuery.value = ''; // Clear search when opening

@@ -7,34 +7,40 @@ const props = defineProps({
     default: '25.00'
   },
   nutrients: {
-    type: Array,
+    type: Object,
     // Updated default data to include 'value', 'goal', and 'unit'
-    default: () => [
-      { name: 'Protein', value: 45, goal: 50, unit: 'g' },
-      { name: 'Carbs', value: 25, goal: 100, unit: 'g' },
-      { name: 'Fat', value: 22, goal: 20, unit: 'g' },
-      { name: 'Vitamin C', value: 90, goal: 90, unit: 'mg' },
-      { name: 'Iron', value: 8, goal: 18, unit: 'mg' },
-    ]
+    required: true
   }
 });
 
-// Function to calculate the bar's width and determine its color class
+// petNutritionProfiles - get nutrition requirements from petNutritionStore
+const nutrientMaxValues = {
+  'Protein': 100,
+  'Fat': 50,
+  'Iron': 20,
+  'Zinc': 15,
+  'Calcium': 80
+};
+
+// Function to calculate the bar's width based on accumulative value
 const getBarDetails = (nutrient) => {
-  if (!nutrient.goal || nutrient.goal === 0) {
-    return { width: '0%', barClass: '' };
-  }
-  const percentage = (nutrient.value / nutrient.goal) * 100;
+  const maxValue = nutrientMaxValues[nutrient.name] || 100;
+  const currentValue = parseFloat(nutrient.value) || 0;
+  
+  // Calculate percentage relative to max
+  const percentage = (currentValue / maxValue) * 100;
   
   let barClass = 'is-normal';
-  if (percentage >= 100) barClass = 'is-good';
-  if (percentage > 120) barClass = 'is-high'; // Over 120% of goal
-
+  if (percentage >= 70) barClass = 'is-good';      // 70%+ of max is good
+  if (percentage >= 100) barClass = 'is-high';     // At or above max
+  
   return {
-    width: `${Math.min(percentage, 100)}%`, // Cap width at 100%
-    barClass: barClass
+    width: `${Math.min(percentage, 100)}%`,        // Cap display at 100%
+    barClass: barClass,
+    percentage: percentage.toFixed(1)              // For display if needed
   };
 };
+
 </script>
 
 <template>
@@ -42,18 +48,16 @@ const getBarDetails = (nutrient) => {
         <header class="card-header">
             <h3 class="headingFont fw-bold">Nutritional Summary</h3>
         </header>
-        <div class="cost-banner">
+        <!-- <div class="cost-banner">
             Estimated Cost: <strong>${{ cost }}/Week</strong>
-        </div>
+        </div> -->
         <ul class="list-group list-group-flush">
-            <li v-for="nutrient in nutrients" :key="nutrient.name" class="list-group-item">
+            <li v-for="nutrient in props.nutrients" :key="nutrient.name" class="list-group-item">
                 <div class="nutrient-label">
                     <span class="nutrient-name">{{ nutrient.name }}</span>
-                    <!-- Display value and goal -->
-                    <span class="nutrient-value">{{ nutrient.value }}{{ nutrient.unit }} / {{ nutrient.goal }}{{ nutrient.unit }}</span>
+                    <span class="nutrient-value">{{ nutrient.value }}g</span>
                 </div>
                 <div class="progress-bar-container">
-                    <!-- Bind the calculated width and class -->
                     <div 
                         class="progress-bar-fill" 
                         :class="getBarDetails(nutrient).barClass"

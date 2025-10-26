@@ -1,10 +1,15 @@
 <script setup>
 import PetInfoModal from '@/components/Organisms/PetInfoModal.vue';
-import { ref, defineProps, computed } from 'vue';
-import Button from '../atoms/button.vue';
-const props = defineProps(['id', 'name', 'kind', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url'])
-// TODO: calculation for score, not sure what we can do for this
+import { ref, defineProps, computed, onMounted } from 'vue';
+import Button from '@/components/atoms/button.vue';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
 
+
+const props = defineProps(['id', 'name', 'kind', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url', 'recipe_id'])
+const nutritionStore = usePetNutritionStore();
+const recipeDetails = ref({});
+
+// tbd: may have to scrap feature
 // this will denote the emoji shown
 const score = 65; // out of 100, for progress bar
 // convert score to percentage for progress bar
@@ -33,16 +38,23 @@ const StatusDetails = computed(() =>{
         };
     }
 });
+
+onMounted(async () => {
+    const res = await nutritionStore.getRecipe(props.recipe_id);
+    if (res.success){
+        recipeDetails.value = res.data;
+    }
+})
+
 </script>
 <template>
-    <div class="pet-card card overflow-hidden shadow p-3 mb-5 bg-body-tertiary rounded-4 h-100 d-flex flex-column position-relative w-90">
+    <div class="pet-card card overflow-hidden shadow p-3 mb-5 bg-body-tertiary rounded-4 h-100 position-relative w-100">
         <div class="card-header p-0 text-center bg-transparent border-0">
-            <div class="row d-fill justify-content-between">
+            <div class="row">
                 <div class="col-9 my-auto ">
                     <h4 class="bodyFont fw-bold text-start">{{ name }}</h4>
                 </div>
-                <div class="col-3  text-end">
-                    <!-- <<h2 class="bodyFont fw-bold">{{gender}}</h2>> -->
+                <div class="col-3 text-end">
                     <div v-if="gender == 'male'">
                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" fill="blue"
                             class="bi bi-gender-male" viewBox="0 0 16 16">
@@ -90,8 +102,11 @@ const StatusDetails = computed(() =>{
                             </div>
                         </div>
                     </div>
-                    <h4 class="fw-bold d-flex align-items-center">Curent Diet:
-                        <Button class="h-75 mx-1" label="Salmon"></Button>
+                    <h4 class="fw-bold d-flex align-items-center">Current Diet: 
+                        <Button v-if="recipeDetails.recipe_name" class="h-75 mx-1" :label="recipeDetails.recipe_name">
+                        </Button>
+                        <Button v-else class="h-75 mx-1" label="None">
+                        </Button>
                     </h4>
                 </section>
             </div>
@@ -113,6 +128,7 @@ const StatusDetails = computed(() =>{
         :weight="weight"
         :allergies="allergies"
         :photo_url="photo_url"
+        :recipeDetails="recipeDetails"
      />
 
 </template>

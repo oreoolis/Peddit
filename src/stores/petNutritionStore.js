@@ -97,7 +97,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
         .order('name', { ascending: true });
 
       if (fetchError) throw fetchError;
-
+      
       ingredients.value = data || [];
       return { success: true, data };
     } catch (err) {

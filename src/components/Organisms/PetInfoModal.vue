@@ -1,26 +1,64 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import MealPlanCards from '../PetViewComponents/MealPlanCard.vue';
 import Button from '../atoms/button.vue';
 import PetInfoCard from '../molecules/PetInfoCard.vue';
 import buttonTogglable from '../atoms/buttonTogglable.vue';
 import { usePetStore } from '@/stores/petStore';
 import { useRouter } from 'vue-router';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
 
 const petStore = usePetStore();
+// const nutritionStore = usePetNutritionStore();
 const router = useRouter();
 
+const recipeInfo = ref({});
+
 const props = defineProps({
-    id: String,
-    name: String,
-    kind: String,
-    gender: String,
-    breed: String,
-    birthday: String,
-    weight: Number,
-    allergies: String,
-    neutered: String,
-    photo_url: String,
+    id: {
+        type: String,
+        required: true
+    },
+    name: {
+        type: String,
+        required: true
+    },
+    kind: {
+        type: String,
+        required: true
+    },
+    gender: {
+        type: String,
+        required: true
+    },
+    breed: {
+        type: String,
+        required: true
+    },
+    birthday: {
+        type: String,
+        required: true
+    },
+    weight: {
+        type: Number,
+        required: true
+    },
+    allergies: {
+        type: String,
+        required: true
+    },
+    neutered: {
+        type: String,
+        required: true
+    },
+    photo_url: {
+        type: String,
+        required: true
+    },
+    recipeDetails: {
+        type: Object,
+        required: false
+    },
     show: {
         type: Boolean,
         default: false
@@ -66,6 +104,7 @@ const closeModal = () => {
         emit('update:show', false);
     }
 };
+
 </script>
 <template>
     <div v-if="show" class="modal-backdrop" @click="closeModal">
@@ -85,8 +124,8 @@ const closeModal = () => {
                     <div class="preferred-meal-container container py-5 px-5 mt-4 rounded-5 bg-light shadow">
                         <h2 class="headingFont fw-semibold">Preferred Meal</h2>
                         <div class="row d-flex justify-content-center">
-                            <div class="col-lg-5">
-                                <MealPlanCards />
+                            <div v-if="props.recipeDetails" class="col-lg-5 mt-5">
+                                <MealPlanCards :rec_id="props.recipeDetails.id" :name="props.recipeDetails.recipe_name" :desc="props.recipeDetails.description"/>
                             </div>
                         </div>
                     </div>

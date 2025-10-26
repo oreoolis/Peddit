@@ -4,30 +4,48 @@ import { onUnmounted } from 'vue'
 import Button from '../atoms/button.vue';
 import searchBar from '../atoms/searchBar.vue';
 import SelectAndOption from '../atoms/SelectAndOption.vue';
-const props = defineProps({
-    show: {
-        type: Boolean,
-        default: false
-    }
-});
+import MealSelectOption from '../atoms/meal-creation/MealSelectOption.vue';
 
-const emit = defineEmits(['update:show', 'uploaded', 'error']);
+const props = defineProps(["ingredients", "show"]);
 
-const uploading = ref(false);
+const emit = defineEmits(['update:show', 'uploaded', 'error', 'addIngredient']);
+
+const adding = ref(false);
+const selectedIngredient = ref({});
+const amount = ref('');
 
 // // Reset when modal opens/closes
 watch(() => props.show, (newVal) => {
     if (!newVal) {
-        //resetForm();
+        resetForm();
     }
 });
 
+const resetForm = () => {
+    selectedIngredient.value = null;
+    amount.value = '';
+}
 
 const closeModal = () => {
-    if (!uploading.value) {
+    if (!adding.value) {
         emit('update:show', false);
     }
 };
+
+const handleSubmit = () => {
+    if (!selectedIngredient.value || !amount.value) {
+        emit('error', 'Select ingredient and amount.');
+        return;
+    }
+
+    emit('addIngredient', {
+        ingredient: selectedIngredient.value,
+        amount: parseFloat(amount.value)
+    });
+
+    closeModal();
+}
+
 </script>
 
 <template>
@@ -35,31 +53,27 @@ const closeModal = () => {
         <div class="modal-content bg-white" @click.stop>
             <div class="modal-header d-flex">
                 <h5 class="modal-title primary">Add an Ingredient</h5>
-                <Button label="X" outline color="danger" class="ms-auto" @click="closeModal"></Button>
+                <Button label="X" color="danger" class="ms-auto " @click="closeModal"></Button>
             </div>
-            <form>
+            <form @submit.stop.prevent="handleSubmit">
                 <div class="modal-body">
                     <!-- File Input -->
                     <div class="mb-3">
                         <label class="form-label headingFont fw-bold h5" for="inputGroupSelect01">Food Item</label>
-                        <SelectAndOption defaultLabel="Select an option..."
-                            :options="[
-                                { value: 'beef', label: 'Beef Steak' },
-                                { value: 'orange', label: 'Orange' },
-                                { value: 'chicken', label: 'Chicken Breast' },
-                            ]">
-                        </SelectAndOption>
+                        <MealSelectOption defaultLabel="Select an option..."
+                            :options="props.ingredients"
+                            :isSearchable="true"
+                            v-model="selectedIngredient" />
                     </div>
                     <div class="mb-3">
                         <span class="form-label headingFont fw-bold h5">Amount (in grams)</span>
-                        <!-- can add v-model into the searchbar -->
-                        <searchBar class="form-control" placeholder="Enter amount in grams" type="number"></searchBar>
+                        <searchBar v-model="amount" class="form-control" placeholder="Enter amount in grams" type="number"></searchBar>
                     </div>
-
                 </div>
-
                 <div class="modal-footer">
-                    <Button type="submit" label="Submit" @click="closeModal">
+                    <Button type="button" color="secondary" label="Reset" @click="resetForm">
+                    </Button>
+                    <Button type="submit" label="Submit">
                         <i class="bi bi-check-lg mx-1"></i>
                     </Button>
                 </div>
@@ -97,7 +111,7 @@ const closeModal = () => {
     display: flex;
     justify-content: between;
     align-items: center;
-    background-color:white;
+    background-color: white;
 }
 
 .modal-title {
@@ -117,5 +131,4 @@ const closeModal = () => {
     justify-content: flex-end;
     gap: 0.5rem;
 }
-
 </style>

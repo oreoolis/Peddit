@@ -3,7 +3,7 @@
 import personImage from '../assets/person.jpg';
 
 // Components
-import PetCard from '@/components/molecules/PetCard.vue';
+import PetCard from '@/components/molecules/create-edit-pet/PetCard.vue';
 import ProfileHeaderSection from '@/components/Organisms/profile/ProfileHeaderSection.vue';
 import ProfileTabNavigation from '@/components/molecules/profile/ProfileTabNavigation.vue';
 import BaseButton from '@/components/atomic/BaseButton.vue';
