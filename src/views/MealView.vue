@@ -2,52 +2,28 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import TextInput from '@/components/atoms/TextInput.vue';
 import MealPlanCard from '@/components/PetViewComponents/MealPlanCard.vue';
+import Button from '@/components/atoms/button.vue';
+import BaseAvatar from '@/components/atomic/BaseAvatar.vue';
+import RecommendedMeals from '@/components/Organisms/social/RecommendedMeals.vue';
+import StatCard from '@/components/atomic/StatCard.vue';
+import InfoDetail from '@/components/atomic/InfoDetail.vue';
+const featured = [
+    { id: 'r1', name: 'Test', desc: 'Yum Yum' },
+    { id: 'r2', name: 'Test 2', desc: 'Test Test' },
+    { id: 'r3', name: 'Tuna Delight', desc: 'Light, low-calorie option' },
+    { id: 'r4', name: 'Beef Boost', desc: 'Calorie-dense for underweight pets' },
+    { id: 'r5', name: 'Veg Mix', desc: 'Gentle on stomachs' }
 
-const featured = Array.from({length:5}).map((_,i)=>(
-    { id:`f${i}`, name:`Feature ${i+1}`, desc:'Popular pick' }));
-const recommended = Array.from({length:8}).map((_,i)=>(
-    { id:`r${i}`, name:`Rec ${i + 1}`, desc:'Suggested' }));
+];
+const RecommendMealsData = [
+    { id: 'r1', name: 'Test', desc: 'Yum Yum' },
+    { id: 'r2', name: 'Test 2', desc: 'Test Test' },
+    { id: 'r3', name: 'Tuna Delight', desc: 'Light, low-calorie option' },
+    { id: 'r4', name: 'Beef Boost', desc: 'Calorie-dense for underweight pets' },
+    { id: 'r5', name: 'Veg Mix', desc: 'Gentle on stomachs' }
+]
+const test= [50]
 
-const carouselEl = ref(null);
-const carouselInner = ref(null);
-let ro = null;
-
-async function measureAndLockHeight() {
-  await nextTick();
-  try {
-    const inner = carouselInner.value;
-    if (!inner) return;
-    const items = Array.from(inner.querySelectorAll('.carousel-item'));
-    if (!items.length) return;
-    // measure rendered heights of each slide's content
-    let max = 0;
-    for (const it of items) {
-      // measure the visible content inside the slide
-      const content = it.querySelector('.w-100') || it;
-      const h = content.getBoundingClientRect().height;
-      if (h > max) max = h;
-    }
-    inner.style.height = max ? `${Math.ceil(max)}px` : '';
-  } catch (e) { /* ignore measurement errors */ }
-}
-
-onMounted(() => {
-  // initial measure
-  measureAndLockHeight();
-  // update on resize
-  window.addEventListener('resize', measureAndLockHeight);
-  // observe DOM changes in carousel (images loading, async content)
-  try {
-    ro = new ResizeObserver(measureAndLockHeight);
-    const el = carouselEl.value;
-    if (el) ro.observe(el);
-  } catch (e) {}
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', measureAndLockHeight);
-  if (ro) ro.disconnect();
-});
 </script>
 
 <template>
@@ -57,61 +33,59 @@ onBeforeUnmount(() => {
 
     <!-- fade carousel, center slide and add visual lift -->
     <div id="featuredCarousel" ref="carouselEl" class="carousel carousel-fade mb-4" data-bs-ride="carousel" data-bs-interval="5000">
-        <h1 class="text-center headingFont bg-primary text-white py-2">Popular Meal Plans</h1>
+      <h1 class="text-center headingFont bg-primary text-white py-2">Popular Meal Plans</h1>
       <div class="carousel-inner text-center bg-primary-light" ref="carouselInner">
-         <div v-for="(f, idx) in featured" :key="f.id" :class="['carousel-item', {active: idx===0}]">
-          <div class="d-flex flex-column flex-md-row align-items-center mx-5 py-3 px-2">
-            <!-- Text panel -->
-            <div class="carousel-text-panel  text-center text-md-end">
-              <h3 class="mb-1">{{ f.name }}</h3>
-              <p class="small text-muted mb-2">{{ f.desc }}</p>
-              <ul class="list-unstyled small mb-3">
-                <li>• Balanced nutrition</li>
-                <li>• Age specific</li>
-                <li>• Vet approved</li>
-              </ul>
-              <div class="d-flex justify-content-center justify-content-md-end gap-2 pb-2">
-                <button class="btn btn-primary btn-sm">View Plan</button>
-                <button class="btn btn-outline-light btn-sm">Save</button>
+        <div v-for="(f, idx) in featured" :key="f.id" :class="['carousel-item', {active: idx===0}]">
+          <!-- centered content container: keeps content away from the very edges so controls stay visible -->
+          <div class="carousel-content-container w-100 py-3 px-2">
+            <div class="carousel-content mx-auto d-flex flex-column flex-md-row align-items-center justify-content-center" :style="{ maxWidth: contentMaxWidth }">
+              <!-- LEFT: feature panel -->
+              <div class="feature-panel p-5 mb-3  text-center text-md-start">
+                <StatCard label="Featured Meal Plan Name" unit="Meal plan Description" size="sm" highlight />
+                <div class="mt-3">
+                    <InfoDetail label="Pet Type and Breed" value="ANIMAL_TYPE - {CAT_BREED}"/>
+                    <InfoDetail label="Price Per Week" value="$69"/>
+                    <InfoDetail label="Likes" value="99"/>
+                </div>
+                <p class="text-muted mt-2 fs-5">Created by @Username
+                    <base-avatar
+                    src="https://picsum.photos/seed/defaultpet/200/200.jpg" size="xs">
+                    </base-avatar>
+                </p>
+
+                <div class="d-flex gap-2 justify-content-center justify-content-md-start mt-2">
+                  <Button label="View Plan" />
+                  <Button outline color="primary" label="Save" />
+                </div>
+              </div>
+
+              <!-- RIGHT: card -->
+              <div class="carousel-card d-flex" style="max-width:420px;">
+                <MealPlanCard :name="f.name" :rec_id="f.id" :desc="f.desc" style="width:100% !important; height:100% !important; margin:0 !important;"/>
               </div>
             </div>
-
-            <!-- Card -->
-            <div class="carousel-card mx-auto d-flex" style="max-width:420px;">
-              <MealPlanCard
-                :name="f.name"
-                :rec_id="f.id"
-                :desc="f.desc"
-                style="width:100% !important; height:100% !important; margin:0 !important; display:block !important;"
-              />
-            </div>
           </div>
-         </div>
+        </div>
       </div>
-       <button class="carousel-control-prev" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev">
-         <span class="carousel-control-prev-icon"></span>
-       </button>
-       <button class="carousel-control-next" type="button" data-bs-target="#featuredCarousel" data-bs-slide="next">
-         <span class="carousel-control-next-icon"></span>
-       </button>
-     </div>
+      <!-- keep outer edge controls at very edges -->
+      <button class="carousel-control-prev" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#featuredCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+      </button>
+    </div>
  
-     <!-- Recommended: GRID (variant 1) -->
-     <section class="mx-auto">
-        <h1 class="text-center headingFont bg-primary text-white py-2 ">Recommended</h1>
-       <div class=" py-4 row recommend-grid row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 d-flex justify-content-center">
-         <div v-for="r in recommended" :key="r.id" class=" col">
-           <div class="card-wrapper w-100 justify-content-center">
-             <MealPlanCard :name="r.name" :rec_id="r.id" :desc="r.desc" class="w-100"/>
-           </div>
-         </div>
-       </div>
-     </section>
+     <!-- TODO: Need to insert Plans here into RecommendedMeals -->
+      <RecommendedMeals
+      :plans="RecommendMealsData"></RecommendedMeals>
    </main>
-</template>
+ </template>
+ 
 
-<style scoped>
-/* ensure slides overlap instead of stacking during transition and keep inner stable */
+ 
+ <style scoped>
+ /* ensure slides overlap instead of stacking during transition and keep inner stable */
 
 /* optional: avoid double-render artifacts from internal transitions */
 
@@ -132,31 +106,33 @@ onBeforeUnmount(() => {
 /* best-effort fallback for browsers: style the custom element tag too */
 .carousel-card > meal-plan-card {
   display: block;
-  width: 100% !important;
+  width: 80% !important;
   height: 100% !important;
 }
 
 /* keep carousel fade transition smooth */
 .carousel-fade .carousel-item { transition: opacity .45s ease; }
 
-/* Recommended grid tweaks remain... */
-.recommend-grid .card-wrapper { display:flex; align-items:stretch; }
-.recommend-grid .card-wrapper .recipeCard {
-  width: 100% !important;
-  height: auto !important;
-  min-height: 240px;
-  margin-bottom: 0;
+/* center content inside a fixed-width container so controls at edges remain visible */
+.carousel-content-container { width: 100%; }
+.carousel-content { gap: 1.25rem; align-items: center; }
+/* tune maximum inner content width (adjust to taste) */
+.carousel-content { max-width: 1100px; margin: 0 auto; }
+
+/* ensure outer controls sit above content and remain clickable */
+#featuredCarousel .carousel-control-prev,
+#featuredCarousel .carousel-control-next {
+  z-index: 2500;
+  pointer-events: auto;
 }
 
-.carousel-text-panel{
-  width:100%;
-  background:transparent;
-  color:var(--bs-body-color);
+/* feature panel + card sizing */
+.feature-panel { 
+    min-width:260px; 
+    justify-self:flex-end;
 }
-@media(min-width:768px){
-  .carousel-text-panel{ width:40%; padding-right:1rem; }
-  .carousel-card{ width:56%; }
-}
-.carousel-text-panel h3{ font-weight:600; margin-bottom:.25rem; }
-.carousel-text-panel ul li{ color:rgba(255,255,255,0.85); }
+@media(min-width:768px){ .feature-panel{ width:40% } .carousel-card{ width:56% } }
+
+
 </style>
+

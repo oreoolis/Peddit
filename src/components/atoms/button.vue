@@ -64,6 +64,7 @@ export default {
 button.app-button {
   transition: box-shadow .18s ease, transform .12s ease;
   will-change: transform, box-shadow;
+  overflow: hidden
 }
 
 button.app-button:not(:disabled):hover {
