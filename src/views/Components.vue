@@ -16,6 +16,7 @@ import ProfileSearch from "@/components/molecules/social/ProfileSearch.vue";
 import RecipeData from "@/components/social/RecipeData.vue";
 import RecipePost from "@/components/social/RecipePost.vue";
 import ShareButton from "@/components/Organisms/social/ShareButton.vue";
+import AtomicDemo from "@/views/AtomicDemo.vue";
 </script>
 
 <template>
@@ -32,6 +33,9 @@ import ShareButton from "@/components/Organisms/social/ShareButton.vue";
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="social-tab" data-bs-toggle="tab" data-bs-target="#social-tab-pane" type="button" role="tab">Social Components</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="atomic-demo-tab" data-bs-toggle="tab" data-bs-target="#atomic-demo-pane" type="button" role="tab">Atomic Demo</button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="style-guide-tab" data-bs-toggle="tab" data-bs-target="#style-guide-tab-pane" type="button" role="tab">Style Guide</button>
@@ -82,6 +86,11 @@ import ShareButton from "@/components/Organisms/social/ShareButton.vue";
                 </div>
             </div>
 
+            <!-- Atomic Demo Pane (imports content from AtomicDemo.vue) -->
+            <div class="tab-pane fade" id="atomic-demo-pane" role="tabpanel">
+              <AtomicDemo />
+            </div>
+
             <!-- Style Guide Pane -->
             <div class="tab-pane fade" id="style-guide-tab-pane" role="tabpanel">
                 <h3 class="mb-3">Fonts</h3>
@@ -98,3 +107,6 @@ import ShareButton from "@/components/Organisms/social/ShareButton.vue";
         </div>
     </div>
 </template>
+
+<style scoped>
+</style>
