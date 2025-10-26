@@ -15,6 +15,7 @@ import PostSearch from "@/components/molecules/social/PostSearch.vue";
 import ProfileSearch from "@/components/molecules/social/ProfileSearch.vue";
 import RecipeData from "@/components/social/RecipeData.vue";
 import RecipePost from "@/components/social/RecipePost.vue";
+import ShareButton from "@/components/Organisms/social/ShareButton.vue";
 </script>
 
 <template>
@@ -55,6 +56,7 @@ import RecipePost from "@/components/social/RecipePost.vue";
                     <div class="col-md-4"><SelectAndOption defaultLabel="Select Field..." :options="[{ value: '1', label: 'Option 1' }]" /></div>
                     <div class="col-md-4 mt-3"><TextInput label="Text Input Field" /></div>
                     <div class="col-md-4 mt-3 d-flex align-items-center"><buttonTogglable /></div>
+                    <div class="col-md-4 mt-3"><ShareButton initial-text="Edit initial-text to edit share message!" title="Custom Title here" button-label="Share Button(adjustable text)"/></div>
                 </div>
             </div>
 
