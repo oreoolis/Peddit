@@ -7,12 +7,12 @@ import BaseAvatar from '@/components/atomic/BaseAvatar.vue';
 import RecommendedMeals from '@/components/Organisms/social/RecommendedMeals.vue';
 import StatCard from '@/components/atomic/StatCard.vue';
 import InfoDetail from '@/components/atomic/InfoDetail.vue';
-const featured = [
-    { id: 'r1', name: 'Test', desc: 'Yum Yum' },
-    { id: 'r2', name: 'Test 2', desc: 'Test Test' },
-    { id: 'r3', name: 'Tuna Delight', desc: 'Light, low-calorie option' },
-    { id: 'r4', name: 'Beef Boost', desc: 'Calorie-dense for underweight pets' },
-    { id: 'r5', name: 'Veg Mix', desc: 'Gentle on stomachs' }
+const featured = [ // meal card data + 
+    { id: 'r1', name: 'Test', desc: 'Yum Yum', animal: 'Dog', breed: 'Golden Retriever', price_per_week: 69.5, likes: 99, username: 'MaryJane', user_image:'https://picsum.photos/seed/defaultpet/200/200.jpg'},
+    { id: 'r2', name: 'Test 2', desc: 'Test Test', animal: 'Dog', breed: 'Poodle', price_per_week: 123, likes: 123 , username: 'TomCruise', user_image:'https://picsum.photos/seed/pet/200/200.jpg' },
+    { id: 'r3', name: 'Tuna Delight', desc: 'Light, low-calorie option', animal: 'Dog', breed: 'Husky', price_per_week: 10, likes: 33 , username: 'KimJun', user_image:'https://picsum.photos/seed/dog/200/200.jpg' },
+    { id: 'r4', name: 'Beef Boost', desc: 'Calorie-dense for underweight pets', animal: 'Cat', breed: 'Black cat', price_per_week: 15, likes: 200, username: 'BigMan', user_image:'https://picsum.photos/cat/defaultpet/200/200.jpg' },
+    { id: 'r5', name: 'Veg Mix', desc: 'Gentle on stomachs', animal: 'Cat', breed: 'Golden Kitty', price_per_week: 25, likes: 300, username: 'Mobil', user_image:'https://picsum.photos/seed/sky/200/200.jpg' }
 
 ];
 const RecommendMealsData = [
@@ -22,7 +22,6 @@ const RecommendMealsData = [
     { id: 'r4', name: 'Beef Boost', desc: 'Calorie-dense for underweight pets' },
     { id: 'r5', name: 'Veg Mix', desc: 'Gentle on stomachs' }
 ]
-const test= [50]
 
 </script>
 
@@ -41,15 +40,15 @@ const test= [50]
             <div class="carousel-content mx-auto d-flex flex-column flex-md-row align-items-center justify-content-center" :style="{ maxWidth: contentMaxWidth }">
               <!-- LEFT: feature panel -->
               <div class="feature-panel p-5 mb-3  text-center text-md-start">
-                <StatCard label="Featured Meal Plan Name" unit="Meal plan Description" size="sm" highlight />
+                <StatCard :label="f.name" :unit="f.desc" size="sm" highlight />
                 <div class="mt-3">
-                    <InfoDetail label="Pet Type and Breed" value="ANIMAL_TYPE - {CAT_BREED}"/>
-                    <InfoDetail label="Price Per Week" value="$69"/>
-                    <InfoDetail label="Likes" value="99"/>
+                    <InfoDetail label="Pet Type and Breed" :value="f.animal + ' - ' + f.breed"/>
+                    <InfoDetail label="Price Per Week" :value="'$' + f.price_per_week "/>
+                    <InfoDetail label="Likes" :value="f.likes"/>
                 </div>
-                <p class="text-muted mt-2 fs-5">Created by @Username
+                <p class="text-muted mt-2 fs-5">Created by @{{ f.username }}
                     <base-avatar
-                    src="https://picsum.photos/seed/defaultpet/200/200.jpg" size="xs">
+                    :src="f.user_image" size="xs">
                     </base-avatar>
                 </p>
 
