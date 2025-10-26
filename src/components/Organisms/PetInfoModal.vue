@@ -124,7 +124,7 @@ const closeModal = () => {
                     <div class="preferred-meal-container container py-5 px-5 mt-4 rounded-5 bg-light shadow">
                         <h2 class="headingFont fw-semibold">Preferred Meal</h2>
                         <div class="row d-flex justify-content-center">
-                            <div v-if="props.recipeDetails" class="col-lg-5">
+                            <div v-if="props.recipeDetails" class="col-lg-5 mt-5">
                                 <MealPlanCards :rec_id="props.recipeDetails.id" :name="props.recipeDetails.recipe_name" :desc="props.recipeDetails.description"/>
                             </div>
                         </div>

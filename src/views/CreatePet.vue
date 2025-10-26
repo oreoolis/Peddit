@@ -31,6 +31,7 @@ watch([petKind, isFetchingBreeds], () => {
   breedNameList.value = breedNames.value;
 })
 
+// default form values
 const form = ref({
   name: '',
   kind: petKind.value,
@@ -229,7 +230,7 @@ onMounted( async () => {
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Breed</label>
-              <BreedSelect defaultLabel="Select Breed..." :breedOptions="breedNameList" v-model="form.breed" />
+              <BreedSelect defaultLabel="Select Breed..." :breedOptions="breedNameList" :isSearchable="true" v-model="form.breed" />
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Weight</label>
@@ -241,7 +242,7 @@ onMounted( async () => {
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Selected Meal</label>
-              <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes" v-model="form.preferred_recipe" />
+              <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes" :isSearchable="true" v-model="form.preferred_recipe" />
             </div>
 
 

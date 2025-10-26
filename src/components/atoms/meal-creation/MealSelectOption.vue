@@ -8,6 +8,10 @@ const props = defineProps({
   options: {
     type: Array,
     required: true
+  },
+  isSearchable: {
+    type: Boolean,
+    required: false
   }
 });
 

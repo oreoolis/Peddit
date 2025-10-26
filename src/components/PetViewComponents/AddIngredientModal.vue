@@ -60,7 +60,9 @@ const handleSubmit = () => {
                     <!-- File Input -->
                     <div class="mb-3">
                         <label class="form-label headingFont fw-bold h5" for="inputGroupSelect01">Food Item</label>
-                        <MealSelectOption defaultLabel="Select an option..." :options="props.ingredients"
+                        <MealSelectOption defaultLabel="Select an option..."
+                            :options="props.ingredients"
+                            :isSearchable="true"
                             v-model="selectedIngredient" />
                     </div>
                     <div class="mb-3">

@@ -8,6 +8,7 @@ import { onMounted, ref, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
 import { usePetInfoApi } from '@/composables/usePetInfoApi';
 import BreedSelect from '@/components/molecules/create-edit-pet/BreedSelect.vue';
+import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelect.vue';
 
 
 const petStore = usePetStore();
@@ -24,16 +25,9 @@ const petKind = ref(currentPet.value.kind); // default value on load
 const { breedNames, error: breedError, isFetching: isFetchingBreeds } = usePetInfoApi(petKind);
 
 // dynamically update breed list
-const breedNameList = ref([]);
-
-watch([petKind, isFetchingBreeds], () => {
-    if (isFetchingBreeds.value) {
-        return;
-    }
-    breedNameList.value = breedNames.value;
+const breedNameList = computed(() => {
+    return isFetchingBreeds.value ? [] : breedNames.value;
 })
-
-
 // Form data
 const form = ref({
     name: currentPet.value.name,
@@ -43,7 +37,8 @@ const form = ref({
     birthdate: currentPet.value.birthdate,
     weight_kg: currentPet.value.weight_kg,
     allergies: currentPet.value.allergies,
-    neutered: currentPet.value.neutered
+    neutered: currentPet.value.neutered,
+    preferred_recipe: currentPet.value.preferred_recipe
 })
 
 const imageFile = ref(null);
@@ -126,9 +121,9 @@ const resetForm = () => {
 }
 
 const selectPetKind = (kind) => {
-  petKind.value = kind;
-  form.value.kind = kind;
-  showToast(`You have chosen ${kind.charAt(0).toUpperCase() + kind.slice(1)}!`);
+    petKind.value = kind;
+    form.value.kind = kind;
+    showToast(`You have chosen ${kind.charAt(0).toUpperCase() + kind.slice(1)}!`);
 }
 
 const showToast = (text) => {
@@ -257,19 +252,25 @@ const showToast = (text) => {
 
                         <div class="mb-3">
                             <label class="form-label headingFont fw-bold h5">Breed</label>
-                            <BreedSelect :defaultLabel="form.breed" :options="breedNameList" v-model="form.breed" />
+                            <BreedSelect :defaultLabel="form.breed" :breedOptions="breedNameList" :isSearchable="true"
+                                v-model="form.breed" />
                         </div>
 
                         <div class="mb-3 input-group-lg">
                             <label for="" class="form-label headingFont fw-bold h5">Weight (kg)</label>
-                            <input type="number" name="" id="" class="form-control bodyFont" :placeholder="form.weight_kg"
-                                aria-describedby="helpId" v-model="form.weight_kg" />
+                            <input type="number" name="" id="" class="form-control bodyFont"
+                                :placeholder="form.weight_kg" aria-describedby="helpId" v-model="form.weight_kg" />
                         </div>
 
                         <div class="mb-3 input-group-lg">
                             <label for="" class="form-label headingFont fw-bold h5">Allergies (Optional)</label>
                             <input type="text" name="" id="" class="form-control bodyFont" :placeholder="form.allergies"
                                 aria-describedby="helpId" v-model="form.allergies" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label headingFont fw-bold h5">Selected Meal</label>
+                            <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes"
+                                :isSearchable="true" v-model="form.preferred_recipe" />
                         </div>
 
                         <div class="mb-3 input-group-lg">
