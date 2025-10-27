@@ -170,10 +170,10 @@ onMounted(() => {
                                 <div class="dot"></div>
                             </section>
                         </div>
-                        <div v-else-if="nutritionStore.recipes.length == 0">
+                        <div v-if="nutritionStore.recipes.length == 0">
                             <h1>No recipes. Create one now!</h1>
                         </div>
-                        <div class="row">
+                        <div v-else class="row">
                             <div v-for="recipe in nutritionStore.recipes"
                                 class="col-sm-12 col-md-3 col-lg-4 d-flex justify-content-center">
                                 <MealPlanCards :rec_id="recipe.id" :name="recipe.recipe_name"
