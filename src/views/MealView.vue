@@ -7,7 +7,10 @@ import BaseAvatar from '@/components/atomic/BaseAvatar.vue';
 import RecommendedMeals from '@/components/Organisms/social/RecommendedMeals.vue';
 import StatCard from '@/components/atomic/StatCard.vue';
 import InfoDetail from '@/components/atomic/InfoDetail.vue';
-const featured = [ // meal card data + 
+import useMealSearch from '@/composables/useMealSearch.js';
+import MealViewSearchResult from './MealViewSearchResult.vue';
+import router from '@/router';
+const featured = [ // meal card data + user data
     { id: 'r1', name: 'Test', desc: 'Yum Yum', animal: 'Dog', breed: 'Golden Retriever', price_per_week: 69.5, likes: 99, username: 'MaryJane', user_image:'https://picsum.photos/seed/defaultpet/200/200.jpg'},
     { id: 'r2', name: 'Test 2', desc: 'Test Test', animal: 'Dog', breed: 'Poodle', price_per_week: 123, likes: 123 , username: 'TomCruise', user_image:'https://picsum.photos/seed/pet/200/200.jpg' },
     { id: 'r3', name: 'Tuna Delight', desc: 'Light, low-calorie option', animal: 'Dog', breed: 'Husky', price_per_week: 10, likes: 33 , username: 'KimJun', user_image:'https://picsum.photos/seed/dog/200/200.jpg' },
@@ -23,18 +26,46 @@ const RecommendMealsData = [
     { id: 'r5', name: 'Veg Mix', desc: 'Gentle on stomachs' }
 ]
 
+const { query, results, loading, setItems, searchNow } = useMealSearch({ initialItems: featured, debounceMs: 300 });
+onMounted(() => {
+  setItems(featured);
+});
+
+
+function goToSearchResults(submittedValue) {
+  const term = (typeof submittedValue === 'string' && submittedValue.trim().length)
+    ? submittedValue.trim()
+    : (query.value ?? '').toString().trim();
+
+  if (!term) return;
+  console.log("Clicked");
+  // keep the composable's query in sync
+  query.value = term;
+
+  // run immediate search (populate results)
+  if (typeof searchNow === 'function') searchNow(term);
+
+  // navigate to search results view with query param
+  router.push({
+    name: 'SearchResults',
+    query: { q: term }
+  });
+}
+
 </script>
 
 <template>
   <main class="">
     <h1 class="text-center headingFont mb-3">Search Meal Plans</h1>
-    <div class="d-flex justify-content-center mb-3"><TextInput label="Search" class="w-75"/></div>
+    <div class="d-flex justify-content-center mb-3"><TextInput label="Search" v-model="query" class="w-75" @submit="goToSearchResults" /></div>
 
     <!-- fade carousel, center slide and add visual lift -->
     <div id="featuredCarousel" ref="carouselEl" class="carousel carousel-fade mb-4" data-bs-ride="carousel" data-bs-interval="5000">
       <h1 class="text-center headingFont bg-primary text-white py-2">Popular Meal Plans</h1>
       <div class="carousel-inner text-center bg-primary-light" ref="carouselInner">
-        <div v-for="(f, idx) in featured" :key="f.id" :class="['carousel-item', {active: idx===0}]">
+        <div v-for="(f, idx) in featured" 
+        :key="f.id" 
+        :class="['carousel-item', {active: idx===0}]">
           <!-- centered content container: keeps content away from the very edges so controls stay visible -->
           <div class="carousel-content-container w-100 py-3 px-2">
             <div class="carousel-content mx-auto d-flex flex-column flex-md-row align-items-center justify-content-center" :style="{ maxWidth: contentMaxWidth }">

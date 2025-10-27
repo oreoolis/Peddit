@@ -99,6 +99,7 @@ const combinedMessage = computed(() => {
   const url = window.location.href;
   return `Check out this link from Peddit!\n\n${url}`;
 });
+console.log(currentPost)
 </script>
 
 <template>

@@ -13,7 +13,7 @@ import MealPlanCard from "@/components/PetViewComponents/MealPlanCard.vue";
 import comment from "@/components/atoms/social/Comment.vue";
 import PostSearch from "@/components/molecules/social/PostSearch.vue";
 import ProfileSearch from "@/components/molecules/social/ProfileSearch.vue";
-import RecipeData from "@/components/social/RecipeData.vue";
+import RecipeSearch from "@/components/social/RecipeSearch.vue";
 import RecipePost from "@/components/social/RecipePost.vue";
 import ShareButton from "@/components/Organisms/social/ShareButton.vue";
 import AtomicDemo from "@/views/AtomicDemo.vue";
@@ -81,7 +81,7 @@ import AtomicDemo from "@/views/AtomicDemo.vue";
                     <div class="col-12 mb-3"><h4 class="text-center">Comment</h4><comment /></div>
                     <div class="col-md-6 mb-3"><h4 class="text-center">PostSearch</h4><PostSearch /></div>
                     <div class="col-md-6 mb-3"><h4 class="text-center">ProfileSearch</h4><ProfileSearch /></div>
-                    <div class="col-md-6 mb-3"><h4 class="text-center">RecipeData</h4><RecipeData /></div>
+                    <div class="col-md-6 mb-3"><h4 class="text-center">RecipeSearch</h4><RecipeSearch/></div>
                     <div class="col-md-6 mb-3"><h4 class="text-center">RecipePost</h4><RecipePost /></div>
                 </div>
             </div>

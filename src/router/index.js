@@ -119,8 +119,12 @@ const router = createRouter({
       name: 'edit-meal',
       component: () => import('@/views/EditMeal.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/search',
+      name: 'SearchResults',
+      component: () => import('@/views/MealViewSearchResult.vue')
     }
-
 
     // {
     //   // route level code-splitting
