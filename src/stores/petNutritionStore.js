@@ -211,6 +211,11 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
         .from('recipes')
         .select(`
           *,
+          profiles:author_id (
+                        username,
+                        display_name,
+                        avatar_url
+          ),
           recipe_ingredients (
             id,
             quantity_g,

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue';
 import TextInput from '@/components/atoms/TextInput.vue';
 import MealPlanCard from '@/components/PetViewComponents/MealPlanCard.vue';
 import Button from '@/components/atoms/button.vue';
@@ -10,51 +10,74 @@ import InfoDetail from '@/components/atomic/InfoDetail.vue';
 import useMealSearch from '@/composables/useMealSearch.js';
 import MealViewSearchResult from './MealViewSearchResult.vue';
 import router from '@/router';
-const featured = [ // meal card data + user data
-    { id: 'r1', name: 'Test', desc: 'Yum Yum', animal: 'Dog', breed: 'Golden Retriever', price_per_week: 69.5, likes: 99, username: 'MaryJane', user_image:'https://picsum.photos/seed/defaultpet/200/200.jpg'},
-    { id: 'r2', name: 'Test 2', desc: 'Test Test', animal: 'Dog', breed: 'Poodle', price_per_week: 123, likes: 123 , username: 'TomCruise', user_image:'https://picsum.photos/seed/pet/200/200.jpg' },
-    { id: 'r3', name: 'Tuna Delight', desc: 'Light, low-calorie option', animal: 'Dog', breed: 'Husky', price_per_week: 10, likes: 33 , username: 'KimJun', user_image:'https://picsum.photos/seed/dog/200/200.jpg' },
-    { id: 'r4', name: 'Beef Boost', desc: 'Calorie-dense for underweight pets', animal: 'Cat', breed: 'Black cat', price_per_week: 15, likes: 200, username: 'BigMan', user_image:'https://picsum.photos/cat/defaultpet/200/200.jpg' },
-    { id: 'r5', name: 'Veg Mix', desc: 'Gentle on stomachs', animal: 'Cat', breed: 'Golden Kitty', price_per_week: 25, likes: 300, username: 'Mobil', user_image:'https://picsum.photos/seed/sky/200/200.jpg' }
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
+import { storeToRefs } from 'pinia';
+// const featured = [ // meal card data + user data
+//     { id: 'r1', name: 'Test', desc: 'Yum Yum', animal: 'Dog', breed: 'Golden Retriever', price_per_week: 69.5, likes: 99, username: 'MaryJane', user_image:'https://picsum.photos/seed/defaultpet/200/200.jpg'},
+//     { id: 'r2', name: 'Test 2', desc: 'Test Test', animal: 'Dog', breed: 'Poodle', price_per_week: 123, likes: 123 , username: 'TomCruise', user_image:'https://picsum.photos/seed/pet/200/200.jpg' },
+//     { id: 'r3', name: 'Tuna Delight', desc: 'Light, low-calorie option', animal: 'Dog', breed: 'Husky', price_per_week: 10, likes: 33 , username: 'KimJun', user_image:'https://picsum.photos/seed/dog/200/200.jpg' },
+//     { id: 'r4', name: 'Beef Boost', desc: 'Calorie-dense for underweight pets', animal: 'Cat', breed: 'Black cat', price_per_week: 15, likes: 200, username: 'BigMan', user_image:'https://picsum.photos/cat/defaultpet/200/200.jpg' },
+//     { id: 'r5', name: 'Veg Mix', desc: 'Gentle on stomachs', animal: 'Cat', breed: 'Golden Kitty', price_per_week: 25, likes: 300, username: 'Mobil', user_image:'https://picsum.photos/seed/sky/200/200.jpg' }
 
-];
-const RecommendMealsData = [
-    { id: 'r1', name: 'Test', desc: 'Yum Yum' },
-    { id: 'r2', name: 'Test 2', desc: 'Test Test' },
-    { id: 'r3', name: 'Tuna Delight', desc: 'Light, low-calorie option' },
-    { id: 'r4', name: 'Beef Boost', desc: 'Calorie-dense for underweight pets' },
-    { id: 'r5', name: 'Veg Mix', desc: 'Gentle on stomachs' }
-]
+// ];
+// const RecommendMealsData = [
+//     { id: 'r1', name: 'Test', desc: 'Yum Yum' },
+//     { id: 'r2', name: 'Test 2', desc: 'Test Test' },
+//     { id: 'r3', name: 'Tuna Delight', desc: 'Light, low-calorie option' },
+//     { id: 'r4', name: 'Beef Boost', desc: 'Calorie-dense for underweight pets' },
+//     { id: 'r5', name: 'Veg Mix', desc: 'Gentle on stomachs' }
+// ]
 
-const { query, results, loading, setItems, searchNow } = useMealSearch({ initialItems: featured, debounceMs: 300 });
-onMounted(() => {
-  setItems(featured);
+// const { query, results, loading, setItems, searchNow } = useMealSearch({ initialItems: featured, debounceMs: 300 });
+
+
+
+// function goToSearchResults(submittedValue) {
+//   const term = (typeof submittedValue === 'string' && submittedValue.trim().length)
+//     ? submittedValue.trim()
+//     : (query.value ?? '').toString().trim();
+
+//   if (!term) return;
+//   console.log("Clicked");
+//   // keep the composable's query in sync
+//   query.value = term;
+
+//   // run immediate search (populate results)
+//   if (typeof searchNow === 'function') searchNow(term);
+
+//   // navigate to search results view with query param
+//   router.push({
+//     name: 'SearchResults',
+//     query: { q: term }
+//   });
+// }
+
+// TODO: Bern code
+const petNutritionStore = usePetNutritionStore();
+const { recipes } = storeToRefs(petNutritionStore);
+
+const featured = computed(() => recipes.value);
+
+onMounted(async () => {
+  try {
+    await petNutritionStore.fetchRecipes();
+    // debug - shows what the store returned
+    console.log("Fetched recipes:", recipes.value);
+  } catch (err) {
+    console.error("Error fetching recipes:", err);
+  }
 });
 
-
-function goToSearchResults(submittedValue) {
-  const term = (typeof submittedValue === 'string' && submittedValue.trim().length)
-    ? submittedValue.trim()
-    : (query.value ?? '').toString().trim();
-
-  if (!term) return;
-  console.log("Clicked");
-  // keep the composable's query in sync
-  query.value = term;
-
-  // run immediate search (populate results)
-  if (typeof searchNow === 'function') searchNow(term);
-
-  // navigate to search results view with query param
-  router.push({
-    name: 'SearchResults',
-    query: { q: term }
+const testbtn = () => {
+  featured.value.forEach(f => {
+    console.log(f);
   });
 }
 
 </script>
 
 <template>
+  <button @click="testbtn"> TESTTS </button>
   <main class="">
     <h1 class="text-center headingFont mb-3">Search Meal Plans</h1>
     <div class="d-flex justify-content-center mb-3"><TextInput label="Search" v-model="query" class="w-75" @submit="goToSearchResults" /></div>
@@ -71,15 +94,15 @@ function goToSearchResults(submittedValue) {
             <div class="carousel-content mx-auto d-flex flex-column flex-md-row align-items-center justify-content-center" :style="{ maxWidth: contentMaxWidth }">
               <!-- LEFT: feature panel -->
               <div class="feature-panel p-5 mb-3  text-center text-md-start">
-                <StatCard :label="f.name" :unit="f.desc" size="sm" highlight />
+                <StatCard :label="f.recipe_name" :unit="f.notes" size="sm" highlight />
                 <div class="mt-3">
-                    <InfoDetail label="Pet Type and Breed" :value="f.animal + ' - ' + f.breed"/>
+                    <InfoDetail label="Pet Type and Breed" :value="f.pet_kind + ' - ' + f.pet_breed"/>
                     <InfoDetail label="Price Per Week" :value="'$' + f.price_per_week "/>
                     <InfoDetail label="Likes" :value="f.likes"/>
                 </div>
-                <p class="text-muted mt-2 fs-5">Created by @{{ f.username }}
+                <p class="text-muted mt-2 fs-5">Created by @{{ f.profiles.display_name }}
                     <base-avatar
-                    :src="f.user_image" size="xs">
+                    :src="f.profiles.avatar_url" size="xs">
                     </base-avatar>
                 </p>
 
@@ -91,7 +114,7 @@ function goToSearchResults(submittedValue) {
 
               <!-- RIGHT: card -->
               <div class="carousel-card d-flex" style="max-width:420px;">
-                <MealPlanCard :name="f.name" :rec_id="f.id" :desc="f.desc" style="width:100% !important; height:100% !important; margin:0 !important;"/>
+                <MealPlanCard :name="f.recipe_name" :rec_id="f.id" :desc="f.desc" style="width:100% !important; height:100% !important; margin:0 !important;"/>
               </div>
             </div>
           </div>
