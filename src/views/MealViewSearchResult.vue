@@ -10,6 +10,7 @@ import BaseLabel from '@/components/atomic/BaseLabel.vue';
 import BaseStatNumber from '@/components/atomic/BaseStatNumber.vue';
 import Button from '@/components/atoms/button.vue';
 import RecipeSearch from '@/components/social/RecipeSearch.vue';
+import ShareButton from '@/components/Organisms/social/ShareButton.vue';
 const route = useRoute();
 const router = useRouter();
 const initialQuery = route.query.q || '';
@@ -207,7 +208,7 @@ function goToSearchResults(submittedValue) {
       :Animal_Breed="Post.Animal_Breed"
       :Cost_Per_Week="Post.Cost_Per_Week"
       :Recipe_Nutrition_Stats="Post.Recipe_Nutrition_Stats"
-    >
+    > 
     </RecipeSearch>
     <div v-if="loading" class="skeleton-list">
       <div class="skeleton-card" v-for="n in 4" :key="n"></div>

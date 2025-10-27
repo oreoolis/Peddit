@@ -5,6 +5,7 @@ import BaseStatNumber from '@/components/atomic/BaseStatNumber.vue';
 import Button from '@/components/atoms/button.vue';
 import ShareButton from '@/components/Organisms/social/ShareButton.vue';
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const props = defineProps({
   RecipeId: { type: String, default: '123e' },
@@ -29,10 +30,18 @@ const props = defineProps({
 });
 
 const expanded = ref(false);
+const router = useRouter();
+
+function onCardClick(e) {
+  // ignore clicks on explicit controls (buttons, links, inputs) OR elements marked .no-nav
+  const bad = e.target.closest('button, a, input, select, .no-nav');
+  if (bad) return;
+  router.push({ path: '/view-recipe-post', query: { q: props.RecipeId } });
+}
 </script>
 
 <template>
-<div class="card shadow-md">
+<div class="card shadow-md" >
     <!-- HEADER -->
     <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
         <!-- Left: avatar + user info (flex-shrink so it won't grow) -->
@@ -90,9 +99,8 @@ const expanded = ref(false);
        </div>
       </div>
      </div>
-    <div class="card-footer bg-primary d-flex justify-content-between">
-        <Button label="View Recipe" color="white"></Button>
-        <ShareButton ></ShareButton>
+    <div @click="onCardClick" class="card-footer bg-primary text-white d-flex justify-content-center">
+        <h3 >View Post</h3>
     </div>
 
 </div>
@@ -182,4 +190,75 @@ opacity: 0;
   box-shadow: 0 15px 50px rgba(32, 122, 185, 0.26);
 }
 .card:hover::before { opacity: 1; transform: translateY(0); }
+
+.card-footer {
+  position: relative;
+  cursor: pointer;
+  transition: transform .24s ease, box-shadow .24s ease;
+  z-index: 1;
+  display: flex;
+}
+
+/* subtle background pulse on hover (like PetCard summary) */
+.card-footer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(61, 172, 216, 0.31); /* #3dacd84f */
+  opacity: 0;
+  transform: scale(0.96);
+  transition: opacity .28s ease, transform .28s ease;
+  z-index: -1;
+}
+.card-footer:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* elevate the label text for a nice micro-lift */
+.card-footer h3,
+.card-footer .btn-label {
+  margin: 0;
+  transition: transform .22s cubic-bezier(.2,.9,.3,1), color .18s ease;
+  will-change: transform, color;
+}
+.card-footer:hover h3,
+.card-footer:hover .btn-label {
+  transform: translateY(-4px);
+  color: #fff;
+}
+
+/* click ripple for tactile feedback */
+.card-footer::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background: rgba(255,255,255,0.14);
+  border-radius: 50%;
+  transform: translate(-50%,-50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
+.card-footer:active::after {
+  animation: footerRipple .6s ease-out;
+}
+@keyframes footerRipple {
+  0% { transform: translate(-50%,-50%) scale(0.4); opacity: .6; }
+  100% { transform: translate(-50%,-50%) scale(6); opacity: 0; }
+}
+
+/* focus style for keyboard users */
+.card-footer:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(61,172,216,0.12);
+}
+
+/* responsive tweak */
+@media (max-width: 576px) {
+  .card-footer { padding: .6rem; }
+  .card-footer h3, .card-footer .btn-label { font-size: 1rem; }
+}
 </style>

@@ -196,49 +196,5 @@ console.log(currentPost)
 }
 
 /* modal shell */
-.share-modal {
-  width: 100%;
-  max-width: 680px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,255,0.96));
-  border-radius: 12px;
-  box-shadow: 0 24px 60px rgba(8,18,40,0.28);
-  padding: 1rem;
-  border: 1px solid rgba(10,20,40,0.04);
-  animation: popIn 180ms cubic-bezier(.2,.9,.2,1);
-}
 
-/* header / body / footer */
-.share-modal-header { padding-bottom: 0.4rem; border-bottom: 1px solid rgba(15,23,42,0.04); }
-.share-modal-body { padding-top: 0.6rem; color: #203243; }
-.share-modal-footer { padding-top: 0.6rem; border-top: 1px solid rgba(15,23,42,0.03); }
-
-/* textarea + preview */
-.share-textarea {
-  min-height: 84px;
-  resize: vertical;
-  border-radius: 8px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
-}
-.preview-box {
-  background: #fbfdff;
-  border: 1px dashed rgba(15,23,42,0.06);
-  border-radius: 8px;
-  margin-top: 6px;
-  white-space: pre-wrap;
-}
-
-/* small screen: transform into bottom-sheet */
-@media (max-width: 576px) {
-  .share-modal-backdrop { align-items: flex-end; padding: 0; background: linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.36)); }
-  .share-modal {
-    border-radius: 12px 12px 0 0;
-    max-width: 100%;
-    width: 100%;
-    padding: 0.9rem;
-    box-shadow: 0 -8px 30px rgba(6,12,24,0.18);
-    animation: slideUp 220ms cubic-bezier(.2,.9,.2,1);
-  }
-}
-@keyframes popIn { from { transform: translateY(6px) scale(.995); opacity: 0 } to { transform: translateY(0) scale(1); opacity: 1 } }
-@keyframes slideUp { from { transform: translateY(18px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
 </style>

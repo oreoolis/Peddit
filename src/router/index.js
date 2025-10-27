@@ -124,8 +124,12 @@ const router = createRouter({
       path: '/search',
       name: 'SearchResults',
       component: () => import('@/views/MealViewSearchResult.vue')
+    },
+    {
+      path: '/view-recipe-post',
+      name: 'view-recipe-post',
+      component: () => import('@/views/ViewRecipePost.vue')
     }
-
     // {
     //   // route level code-splitting
     //   // this generates a separate chunk (About.[hash].js) for this route

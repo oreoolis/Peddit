@@ -152,8 +152,12 @@ function goToSearchResults(submittedValue) {
 /* ensure outer controls sit above content and remain clickable */
 #featuredCarousel .carousel-control-prev,
 #featuredCarousel .carousel-control-next {
-  z-index: 2500;
+  align-items: center;
+  justify-content: center;
   pointer-events: auto;
+  background-color:rgba(255, 255, 255, 0.096); 
+  height: 64px;
+  min-width: 56px;
 }
 
 /* feature panel + card sizing */
