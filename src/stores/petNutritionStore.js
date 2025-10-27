@@ -2,6 +2,9 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
+import { useStorage } from '@/composables/useStorage';
+
+const { getPublicImage } = useStorage();
 
 /**
  * Pet Nutrition Store
@@ -15,10 +18,19 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
   const recipes = ref([]);
   const loading = ref(false);
   const error = ref(null);
+  const recipeQuery = ref('');
 
   // Getters
   const totalIngredients = computed(() => ingredients.value.length);
   const totalRecipes = computed(() => recipes.value.length);
+
+  const filteredRecipes = computed(() => {
+    if (!recipeQuery.value) return recipes.value;
+    
+    return recipes.value.filter(recipe => 
+      recipe.recipe_name.toLowerCase().includes(recipeQuery.value.toLowerCase())
+    );
+  });
 
   // ============================================
   // NUTRITION PROFILES
@@ -235,9 +247,17 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
       const { data, error: fetchError } = await query;
 
+      // Change the avatar_url into the image URL inside supabase avatars storage bucket
+      const transformedPosts = data.map(recipe => {
+          if (recipe.profiles?.avatar_url) {
+              recipe.profiles.avatar_url = getPublicImage('avatars', recipe.profiles.avatar_url);
+          }
+          return recipe;
+      });
+
       if (fetchError) throw fetchError;
 
-      recipes.value = data || [];
+      recipes.value = transformedPosts || [];
       return { success: true, data };
     } catch (err) {
       error.value = err.message;
@@ -656,10 +676,12 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
     recipes,
     loading,
     error,
+    recipeQuery,
     
     // Computed
     totalIngredients,
     totalRecipes,
+    filteredRecipes,
     
     // Nutrition Profiles
     fetchNutritionProfiles,

@@ -32,31 +32,33 @@ import { storeToRefs } from 'pinia';
 
 
 
-// function goToSearchResults(submittedValue) {
-//   const term = (typeof submittedValue === 'string' && submittedValue.trim().length)
-//     ? submittedValue.trim()
-//     : (query.value ?? '').toString().trim();
-
-//   if (!term) return;
-//   console.log("Clicked");
-//   // keep the composable's query in sync
-//   query.value = term;
-
-//   // run immediate search (populate results)
-//   if (typeof searchNow === 'function') searchNow(term);
-
-//   // navigate to search results view with query param
-//   router.push({
-//     name: 'SearchResults',
-//     query: { q: term }
-//   });
-// }
 
 // TODO: Bern code
 const petNutritionStore = usePetNutritionStore();
-const { recipes } = storeToRefs(petNutritionStore);
+const { recipeQuery, recipes } = storeToRefs(petNutritionStore);
 
 const featured = computed(() => recipes.value);
+
+function goToSearchResults(submittedValue) {
+  // const term = (typeof submittedValue === 'string' && submittedValue.trim().length)
+  //   ? submittedValue.trim()
+  //   : (query.value ?? '').toString().trim();
+
+  // if (!term) return;
+  // console.log("Clicked");
+  // // keep the composable's query in sync
+  // query.value = term;
+
+  // // run immediate search (populate results)
+  // if (typeof searchNow === 'function') searchNow(term);
+  recipeQuery.value = submittedValue;
+
+  // navigate to search results view with query param
+  router.push({
+    name: 'SearchResults',
+    query: { q: recipeQuery.value }
+  });
+}
 
 onMounted(async () => {
   try {
@@ -68,16 +70,9 @@ onMounted(async () => {
   }
 });
 
-const testbtn = () => {
-  featured.value.forEach(f => {
-    console.log(f);
-  });
-}
-
 </script>
 
 <template>
-  <button @click="testbtn"> TESTTS </button>
   <main class="">
     <h1 class="text-center headingFont mb-3">Search Meal Plans</h1>
     <div class="d-flex justify-content-center mb-3"><TextInput label="Search" v-model="query" class="w-75" @submit="goToSearchResults" /></div>

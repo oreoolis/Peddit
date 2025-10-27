@@ -46,7 +46,7 @@ function onCardClick(e) {
     <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
         <!-- Left: avatar + user info (flex-shrink so it won't grow) -->
         <div class="d-flex align-items-center flex-shrink-0">
-        <base-avatar src="https://picsum.photos/seed/defaultpet/200/200.jpg" size="xs" class="me-2" />
+        <base-avatar :src="User_Image" size="xs" class="me-2" />
         <div class="header-user">
             <div class="fw-bold">@{{props.Username}}</div>
         </div>
