@@ -78,27 +78,7 @@
     <!-- Map container -->
     <div id="map" style="height: 500px; width: 100%; border: 1px solid #ddd;"></div>
 
-    <!-- Results filter (appears only if there are >10 results) -->
-    <div class="results-filter mt-3" v-if="allPlaces.length > 10">
-      <div class="btn-group" role="group" aria-label="Result filter">
-        <button
-          class="btn"
-          :class="showMode === 'top10' ? 'btn-primary' : 'btn-outline-primary'"
-          @click="setShowMode('top10')"
-        >
-          Show first 10
-        </button>
-        <button
-          class="btn ms-2"
-          :class="showMode === 'all' ? 'btn-primary' : 'btn-outline-primary'"
-          @click="setShowMode('all')"
-        >
-          Show all ({{ allPlaces.length }})
-        </button>
-      </div>
-    </div>
-    <!-- Loading indicato
-     r -->
+    <!-- Loading indicator -->
     <div v-if="loading" class="text-center mt-3">
       <div class="spinner-border" role="status">
         <span class="visually-hidden">Loading...</span>
@@ -115,13 +95,62 @@
       </p>
     </div>
 
+    <!-- Results filter (appears only if there are >10 results) -->
+    <div v-else-if="allPlaces.length > 10" class="results-filter mt-3">
+      <div class="d-flex align-items-center justify-content-center gap-3">
+        <label><strong>Sort by:</strong></label>
+        <div class="btn-group" role="group" aria-label="Sort filter">
+          <button
+            class="btn btn-sm"
+            :class="sortMode === 'rating' ? 'btn-primary' : 'btn-outline-primary'"
+            @click="setSortMode('rating')"
+          >
+            ⭐ Top Rated
+          </button>
+          <button
+            class="btn btn-sm"
+            :class="sortMode === 'distance' ? 'btn-primary' : 'btn-outline-primary'"
+            @click="setSortMode('distance')"
+          >
+            📍 Nearest
+          </button>
+        </div>
+        <div class="btn-group ms-3" role="group" aria-label="Result filter">
+          <button
+            class="btn btn-sm"
+            :class="showMode === 'top10' ? 'btn-success' : 'btn-outline-success'"
+            @click="setShowMode('top10')"
+          >
+            Show Top 10
+          </button>
+          <button
+            class="btn btn-sm"
+            :class="showMode === 'all' ? 'btn-success' : 'btn-outline-success'"
+            @click="setShowMode('all')"
+          >
+            Show All ({{ allPlaces.length }})
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Cards container -->
-    <div v-else class="cards-container mt-4">
+    <div v-if="!loading && allPlaces.length > 0" class="cards-container mt-4">
       <div
         v-for="place in filteredPlaces"
         :key="place.place_id"
         class="card"
       >
+        <!-- Favorite Button -->
+        <button 
+          class="favorite-btn"
+          :class="{ favorited: isFavorite(place.place_id) }"
+          @click="toggleFavorite(place)"
+          title="Add to favorites"
+        >
+          {{ isFavorite(place.place_id) ? '❤️' : '🤍' }}
+        </button>
+
         <div class="card-content">
           <h5 class="card-title">
             <span class="me-2">{{ getCategoryLabel(place) }}</span>
@@ -132,9 +161,21 @@
           </p>
           <p class="card-text">
             <small class="text-muted">
+              🚶 {{ place.distance }}m away
+            </small>
+          </p>
+          <p class="card-text">
+            <small class="text-muted">
               ⭐ {{ place.rating || 'N/A' }} ({{ place.user_ratings_total || 0 }} reviews)
             </small>
           </p>
+          
+          <!-- Today's Opening Hours -->
+          <div v-if="place.opening_hours && place.opening_hours.weekday_text" class="opening-hours-today mb-2">
+            <small class="text-muted">
+              <strong>🕐 Today:</strong> {{ getTodayHours(place.opening_hours.weekday_text) }}
+            </small>
+          </div>
         </div>
         <div class="card-footer-btn">
           <button
@@ -142,7 +183,7 @@
             class="btn btn-sm w-100"
             :class="place.opening_hours.open_now ? 'btn-success' : 'btn-danger'"
           >
-            {{ place.opening_hours.open_now ? 'Open Now' : 'Closed' }}
+            {{ place.opening_hours.open_now ? '🟢 Open Now' : '🔴 Closed' }}
           </button>
         </div>
       </div>
@@ -162,11 +203,24 @@ const selectedCategories = ref({
 const radius = ref(1000)
 const loading = ref(false)
 const searchAttempted = ref(false)
-const allPlaces = ref([])              // full result set
-const showMode = ref('all')            // 'top10' | 'all'
-const filteredPlaces = computed(() =>
-  showMode.value === 'top10' ? allPlaces.value.slice(0, 10) : allPlaces.value
-)
+const allPlaces = ref([])
+const showMode = ref('all')
+const sortMode = ref('rating') // 'rating' or 'distance'
+const favorites = ref([]) // Array of favorite place IDs
+
+const filteredPlaces = computed(() => {
+  let sorted = [...allPlaces.value]
+  
+  // Sort based on selected mode
+  if (sortMode.value === 'rating') {
+    sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0))
+  } else if (sortMode.value === 'distance') {
+    sorted.sort((a, b) => (a.distance || 0) - (b.distance || 0))
+  }
+  
+  // Return top 10 or all based on showMode
+  return showMode.value === 'top10' ? sorted.slice(0, 10) : sorted
+})
 
 let map = null
 let service = null
@@ -177,14 +231,19 @@ let currentLocation = { lat: 1.3521, lng: 103.8198 }
 let markerIcons = {}
 
 onMounted(() => {
+  // Load favorites from localStorage
+  const savedFavorites = localStorage.getItem('petStoreFavorites')
+  if (savedFavorites) {
+    favorites.value = JSON.parse(savedFavorites)
+  }
+
   const script = document.createElement('script')
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places,geometry`
   script.async = true
   script.defer = true
   document.head.appendChild(script)
 
   script.onload = () => {
-    // Define marker icons after Google Maps is loaded
     markerIcons = {
       petStore: {
         url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
@@ -284,10 +343,15 @@ function updateRadius() {
 }
 
 function searchPlaces() {
+  // Clear markers immediately
   markers.forEach(marker => marker.setMap(null))
   markers = []
+  
+  // Clear places array completely
   allPlaces.value = []
+  
   searchAttempted.value = true
+  showMode.value = 'all' // Reset to 'all' on new search
 
   if (currentCircle) {
     currentCircle.setMap(null)
@@ -319,8 +383,9 @@ function searchPlaces() {
   }
 
   loading.value = true
-let pending = types.length
+  let pending = types.length
   const seen = new Set()
+  const tempPlaces = [] // Use temporary array to collect results
 
   types.forEach(type => {
     const request = {
@@ -332,23 +397,42 @@ let pending = types.length
     service.nearbySearch(request, (results, status) => {
       if (status === google.maps.places.PlacesServiceStatus.OK && results) {
         results.forEach(place => {
+          // Filter out places without reviews or opening hours
+          if (!place.rating || !place.user_ratings_total || !place.opening_hours) {
+            return // Skip this place
+          }
+          
           if (!seen.has(place.place_id)) {
             seen.add(place.place_id)
             place.categoryType = type
-            allPlaces.value.push(place)       // store full list
+            
+            // Calculate distance from current location
+            const placeLatLng = place.geometry.location
+            const distance = google.maps.geometry.spherical.computeDistanceBetween(
+              new google.maps.LatLng(currentLocation.lat, currentLocation.lng),
+              placeLatLng
+            )
+            place.distance = Math.round(distance) // Store distance in meters
+            
+            tempPlaces.push(place)
           }
         })
       }
       pending -= 1
       if (pending === 0) {
+        // Only update allPlaces once all requests are complete
+        allPlaces.value = tempPlaces
         loading.value = false
+        console.log('Total unique places:', allPlaces.value.length)
+        console.log('Place IDs:', allPlaces.value.map(p => p.place_id))
         renderMarkers()
       }      
     })
   })
 }
+
 function renderMarkers() {
-  // Clear existing markers
+  // Clear ALL existing markers first
   markers.forEach(marker => marker.setMap(null))
   markers = []
 
@@ -413,15 +497,54 @@ function clearLocation() {
 }
 
 function setShowMode(mode) {
-  if (mode !== showMode.value) {
-    showMode.value = mode
-  }
+  showMode.value = mode
 }
 
+function setSortMode(mode) {
+  sortMode.value = mode
+}
+
+function getTodayHours(weekdayText) {
+  // weekdayText is an array like ["Monday: 9:00 AM – 6:00 PM", "Tuesday: 9:00 AM – 6:00 PM", ...]
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const today = new Date().getDay() // 0 = Sunday, 1 = Monday, etc.
+  const todayName = days[today]
+  
+  const todayHours = weekdayText.find(text => text.startsWith(todayName))
+  if (todayHours) {
+    // Remove the day name and return just the hours
+    return todayHours.replace(todayName + ': ', '')
+  }
+  return 'Hours not available'
+}
+
+function isFavorite(placeId) {
+  return favorites.value.includes(placeId)
+}
+
+function toggleFavorite(place) {
+  const placeId = place.place_id
+  const index = favorites.value.indexOf(placeId)
+  
+  if (index > -1) {
+    // Remove from favorites
+    favorites.value.splice(index, 1)
+  } else {
+    // Add to favorites
+    favorites.value.push(placeId)
+  }
+  
+  // Save to localStorage
+  localStorage.setItem('petStoreFavorites', JSON.stringify(favorites.value))
+  
+  // TODO: Later you can also save to backend/user profile
+  console.log('Favorites:', favorites.value)
+}
+
+// Watch for changes in filtered places and update markers
 watch(filteredPlaces, () => {
   renderMarkers()
 })
-
 </script>
 
 <style scoped>
@@ -476,6 +599,10 @@ watch(filteredPlaces, () => {
   color: #495057;
 }
 
+.results-filter {
+  text-align: center;
+}
+
 .cards-container {
   display: flex;
   flex-wrap: wrap;
@@ -489,6 +616,43 @@ watch(filteredPlaces, () => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: relative;
+}
+
+.favorite-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: white;
+  border: 2px solid #dee2e6;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.favorite-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.favorite-btn.favorited {
+  border-color: #ff4757;
+  background: #ffe0e3;
+}
+
+.opening-hours-today {
+  background: #f8f9fa;
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 3px solid #4285F4;
 }
 
 .card-content {
