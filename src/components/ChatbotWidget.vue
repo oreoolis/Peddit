@@ -1,43 +1,36 @@
 <script setup>
 /**
- * Peddit Chatbot Widget — Clean, Readable, & Organized
- * ------------------------------------------------------------------
- * What this component does (high-level):
- *  - Floating chat bubble that opens a chat panel
- *  - Streaming replies with ability to Cancel mid-stream
- *  - Regenerate (re-ask) the last user prompt
- *  - Safe Markdown rendering (DOMPurify + markdown-it)
- *  - Suggestion chips shown only before the first user message
- *  - LocalStorage persistence of the conversation
- *  - Feature flag gate via VITE_CHATBOT_ENABLED === 'true'
+ * Peddit Chatbot Widget — branching history per USER prompt (with tail)
+ * --------------------------------------------------------------------
+ * - Edit or Regenerate creates a new *version* on the USER prompt.
+ * - Each version stores: { prompt, reply, tail[] } where `tail` is the
+ *   full sequence of messages that followed that assistant reply.
+ * - Switching versions on a USER replaces the assistant reply *and*
+ *   swaps the entire tail, so you get behavior like:
+ *     v1: A -> resp A -> B -> resp B
+ *     v2: A -> resp C
  *
- * Authoring notes:
- *  - This file is organized top-to-bottom in clear sections.
- *  - Small helpers are extracted & named for quick scanning.
- *  - Magic values centralized as constants.
- *  - JSDoc typedefs added so IDEs (and teammates) see intent quickly.
+ * Tweaks in this build:
+ * - Hitting Enter while editing calls confirmEditResend() and replaces
+ *   the edited user prompt in place (no new user turn added at the end).
  */
 
-// ===========================
-// Imports
-// ===========================
 import { ref, reactive, watch, nextTick, onMounted, onBeforeUnmount, computed } from 'vue'
 import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
-import { sendChatStream } from '@/lib/chatApi' // streaming API (abortable)
+import { sendChatStream } from '@/lib/chatApi'
 import pawUrl from '@/assets/Main_Logo.png'
 
-// ===========================
-// Constants & Config
-// ===========================
+// ---------- Config ----------
 const CHAT_ENABLED = import.meta.env.VITE_CHATBOT_ENABLED === 'true'
 const CHAT_MODEL = import.meta.env.VITE_CHAT_MODEL || 'openrouter/auto'
-
-const STORAGE_KEY = 'peddit_chat'
-const GREETING = 'Hi! Ask me anything about your pet.'
 const THINKING = '…thinking'
+const GREETING = 'Hi! Ask me anything about your pet.'
+const STORAGE_KEY = 'peddit_chat'
+const STORAGE_BRANCH_KEY = STORAGE_KEY + '_branches' // legacy snapshots
 const MAX_CONTEXT_MESSAGES = 20
-// ----- Mode selection (Simple vs Thinking) -----
+
+// Mode switch
 const MODE_STORAGE_KEY = 'peddit_chat_mode'
 const selectedMode = ref(localStorage.getItem(MODE_STORAGE_KEY) || 'simple')
 watch(selectedMode, (v) => localStorage.setItem(MODE_STORAGE_KEY, v))
@@ -47,7 +40,6 @@ const selectedModel = computed(() => {
   return selectedMode.value === 'thinking' ? thinking : simple
 })
 
-
 /** @type {readonly string[]} */
 const SUGGESTIONS = [
   'Create a 7-day meal plan for a 2-year-old Labrador (25kg)',
@@ -56,9 +48,6 @@ const SUGGESTIONS = [
   'How much kibble per day for steady weight loss?',
 ]
 
-/**
- * System prompt: keep brief and domain-focused.
- */
 const SYSTEM_MSG = {
   role: 'system',
   content: [
@@ -72,18 +61,12 @@ const SYSTEM_MSG = {
   ].join(' '),
 }
 
-// ===========================
-// Typedefs (JSDoc for IDE hinting)
-// ===========================
 /**
- * @typedef {'system'|'user'|'assistant'} Role
- * @typedef {'streaming'|'done'|'cancelled'} Status
- * @typedef {{ role: Role; content: string; ts?: number; status?: Status }} Message
+ * @typedef {{ role: 'system'|'user'|'assistant', content: string, ts?: number, status?: 'streaming'|'done'|'cancelled',
+ *             history?: Array<{prompt: string, reply: string, tail: any[]}>, vpos?: number }} Message
  */
 
-// ===========================
-// State (refs/reactive)
-// ===========================
+// ---------- State ----------
 const open = ref(false)
 const unread = ref(0)
 const sending = ref(false)
@@ -93,21 +76,34 @@ const listEl = ref(/** @type {HTMLDivElement|null} */(null))
 const errorText = ref('')
 const controllerRef = ref(/** @type {AbortController|null} */(null))
 
+const histories = ref([]) // legacy top-level branch snapshots (kept for BC)
+
 const state = reactive({
   /** @type {Message[]} */
   messages: loadHistory(),
 })
 
-// Markdown renderer (safe)
-const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
-function renderMarkdown(text) {
-  const html = md.render(text || '')
-  return DOMPurify.sanitize(html)
-}
+/** copy tick + toast */
+const copiedIndex = ref(-1)
+const toast = reactive({ show: false, text: '' })
+function showToast(t) { toast.text = t; toast.show = true; setTimeout(()=> toast.show=false, 1800) }
 
-// ===========================
-/** Utilities: persistence & scrolling */
-// ===========================
+const editMode = reactive({ active: false, index: -1 })
+function startEdit(i) {
+  const m = state.messages[i]
+  if (!m || m.role !== 'user' || sending.value) return
+  editMode.active = true
+  editMode.index = i
+  input.value = m.content
+  focusInput(); autosize()
+}
+function cancelEdit() { editMode.active = false; editMode.index = -1; input.value = ''; autosize() }
+
+// ---------- Markdown ----------
+const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
+function renderMarkdown(text) { return DOMPurify.sanitize(md.render(text || '')) }
+
+// ---------- History load/save ----------
 function sanitizeHistory(msgs) {
   return (msgs || []).map(m =>
     (m?.role === 'assistant' && m?.content === THINKING)
@@ -115,111 +111,111 @@ function sanitizeHistory(msgs) {
       : m
   )
 }
-
 function loadHistory() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return [{ role: 'assistant', content: GREETING }]
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) && parsed.length
-      ? sanitizeHistory(parsed)
-      : [{ role: 'assistant', content: GREETING }]
-  } catch {
-    return [{ role: 'assistant', content: GREETING }]
-  }
+    return Array.isArray(parsed) && parsed.length ? sanitizeHistory(parsed) : [{ role: 'assistant', content: GREETING }]
+  } catch { return [{ role: 'assistant', content: GREETING }] }
 }
+function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.messages)) } catch {} }
+function loadBranches() { try { const raw = localStorage.getItem(STORAGE_BRANCH_KEY); const parsed = raw?JSON.parse(raw):null; if (Array.isArray(parsed)) histories.value = parsed } catch {} }
+function persistBranches() { try { localStorage.setItem(STORAGE_BRANCH_KEY, JSON.stringify(histories.value)) } catch {} }
 
-function persist() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.messages)) } catch {}
-}
-
-function scrollToBottom() {
-  const el = listEl.value
-  if (el) el.scrollTop = el.scrollHeight
-}
-
-// Persist on any deep change
 watch(() => state.messages, persist, { deep: true })
+watch(() => state.messages.length, async ()=>{ await nextTick(); scrollToBottom() })
 
-// Auto-scroll when message count changes
-watch(
-  () => state.messages.length,
-  async () => { await nextTick(); scrollToBottom() }
-)
-
-// ===========================
-/** Computed flags */
-// ===========================
-const hasUserMessage = computed(() => state.messages.some(m => m?.role === 'user'))
-const showSuggestions = computed(() => !hasUserMessage.value && open.value && !sending.value)
-
-// ===========================
-/** Lifecycle */
-// ===========================
-function onDocKey(e) { if (e.key === 'Escape' && open.value) toggle() }
-onMounted(() => document.addEventListener('keydown', onDocKey))
-onBeforeUnmount(() => document.removeEventListener('keydown', onDocKey))
-
-// ===========================
-/** Small UI helpers */
-// ===========================
-function autosize() {
-  const el = inputEl.value
-  if (!el) return
-  el.style.height = 'auto'
-  el.style.height = el.scrollHeight + 'px'
-}
-function focusInput() { nextTick(() => inputEl.value?.focus()) }
-
-function toggle() {
-  if (!CHAT_ENABLED) return
-  open.value = !open.value
-  if (open.value) { unread.value = 0; focusInput() }
-  errorText.value = ''
-}
-
-function useSuggestion(s) {
-  input.value = s
-  focusInput()
-  autosize()
-}
-
-function onKeydown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
+// ---------- Helpers ----------
+function deepClone(x){ return JSON.parse(JSON.stringify(x)) }
+function scrollToBottom(){ const el = listEl.value; if (el) el.scrollTop = el.scrollHeight }
+function autosize(){ const el = inputEl.value; if (!el) return; el.style.height='auto'; el.style.height=el.scrollHeight+'px' }
+function focusInput(){ nextTick(()=> inputEl.value?.focus()) }
+function toggle(){ if (!CHAT_ENABLED) return; open.value = !open.value; if (open.value){ unread.value = 0; focusInput() } errorText.value='' }
+function useSuggestion(s){ input.value = s; focusInput(); autosize() }
+function onKeydown(e){
+  if (e.key === 'Enter' && !e.shiftKey){
     e.preventDefault()
-    onSend()
+    if (editMode.active) confirmEditResend()
+    else onSend()
   }
 }
+function onDocKey(e){
+  if (e.key === 'Escape'){
+    if (editMode.active) { cancelEdit(); return }
+    if (open.value) toggle()
+  }
+}
+onMounted(()=>{ document.addEventListener('keydown', onDocKey); loadBranches() })
+onBeforeUnmount(()=> document.removeEventListener('keydown', onDocKey))
 
-function clearChat() {
-  state.messages = [{ role: 'assistant', content: 'Cleared. How can I help?', ts: Date.now() }]
-  persist()
+const hasUserMessage = computed(()=> state.messages.some(m => m?.role === 'user'))
+const showSuggestions = computed(()=> !hasUserMessage.value && open.value && !sending.value)
+
+function findStreamingIndex(){ return state.messages.findIndex(m => m.role==='assistant' && m.status==='streaming') }
+function findAssistantAfter(userIndex){
+  for (let k=userIndex+1; k<state.messages.length; k++) if (state.messages[k]?.role==='assistant') return k
+  return -1
 }
 
-// ===========================
-/** Chat flow helpers */
-// ===========================
-function buildPayloadMessages() {
+function buildPayloadMessages(){
   const recent = state.messages.filter(Boolean).slice(-MAX_CONTEXT_MESSAGES)
-  // Remove any live placeholders
-  const cleaned = recent.filter(m => !(m.role === 'assistant' && m.content === THINKING))
+  const cleaned = recent.filter(m => !(m.role==='assistant' && m.content===THINKING))
   return [SYSTEM_MSG, ...cleaned]
 }
 
-function findStreamingIndex() {
-  return state.messages.findIndex(m => m.role === 'assistant' && m.status === 'streaming')
-}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6) }
 
-function lastUserMessage() {
-  for (let i = state.messages.length - 1; i >= 0; i--) {
-    if (state.messages[i]?.role === 'user') return state.messages[i].content
+// ---------- USER history helpers (with tail) ----------
+function snapshotTailFromUser(uIdx){
+  const aIdx = findAssistantAfter(uIdx)
+  if (aIdx === -1) return []
+  return deepClone(state.messages.slice(aIdx + 1))
+}
+function ensureUserHistorySnapshot(uIdx){
+  const u = state.messages[uIdx]
+  if (!u || u.role !== 'user') return
+  if (!Array.isArray(u.history)) { u.history = []; u.vpos = 0 }
+  const aIdx = findAssistantAfter(uIdx)
+  const aText = (aIdx !== -1) ? (state.messages[aIdx].content || '') : ''
+  const pair = { prompt: u.content || '', reply: aText, tail: snapshotTailFromUser(uIdx) }
+  const last = u.history[u.history.length - 1]
+  if (!last || last.prompt !== pair.prompt || last.reply !== pair.reply) {
+    u.history.push(pair)
+    u.vpos = u.history.length - 1
+  } else {
+    // keep tail updated if conversation grew
+    last.tail = pair.tail
+    u.vpos = u.history.length - 1
   }
-  return ''
 }
+function appendUserVersion(uIdx, promptText, replyText, tail){
+  const u = state.messages[uIdx]
+  if (!u || u.role !== 'user') return
+  if (!Array.isArray(u.history)) { u.history = []; u.vpos = 0 }
+  u.history.push({ prompt: promptText, reply: replyText, tail: deepClone(tail || []) })
+  u.vpos = u.history.length - 1
+}
+function gotoUserHistory(uIdx, pos){
+  const u = state.messages[uIdx]
+  if (!u || u.role !== 'user' || !u.history?.length) return
+  const clamped = Math.max(0, Math.min(pos, u.history.length - 1))
+  const version = u.history[clamped]
 
-// ===========================
-/** Chat actions (Send / Cancel / Regenerate) */
-// ===========================
+  // rebuild messages: [before] + user(version.prompt) + assistant(version.reply) + tail
+  const before = deepClone(state.messages.slice(0, uIdx))
+  const newUser = { ...u, content: version.prompt, vpos: clamped } // keep its history array
+  const newAssistant = { role: 'assistant', content: version.reply, ts: Date.now(), status: 'done' }
+  const newTail = deepClone(version.tail || [])
+
+  state.messages = [...before, newUser, newAssistant, ...newTail]
+  persist()
+  nextTick(scrollToBottom)
+}
+function prevUserVersion(uIdx){ const u = state.messages[uIdx]; if (!u?.history?.length) return; gotoUserHistory(uIdx, (u.vpos ?? 0) - 1) }
+function nextUserVersion(uIdx){ const u = state.messages[uIdx]; if (!u?.history?.length) return; gotoUserHistory(uIdx, (u.vpos ?? 0) + 1) }
+
+// ---------- Send (new turn at end) ----------
 async function onSend() {
   const text = input.value?.trim()
   if (!text || sending.value) return
@@ -228,114 +224,229 @@ async function onSend() {
   input.value = ''
   autosize()
 
-  // (1) Push user's message + temporary assistant placeholder
+  // push new user + placeholder assistant (end of convo)
   state.messages.push({ role: 'user', content: text, ts: Date.now() })
   state.messages.push({ role: 'assistant', content: THINKING, ts: Date.now(), status: 'streaming' })
   sending.value = true
 
-  // (2) Build messages for the model
-  const payloadMessages = buildPayloadMessages()
-
-  // (3) Create abort controller to support "Cancel"
   const controller = new AbortController()
   controllerRef.value = controller
 
   try {
-    // Find the placeholder index once
     const idx = findStreamingIndex()
     if (idx === -1) throw new Error('Stream placeholder missing')
+    const uIdx = idx - 1
 
-    let seenFirst = false
-    await sendChatStream(payloadMessages, {
+    let started = false
+    await sendChatStream(buildPayloadMessages(), {
       model: selectedModel.value,
       controller,
       reasoning: selectedMode.value === 'thinking',
-      onToken(token) {
-        if (!seenFirst) {
-          state.messages[idx].content = token
-          seenFirst = true
-        } else {
-          state.messages[idx].content += token
-        }
-        scrollToBottom() // keep it feeling live
+      onToken(token){
+        if (!started){ state.messages[idx].content = token; started = true } else { state.messages[idx].content += token }
+        scrollToBottom()
       },
     })
-
-    // Finalize
     state.messages[idx].status = 'done'
-    persist()
+
+    // commit initial version for this user (tail likely empty now)
+    ensureUserHistorySnapshot(uIdx)
+
     if (!open.value) unread.value += 1
   } catch (e) {
     const idx = findStreamingIndex()
     if (idx !== -1) {
       if (e?.name === 'AbortError') {
-        // Cancelled by user
-        if (state.messages[idx].content === THINKING) {
-          state.messages.splice(idx, 1) // nothing received; remove placeholder
-        } else {
-          state.messages[idx].content += '\\n\\n*Cancelled.*'
-          state.messages[idx].status = 'cancelled'
-        }
+        if (state.messages[idx].content === THINKING) state.messages.splice(idx,1)
+        else { state.messages[idx].content += '\n\n*Cancelled.*'; state.messages[idx].status='cancelled' }
       } else {
-        // Actual error
-        state.messages.splice(idx, 1)
-        errorText.value = e?.message || 'Chat failed. Check backend URL or quota.'
+        state.messages.splice(idx,1); errorText.value = e?.message || 'Chat failed. Check backend URL or quota.'
       }
     }
-    persist()
   } finally {
     sending.value = false
     controllerRef.value = null
+    persist()
   }
 }
 
-function cancelStreaming() {
-  try { controllerRef.value?.abort() } catch {}
+function cancelStreaming(){ try { controllerRef.value?.abort() } catch {} }
+
+// ---------- Copy ----------
+async function copyMessage(i){
+  const m = state.messages[i]; if (!m) return
+  try {
+    await navigator.clipboard.writeText(m.content || '')
+    copiedIndex.value = i
+    showToast('Copied to Clipboard')
+    setTimeout(() => { if (copiedIndex.value === i) copiedIndex.value = -1 }, 1500)
+  } catch {
+    showToast('Copy failed')
+  }
 }
 
-function regenerate() {
+// ---------- Regenerate IN-PLACE on assistant i (new version under the preceding USER) ----------
+async function regenerateFrom(i){
   if (sending.value) return
-  const last = lastUserMessage()
-  if (!last) return
-  input.value = last
-  focusInput()
+  const m = state.messages[i]
+  if (!m || m.role !== 'assistant') return
+
+  // find the user before i
+  let uIdx = -1
+  for (let k=i-1; k>=0; k--) if (state.messages[k]?.role === 'user') { uIdx = k; break }
+  if (uIdx === -1) return
+
+  // snapshot current version (with full tail) BEFORE mutation
+  ensureUserHistorySnapshot(uIdx)
+
+  // legacy snapshot for BC/debug
+  histories.value.push({ id: uid(), title: 'Before regenerate', messages: deepClone(state.messages), createdAt: Date.now() })
+  persistBranches()
+
+  // Trim tail after assistant and re-stream in place
+  state.messages = state.messages.slice(0, i+1)
+  state.messages[i].content = THINKING
+  state.messages[i].status = 'streaming'
+  state.messages[i].ts = Date.now()
+
+  // Stream new reply for SAME prompt; new version tail is empty
+  sending.value = true
+  const controller = new AbortController()
+  controllerRef.value = controller
+  try {
+    await sendChatStream(buildPayloadMessages(), {
+      model: selectedModel.value,
+      controller,
+      reasoning: selectedMode.value === 'thinking',
+      onToken(token){
+        const streaming = state.messages[i]
+        if (streaming.content === THINKING) streaming.content = token
+        else streaming.content += token
+        scrollToBottom()
+      },
+    })
+    state.messages[i].status = 'done'
+    appendUserVersion(uIdx, state.messages[uIdx].content, state.messages[i].content, /*tail*/[])
+  } catch (e) {
+    if (e?.name === 'AbortError') {
+      if (state.messages[i].content === THINKING) state.messages.splice(i,1)
+      else { state.messages[i].content += '\n\n*Cancelled.*'; state.messages[i].status='cancelled' }
+    } else {
+      errorText.value = e?.message || 'Regenerate failed.'
+      if (state.messages[i] && state.messages[i].content === THINKING) state.messages.splice(i,1)
+    }
+  } finally {
+    sending.value = false
+    controllerRef.value = null
+    persist()
+  }
+}
+
+// ---------- Confirm Edit → replace user i and regenerate assistant; new version under that USER ----------
+async function confirmEditResend(){
+  if (!editMode.active || sending.value) return
+  const i = editMode.index
+  const txt = input.value?.trim()
+  if (!txt) return
+
+  // snapshot current version (with full tail) BEFORE mutation
+  ensureUserHistorySnapshot(i)
+
+  // legacy snapshot
+  histories.value.push({ id: uid(), title: 'Before edit', messages: deepClone(state.messages), createdAt: Date.now() })
+  persistBranches()
+
+  // update user in place
+  const userMsg = state.messages[i]
+  if (!userMsg || userMsg.role !== 'user') return
+  userMsg.content = txt
+  userMsg.ts = Date.now()
+
+  // find/create assistant slot
+  let aIdx = findAssistantAfter(i)
+  if (aIdx === -1) {
+    state.messages.splice(i+1, 0, { role: 'assistant', content: THINKING, ts: Date.now(), status: 'streaming' })
+    aIdx = i + 1
+  } else {
+    // remove the entire tail and reuse the same assistant slot
+    state.messages = state.messages.slice(0, aIdx + 1)
+    state.messages[aIdx].content = THINKING
+    state.messages[aIdx].status = 'streaming'
+    state.messages[aIdx].ts = Date.now()
+  }
+
+  // exit edit UI
+  editMode.active = false
+  editMode.index = -1
+  input.value = ''
   autosize()
-  // Auto-send immediately; edit-first is another UX option
-  onSend()
+
+  // stream
+  sending.value = true
+  const controller = new AbortController()
+  controllerRef.value = controller
+  try {
+    await sendChatStream(buildPayloadMessages(), {
+      model: selectedModel.value,
+      controller,
+      reasoning: selectedMode.value === 'thinking',
+      onToken(token){
+        const streaming = state.messages[aIdx]
+        if (streaming.content === THINKING) streaming.content = token
+        else streaming.content += token
+        scrollToBottom()
+      },
+    })
+    state.messages[aIdx].status = 'done'
+    // New version: edited prompt + new reply, tail cleared
+    appendUserVersion(i, state.messages[i].content, state.messages[aIdx].content, [])
+  } catch (e) {
+    if (e?.name === 'AbortError') {
+      if (state.messages[aIdx].content === THINKING) state.messages.splice(aIdx,1)
+      else { state.messages[aIdx].content += '\n\n*Cancelled.*'; state.messages[aIdx].status='cancelled' }
+    } else {
+      errorText.value = e?.message || 'Edit re-send failed.'
+      if (state.messages[aIdx] && state.messages[aIdx].content === THINKING) state.messages.splice(aIdx,1)
+    }
+  } finally {
+    sending.value = false
+    controllerRef.value = null
+    persist()
+  }
+}
+
+function regenerate(){
+  if (sending.value) return
+  // fallback: regenerate last assistant turn in place
+  for (let i=state.messages.length-1;i>=0;i--){
+    if (state.messages[i]?.role==='assistant') { regenerateFrom(i); break }
+  }
+}
+
+function clearChat(){
+  state.messages = [{ role: 'assistant', content: 'Cleared. How can I help?', ts: Date.now() }]
+  persist()
 }
 </script>
 
 <template>
   <div v-if="CHAT_ENABLED" class="peddit-chat top-right" data-testid="peddit-chat">
-    <!-- Bubble (paw + faint circular bg) -->
-    <button
-      aria-label="Open chat"
-      class="peddit-chat-bubble"
-      @click="toggle"
-      title="Chat with Peddit"
-      :aria-expanded="open ? 'true' : 'false'"
-    >
-      <span class="bubble-circle">
-        <img class="bubble-img" :src="pawUrl" alt="Open chat" />
-      </span>
+    <!-- Bubble -->
+    <button aria-label="Open chat" class="peddit-chat-bubble" @click="toggle" title="Chat with Peddit" :aria-expanded="open ? 'true' : 'false'">
+      <span class="bubble-circle"><img class="bubble-img" :src="pawUrl" alt="Open chat" /></span>
       <span v-if="unread" class="unread-badge">{{ unread }}</span>
     </button>
 
     <!-- Panel -->
     <transition name="chat-slide">
-      <div
-        v-show="open"
-        class="peddit-chat-panel card"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Peddit Chat"
-        :aria-busy="sending ? 'true' : 'false'"
-      >
+      <div v-show="open" class="peddit-chat-panel card" role="dialog" aria-modal="true" aria-label="Peddit Chat" :aria-busy="sending ? 'true' : 'false'">
         <div class="card-header d-flex justify-content-between align-items-center headingFont">
           <strong>Peddit Chat</strong>
           <div class="d-flex gap-2 align-items-center">
-            <div class="mode-switch" data-testid="mode-switch" aria-label="Model mode"><button type="button" class="mode-btn" :class="{active: selectedMode === 'simple'}" @click="selectedMode = 'simple'" title="Fast, lightweight">Simple</button><button type="button" class="mode-btn" :class="{active: selectedMode === 'thinking'}" @click="selectedMode = 'thinking'" title="More reasoning tokens">Thinking</button></div>
-            
+            <div class="mode-switch" data-testid="mode-switch" aria-label="Model mode">
+              <button type="button" class="mode-btn" :class="{active: selectedMode === 'simple'}" @click="selectedMode = 'simple'" title="Fast, lightweight">Simple</button>
+              <button type="button" class="mode-btn" :class="{active: selectedMode === 'thinking'}" @click="selectedMode = 'thinking'" title="More reasoning tokens">Thinking</button>
+            </div>
             <span class="text-muted small me-2" v-if="sending">streaming…</span>
             <button class="btn btn-sm btn-outline-danger" v-if="sending" @click="cancelStreaming">Cancel</button>
             <button class="btn btn-sm btn-outline-secondary" @click="clearChat" :disabled="sending">Clear</button>
@@ -343,14 +454,15 @@ function regenerate() {
           </div>
         </div>
 
-        <!-- Body is a flex column; list is the scroll region -->
+        <!-- Body -->
         <div class="card-body p-0 bodyFlex">
           <div class="peddit-chat-list bodyFont" ref="listEl" aria-live="polite">
-            <div v-for="(m, i) in state.messages" :key="i" class="p-3 border-bottom" :class="m.role">
+            <div v-for="(m, i) in state.messages" :key="i" class="p-3 border-bottom msg-row" :class="m.role">
               <div class="small text-muted mb-1 d-flex align-items-center gap-2">
                 <span>{{ m.role === 'user' ? 'You' : (m.role === 'assistant' ? 'Peddit' : 'System') }}</span>
                 <span v-if="m.ts" class="text-muted" style="font-size: 11px;">· {{ new Date(m.ts).toLocaleTimeString() }}</span>
               </div>
+
               <div class="message-content">
                 <template v-if="m.content === '…thinking'">
                   <span class="typing"><span></span><span></span><span></span></span>
@@ -359,6 +471,35 @@ function regenerate() {
                   <div class="md" v-html="renderMarkdown(m.content)"></div>
                 </template>
               </div>
+
+              <!-- Hover actions -->
+              <div class="msg-actions" :class="m.role">
+                <template v-if="m.role === 'user'">
+                  <button class="icon-btn" title="Edit" aria-label="Edit message" @click="startEdit(i)">
+                    <svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34c-.39-.39-1.03-.39-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg>
+                  </button>
+                  <button class="icon-btn" :class="{ tick: copiedIndex === i }" title="Copy" aria-label="Copy message" @click="copyMessage(i)">
+                    <span v-if="copiedIndex === i">✓</span>
+                    <svg v-else width="16" height="16" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                  </button>
+                </template>
+                <template v-else-if="m.role === 'assistant'">
+                  <button class="icon-btn" title="Regenerate" aria-label="Regenerate from here" @click="regenerateFrom(i)">
+                    <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 6V3L8 7l4 4V8c3.31 0 6 2.69 6 6a6 6 0 01-6 6 6 6 0 01-6-6H4a8 8 0 008 8 8 8 0 008-8c0-4.42-3.58-8-8-8z"/></svg>
+                  </button>
+                  <button class="icon-btn" :class="{ tick: copiedIndex === i }" title="Copy" aria-label="Copy message" @click="copyMessage(i)">
+                    <span v-if="copiedIndex === i">✓</span>
+                    <svg v-else width="16" height="16" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                  </button>
+                </template>
+              </div>
+
+              <!-- User history nav -->
+              <div class="variant-nav" v-if="m.role==='user' && m.history && m.history.length > 1">
+                <button class="vnav-btn" :disabled="(m.vpos ?? 0) <= 0" @click="prevUserVersion(i)">‹</button>
+                <span class="vnav-count">{{ (m.vpos ?? 0) + 1 }}/{{ m.history.length }}</span>
+                <button class="vnav-btn" :disabled="(m.vpos ?? 0) >= m.history.length - 1" @click="nextUserVersion(i)">›</button>
+              </div>
             </div>
           </div>
         </div>
@@ -366,174 +507,116 @@ function regenerate() {
         <div class="card-footer">
           <div v-if="errorText" class="alert alert-danger py-2 mb-2">{{ errorText }}</div>
 
-          <!-- Suggestion chips (ONLY before first user message) -->
+          <!-- Suggestion chips (before first user message) -->
           <div class="suggestions" role="list" v-if="showSuggestions">
-            <button
-              v-for="(s, idx) in SUGGESTIONS"
-              :key="idx"
-              type="button"
-              class="chip"
-              role="listitem"
-              @click="useSuggestion(s)"
-            >{{ s }}</button>
+            <button v-for="(s, idx) in SUGGESTIONS" :key="idx" type="button" class="chip" role="listitem" @click="useSuggestion(s)">{{ s }}</button>
           </div>
 
-          <textarea
-            ref="inputEl"
-            class="form-control mb-2"
-            rows="1"
-            placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
-            v-model="input"
-            @keydown="onKeydown"
-            @input="autosize"
-            :disabled="sending"
-          ></textarea>
+          <textarea ref="inputEl" class="form-control mb-2" rows="1" placeholder="Type a message… (Enter to send, Shift+Enter for newline)" v-model="input" @keydown="onKeydown" @input="autosize" :disabled="sending"></textarea>
 
-          <div class="d-flex justify-content-end gap-2">
+          <div class="d-flex justify-content-end gap-2" v-if="!editMode.active">
             <button class="btn btn-outline-secondary" @click="regenerate" :disabled="sending || !hasUserMessage">Regenerate</button>
             <button class="btn btn-primary" @click="onSend" :disabled="sending || !input.trim()">Send</button>
           </div>
+          <div class="d-flex justify-content-between gap-2" v-else>
+            <div class="text-muted small d-flex align-items-center">Editing previous prompt…</div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-light" @click="cancelEdit" :disabled="sending">Cancel</button>
+              <button class="btn btn-primary" @click="confirmEditResend" :disabled="sending || !input.trim()">Re‑send</button>
+            </div>
+          </div>
         </div>
+
+        <!-- Toast -->
+        <transition name="fade">
+          <div v-if="toast.show" class="peddit-toast alert alert-success py-1 px-2">{{ toast.text }}</div>
+        </transition>
       </div>
     </transition>
   </div>
 </template>
 
 <style scoped>
-/* ===================================================================
-   CSS: grouped & labeled for quick scanning
-   =================================================================== */
-
-/* ---------- Variables (scoped) ---------- */
 :host, .peddit-chat {
   --bubble-size: 56px;
   --navbar-height: 64px;
   --peddit-radius: 16px;
   --peddit-shadow: 0 12px 30px rgba(0,0,0,.15);
-  --peddit-bubble-bg: rgba(20,20,20,.06);
+  --peddit-bubble-bg: rgba(85, 95, 238, 0.142);
   --peddit-bubble-border: rgba(20,20,20,.08);
 }
-
-/* ---------- Floating trigger (bubble) ---------- */
 .peddit-chat.top-right .peddit-chat-bubble {
-  position: fixed;
-  top: calc(var(--navbar-height) + 8px);
-  right: 20px;
-  z-index: 1100;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  width: var(--bubble-size);
-  height: var(--bubble-size);
-  cursor: pointer;
+  position: fixed; top: calc(var(--navbar-height) + 8px); right: 20px; z-index: 1100;
+  background: transparent; border: 0; padding: 0; width: var(--bubble-size); height: var(--bubble-size); cursor: pointer;
 }
-.bubble-circle {
-  width: 100%; height: 100%;
-  display: grid; place-items: center;
-  border-radius: 50%;
-  background: var(--peddit-bubble-bg);
-  border: 1px solid var(--peddit-bubble-border);
-  box-shadow: 0 6px 14px rgba(0,0,0,.12);
-  transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
-}
+.bubble-circle { width:100%; height:100%; display:grid; place-items:center; border-radius:50%; background:var(--peddit-bubble-bg); border:1px solid var(--peddit-bubble-border); box-shadow:0 6px 14px rgba(0,0,0,.12); transition: transform .15s, box-shadow .2s, background .2s; }
 .peddit-chat-bubble:hover .bubble-circle { transform: translateY(-1px) scale(1.03); box-shadow: 0 10px 22px rgba(0,0,0,.16); }
 .peddit-chat-bubble:active .bubble-circle { transform: scale(.96); }
-.bubble-img { width: 70%; height: 70%; object-fit: contain; display: block; }
-.unread-badge {
-  position: absolute; top: -6px; right: -6px;
-  min-width: 20px; height: 20px; padding: 0 6px;
-  background: var(--bs-danger, #DA3E52); color: #fff; border-radius: 9999px;
-  font-size: 12px; line-height: 20px; font-weight: 700;
-  box-shadow: 0 2px 6px rgba(0,0,0,.2);
-}
+.bubble-img { width:70%; height:70%; object-fit:contain; display:block; }
+.unread-badge { position:absolute; top:-6px; right:-6px; min-width:20px; height:20px; padding:0 6px; background:var(--bs-danger, #DA3E52); color:#fff; border-radius:9999px; font-size:12px; line-height:20px; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,.2); }
 
-/* ---------- Panel ---------- */
 .peddit-chat.top-right .peddit-chat-panel {
-  position: fixed; right: 20px;
-  top: calc(var(--navbar-height) + 8px + var(--bubble-size) + 12px);
+  position: fixed; right: 20px; top: calc(var(--navbar-height) + 8px + var(--bubble-size) + 12px);
   width: min(380px, 92vw);
   max-height: calc(100dvh - (var(--navbar-height) + 8px + var(--bubble-size) + 24px));
   display: flex; flex-direction: column; z-index: 1100;
-  border-radius: var(--peddit-radius); overflow: hidden;
-  box-shadow: var(--peddit-shadow);
+  border-radius: var(--peddit-radius); overflow: hidden; box-shadow: var(--peddit-shadow);
   background: var(--bs-body-bg, #fff);
 }
 
-/* ---------- Body & list ---------- */
-.bodyFlex { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.peddit-chat-list { flex: 1; overflow: auto; background: var(--bs-body-bg, #fff); }
-
+.bodyFlex { display:flex; flex-direction:column; flex:1; min-height:0; }
+.peddit-chat-list { flex:1; overflow:auto; background: var(--bs-body-bg, #fff); }
 .user .message-content, .assistant .message-content { white-space: normal; }
 
-/* ---------- Typing dots ---------- */
-.typing { display: inline-flex; gap: 4px; align-items: center; }
-.typing span {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: currentColor; opacity: .35;
-  animation: typing-bounce 1s infinite ease-in-out;
-}
-.typing span:nth-child(2){ animation-delay: .2s }
-.typing span:nth-child(3){ animation-delay: .4s }
-@keyframes typing-bounce {
-  0%, 80%, 100% { transform: translateY(0); opacity: .35 }
-  40%          { transform: translateY(-3px); opacity: .9 }
-}
+/* Typing */
+.typing { display:inline-flex; gap:4px; align-items:center; }
+.typing span { width:6px; height:6px; border-radius:50%; background: currentColor; opacity:.35; animation: typing-bounce 1s infinite ease-in-out; }
+.typing span:nth-child(2){ animation-delay:.2s } .typing span:nth-child(3){ animation-delay:.4s }
+@keyframes typing-bounce { 0%,80%,100%{ transform:translateY(0); opacity:.35 } 40%{ transform:translateY(-3px); opacity:.9 } }
 
-/* ---------- Suggestion chips ---------- */
-.suggestions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; overflow-x: auto; padding-bottom: 2px; }
-.chip {
-  border: 1px solid rgba(20,20,20,.12);
-  background: var(--bs-body-bg, #fff);
-  color: var(--bs-body-color, #141414);
-  border-radius: 9999px;
-  padding: 6px 10px;
-  font-size: 12px; line-height: 1;
-  white-space: nowrap; cursor: pointer;
-}
-.chip:hover { background: color-mix(in srgb, var(--bs-primary) 8%, white); }
-.chip:active { transform: translateY(1px); }
+/* Hover actions */
+.msg-row { position: relative; }
+.msg-actions { opacity:0; display:flex; gap:8px; transition:opacity .15s; margin-top:8px; }
+.p-3.border-bottom:hover .msg-actions { opacity:1; }
+.icon-btn { border:1px solid rgba(0,0,0,.12); background:var(--bs-body-bg, #fff); padding:4px 6px; border-radius:8px; line-height:1; cursor:pointer; font-size:12px; }
+.icon-btn.tick { border-color: #198754; }
+.icon-btn:focus { outline:none; }
 
-/* ---------- Markdown ---------- */
-.md { color: var(--bs-body-color, #141414); }
+/* User history nav (shows on hover of user row) */
+.variant-nav { position:absolute; right:12px; bottom:6px; display:none; align-items:center; gap:6px; font-size:12px; }
+.p-3.border-bottom.user:hover .variant-nav { display:flex; }
+.vnav-btn { border:1px solid rgba(0,0,0,.12); background:var(--bs-body-bg,#fff); padding:2px 6px; border-radius:6px; cursor:pointer; line-height:1; }
+.vnav-btn:disabled { opacity:.35; cursor:default; }
+.vnav-count { color: rgba(0,0,0,.6); font-weight:600; }
+
+/* Toast */
+.peddit-toast { position:absolute; right:12px; bottom:64px; z-index:10; }
+.fade-enter-active, .fade-leave-active { transition: opacity .2s; } .fade-enter-from, .fade-leave-to { opacity:0; }
+
+/* Suggestions */
+.suggestions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; overflow-x:auto; padding-bottom:2px; }
+.chip { border:1px solid rgba(20,20,20,.12); background:var(--bs-body-bg,#fff); color:var(--bs-body-color,#141414); border-radius:9999px; padding:6px 10px; font-size:12px; line-height:1; white-space:nowrap; cursor:pointer; }
+.chip:hover { background: color-mix(in srgb, var(--bs-primary) 8%, white); } .chip:active { transform: translateY(1px); }
+
+/* Markdown */
+.md { color: var(--bs-body-color,#141414); }
 .md p { margin: 0 0 .5rem 0; }
 .md ul, .md ol { padding-left: 1.2rem; margin: 0 0 .6rem 0; }
 .md li + li { margin-top: .2rem; }
-.md a { color: var(--bs-primary, #247BA0); text-decoration: underline; }
-.md code { background: rgba(0,0,0,.06); padding: .1rem .3rem; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-.md pre { background: rgba(0,0,0,.06); padding: .6rem; border-radius: 8px; overflow: auto; }
-.md h1, .md h2, .md h3 { margin: .4rem 0; font-weight: 700; }
-.md blockquote { border-left: 3px solid rgba(0,0,0,.15); padding-left: .8rem; color: rgba(0,0,0,.7); margin: .4rem 0; }
+.md a { color: var(--bs-primary,#247BA0); text-decoration: underline; }
+.md code { background: rgba(0,0,0,.06); padding:.1rem .3rem; border-radius:4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.md pre { background: rgba(0,0,0,.06); padding:.6rem; border-radius:8px; overflow:auto; }
+.md h1, .md h2, .md h3 { margin:.4rem 0; font-weight:700; }
+.md blockquote { border-left:3px solid rgba(0,0,0,.15); padding-left:.8rem; color: rgba(0,0,0,.7); margin:.4rem 0; }
 
-/* ---------- Transitions ---------- */
-.chat-slide-enter-from, .chat-slide-leave-to { opacity: 0; transform: translateY(-6px) scale(0.98); }
+/* Transitions + a11y */
+.chat-slide-enter-from, .chat-slide-leave-to { opacity:0; transform: translateY(-6px) scale(.98); }
 .chat-slide-enter-active, .chat-slide-leave-active { transition: all .16s ease; }
+.form-control:focus { box-shadow:none !important; outline:none !important; }
 
-/* ---------- Small a11y/UX tweaks ---------- */
-/* Remove bright blue focus outline/shadow from Bootstrap inputs inside the widget only */
-.form-control:focus { box-shadow: none !important; outline: none !important; }
-
-/* ----- Mode switch ----- */
-.mode-switch {
-  display: inline-flex;
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: 999px;
-  overflow: hidden;
-  background: var(--bs-body-bg);
-}
-.mode-switch .mode-btn {
-  padding: 6px 10px;
-  font-size: 12px;
-  line-height: 1;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  opacity: 0.7;
-}
-.mode-switch .mode-btn.active {
-  background: rgba(0,0,0,.06);
-  opacity: 1;
-  font-weight: 600;
-}
-.mode-switch .mode-btn:focus { outline: none; box-shadow: none; }
-
+/* Mode switch */
+.mode-switch { display:inline-flex; border:1px solid rgba(0,0,0,.08); border-radius:999px; overflow:hidden; background:var(--bs-body-bg); }
+.mode-switch .mode-btn { padding:6px 10px; font-size:12px; line-height:1; border:none; background:transparent; cursor:pointer; opacity:.7; }
+.mode-switch .mode-btn.active { background: rgba(0,0,0,.06); opacity:1; font-weight:600; }
+.mode-switch .mode-btn:focus { outline:none; box-shadow:none; }
 </style>
