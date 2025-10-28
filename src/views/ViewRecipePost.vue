@@ -10,6 +10,7 @@ import Comment from '@/components/atoms/social/Comment.vue';
 import TextInput from '@/components/atoms/TextInput.vue';
 // Dummy static Data in 
 const props = defineProps({
+  Content : {type: String, default: 'This is the new Recipe that I made. Check it out!'},
   RecipeId: { type: String, default: '123e' },
   Username: { type: String, default: 'JohnDoe' },
   User_Image: { type: String, default: '/src/assets/person.jpg' },
@@ -127,32 +128,45 @@ function formatDate(d){ return d ? new Date(d).toLocaleDateString() : ''; }
               <div class="small text-muted">{{ formatDate(props.createdAt) }}</div>
             </div>
           </div>
+          <!-- Content Text -->
+          <h2 v-if="props.Content && props.Content.trim()" class="mb-3 bodyFont">{{ props.Content }}</h2>
 
-          <h1 class="post-title h3 headingFont fw-bold mb-2">{{ props.Recipe_Name }}</h1>
-          <p class="post-subtitle text-muted mb-3">{{ props.Recipe_Desc }}</p>
+          <!-- START: encapsulated recipe block -->
+          <div class="recipe-banner mb-3 shadow-sm">
+            <div class="recipe-badge">Recipe</div>
 
-          <!-- Nutrition grid -->
-          <section class="nutrition-section mb-3">
-            <h6 class="mb-2">Nutrition</h6>
-            <div class="nutr-grid">
-              <div class="nutr-item" v-for="(n, idx) in props.Recipe_Nutrition_Stats" :key="n.LabelName + '-' + idx">
-                <BaseLabel size="sm" variant="dark">{{ n.LabelName }}</BaseLabel>
-                <BaseStatNumber :value="n.value" :unit="n.unit" />
+            <div class="recipe-body">
+              <h1 class="post-title h3 headingFont fw-bold mb-2">{{ props.Recipe_Name }}</h1>
+              <p class="post-subtitle text-muted mb-3">{{ props.Recipe_Desc }}</p>
+
+              <!-- Nutrition grid (move inside banner) -->
+              <section class="nutrition-section mb-3">
+                <h6 class="mb-2">Nutrition</h6>
+                <div class="nutr-grid">
+                  <div class="nutr-item" v-for="(n, idx) in props.Recipe_Nutrition_Stats" :key="n.LabelName + '-' + idx">
+                    <BaseLabel size="sm" variant="dark">{{ n.LabelName }}</BaseLabel>
+                    <BaseStatNumber :value="n.value" :unit="n.unit" />
+                  </div>
+                </div>
+              </section>
               </div>
             </div>
-          </section>
+          <!-- END: encapsulated recipe block -->
+              <!-- actions (kept inside banner for clarity) -->
+              <div class="d-flex align-items-center gap-3">
+                <Button label="View Full Recipe" class="btn-primary" />
+                <Button outline label="Save" />
+                <div class="ms-auto d-flex align-items-center gap-3">
+                  <ShareButton :initialText="combinedShareText" :title="props.Recipe_Name" button-label="Share" />
+                  <UpvoteControl :initialVote="serverVote" :score="props.Vote_score" @vote="onVote" />
+                </div>
+              </div>
 
-          <!-- actions -->
-          <div class="d-flex align-items-center gap-3">
-            <Button label="View Full Recipe" class="btn-primary" />
-            <Button outline label="Save" />
-            <div class="ms-auto d-flex align-items-center gap-3">
-              <ShareButton :initialText="combinedShareText" :title="props.Recipe_Name" button-label="Share" />
-              <UpvoteControl :initialVote="serverVote" :score="props.Vote_score" @vote="onVote" />
-            </div>
-          </div>
+          
+
         </div>
       </div>
+
       <!-- Comment Section -->
 
                  <div v-if="comments && comments.length > 0" class="card mt-4" id="CommentSection">
@@ -214,9 +228,37 @@ function formatDate(d){ return d ? new Date(d).toLocaleDateString() : ''; }
   align-items: center;
 }
 .nutr-item { display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background: rgba(255,255,255,0.6); border-radius:6px; }
+/* new: visual separation for recipe info */
+.recipe-banner {
+  background: linear-gradient(-90deg, #ffffff, #f8f8f8);
+  border-left: 4px solid var(--bs-primary); /* primary accent */
+  padding: 14px;
+  border-radius: 10px;
+}
+
+/* small badge label at top-left of the banner */
+.recipe-badge {
+  font-size: 12px;
+  color: var(--bs-primary);
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+
+/* slightly darker title inside the banner for clarity */
+.recipe-body .post-title { color: #0b2540; }
+
+/* make the nutrition area softer inside the banner */
+.recipe-banner .nutrition-section {
+  background: #f3f8ff;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+/* keep existing grid responsiveness */
 @media (max-width: 576px) {
   .nutr-grid { grid-template-columns: 1fr; }
   .ms-auto { margin-left: 0 !important; }
 }
-
 </style>

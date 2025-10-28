@@ -2,11 +2,20 @@
 import { ref, watch } from 'vue';
 import Button from '../../atoms/button.vue';
 import searchBar from '../../atoms/searchBar.vue';
-
+import MealPlanCard from '@/components/PetViewComponents/MealPlanCard.vue';
 const props = defineProps({
     show: {
         type: Boolean,
         default: false
+    },
+    user_MealPlans:{
+        type : Array,
+        default : ()=>[
+            {rec_id: "1",name : "Beef Blast",desc: "Some desc"},
+            {rec_id: "2",name : "Veggie Delight",desc: "Some other desc"},
+            {rec_id: "3",name : "Water Only",desc: "Something"}
+        ]
+
     }
 });
 
@@ -14,57 +23,25 @@ const emit = defineEmits(['update:show', 'create-post']);
 
 // Form state
 // Form state
-const postTitle = ref('');
 const postContent = ref('');
-const imageFile = ref(null);
-const imagePreview = ref(null);
 
-
-const formatFileSize = (bytes) => {
-  if (!bytes) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-const handleImageSelect = (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  imageFile.value = file;
-  imagePreview.value = URL.createObjectURL(file);
-}
-
-const removeImage = () => {
-  if (imagePreview.value) {
-    URL.revokeObjectURL(imagePreview.value);
-  }
-  imageFile.value = null;
-  imagePreview.value = null;
-}
-
-
+// TODO: Get Current User's Recipes
 
 // Reset form when modal is closed
 watch(() => props.show, (newVal) => {
     if (!newVal) {
-        postTitle.value = '';
         postContent.value = '';
-        removeImage(); 
     }
 });
 
 const closeModal = () => {
     emit('update:show', false);
 };
-
+// Need some logic for Recipe Id
 const handleSubmit = () => {
-    if (postTitle.value && postContent.value) {
+    if ( postContent.value) {
         emit('create-post', {
-            title: postTitle.value,
             content: postContent.value,
-            imageFile: imageFile.value
         });
         closeModal();
     } else {
@@ -77,20 +54,11 @@ const handleSubmit = () => {
     <div v-if="show" class="modal-backdrop" @click="closeModal">
         <div class="modal-content bg-white" @click.stop>
             <div class="modal-header">
-                <h5 class="modal-title headingFont">Share a Recipe</h5>
+                <h5 class="modal-title headingFont">Share A Recipe</h5>
                 <Button icon="bi-x-lg" outline color="danger" @click="closeModal" label="X" class="ms-auto" />
             </div>
             <form @submit.prevent="handleSubmit">
                 <div class="modal-body">
-                    <!-- Post Title -->
-                    <div class="mb-3">
-                        <label class="form-label headingFont fw-bold h5">Title</label>
-                        <searchBar 
-                            placeholder="What's the title of your post?" 
-                            v-model="postTitle"
-                        />
-                    </div>
-
                     <!-- Post Content -->
                     <div class="mb-3">
                         <label class="form-label headingFont fw-bold h5">Content</label>
@@ -101,29 +69,20 @@ const handleSubmit = () => {
                         />
                     </div>
 
-                    <!-- Image Upload -->
+                    <!-- Meal Plan -->
                     <div class="mb-3">
-                        <label for="post-photo-input" class="form-label headingFont fw-bold h5">Attach an Image (Optional)</label>
-                        <input id="post-photo-input" type="file" accept="image/*" @change="handleImageSelect" class="d-none" />
-                        <label for="post-photo-input" class="d-block" style="cursor: pointer;">
-                            <searchBar 
-                                :model-value="imageFile ? imageFile.name : ''" 
-                                placeholder="Click to select an image..." 
-                                readonly
-                            >
-                                <template #icon><i class="bi bi-upload"></i></template>
-                            </searchBar>
-                        </label>
-                    </div>
-
-                    <!-- Image Preview -->
-                    <div v-if="imagePreview" class="image-preview-container text-center p-3 border border-2 border-dashed rounded bg-light mb-3">
-                        <h6 class="preview-title">Preview</h6>
-                        <div class="position-relative d-inline-block">
-                            <img :src="imagePreview" alt="Preview" class="preview-image rounded object-fit-cover" />
-                            <button type="button" @click="removeImage" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle">×</button>
+                        <label  class="form-label headingFont fw-bold h5 mb-3">Select a Meal Plan</label>
+                        <div class="d-flex px-2 gap-3">
+                        <MealPlanCard class="me-2"
+                        v-for="Meal in props.user_MealPlans"
+                        :key="Meal"
+                        :rec_id="Meal.rec_id"
+                        :name="Meal.name"
+                        :desc="Meal.desc"
+                        :editable="false"
+                        :compact="true"
+                        ></MealPlanCard>
                         </div>
-                        <p class="text-muted small mt-1 mb-0">{{ imageFile?.name }} ({{ formatFileSize(imageFile?.size) }})</p>
                     </div>
                 </div>
 

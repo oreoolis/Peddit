@@ -89,19 +89,7 @@ onMounted(async () => {
         <div class="card-body d-flex flex-column ">
             <div class="card-text py-1">
                 <section class="pet-info headingFont ">
-                    <h4 class="fw-bold d-flex">Status: 
-                        <i :class="['bi', StatusDetails.icon, StatusDetails.colorClass, 'mx-2']"></i>
-                    </h4>
-                    <div class="d-fill">
-                        <div class="d-flex align-items-center gap-2">
-                            <h4 class="mb-0 fw-bold">Score:</h4>
-                            <div class="flex-grow-1">
-                                <div class="progress w-100" role="progressbar" aria-label="Score" aria-valuemin="0" aria-valuemax="100">
-                                    <div :class="['progress-bar', 'bg-'+ StatusDetails.colorClass]" v-bind:style="{width : score+'%'}" v-bind:aria-valuenow="score"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                     <h4 class="fw-bold d-flex align-items-center">Current Diet: 
                         <Button v-if="recipeDetails.recipe_name" class="h-75 mx-1" :label="recipeDetails.recipe_name">
                         </Button>

@@ -1,16 +1,22 @@
 <script setup>
 import MealInfoModal from './MealInfoModal.vue';
-import { ref } from 'vue';
+import { ref,computed } from 'vue';
 
 
-const props = defineProps(["rec_id", "name", "desc","editable"])
+const props = defineProps(["rec_id", "name", "desc","editable","compact","Image"])
+
 const showMealInfo = ref(false);
 const openMealInfo = () => {
     showMealInfo.value = true;
 }
+const cardStyle = computed(() => ({
+  width: props.compact == true ? '12rem' : '18rem',
+  height: props.compact == true ? '16rem' : '27rem'
+}));
+
 </script>
 <template>
-    <div class="recipeCard card overflow-hidden bg-primary shadow p-3 mb-5 rounded-5 border-1" style="width: 18rem; height: 27rem;">
+    <div class="recipeCard card overflow-hidden bg-primary shadow p-3 mb-5 rounded-5 border-1" :style="cardStyle">
         <!-- to show the first ingredient item -->
         <img :src="Image" class="card-img-top " alt="...">
         <div class="card-body">
