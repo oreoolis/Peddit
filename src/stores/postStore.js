@@ -19,12 +19,21 @@ export const usePostStore = defineStore('posts', () => {
     const hasMore = ref(true);
     const page = ref(0);
     const PAGE_SIZE = 10;
+    const query = ref('');
 
     // Getters
     const postCount = computed(() => posts.value.length);
     const publicPosts = computed(() => posts.value.filter(post => post.is_public));
     const userPosts = computed(() => (userId) => posts.value.filter(post => post.author_id === userId));
     const popularPosts = computed(() => [...posts.value].sort((a, b) => b.vote_score - a.vote_score).slice(0, 5));
+
+    const filteredPosts = computed(() => {
+        if (!query.value) return posts.value;
+
+        return posts.value?.filter(post => 
+        post.title.toLowerCase().includes(query.value.toLowerCase())
+        );
+    });
 
     // Actions
     /**
@@ -425,12 +434,14 @@ export const usePostStore = defineStore('posts', () => {
         currentPost,
         hasMore,
         page,
+        query,
 
         // Getters
         postCount,
         publicPosts,
         userPosts,
         popularPosts,
+        filteredPosts,
 
         // Actions
         fetchPosts,

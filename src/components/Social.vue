@@ -9,12 +9,12 @@ import { useCommentStore } from "@/stores/commentStore"
 import { useUserStore } from "@/stores/userStore"
 import { useAuthStore } from "@/stores/authStore"
 import { useProfileStore } from "@/stores/profileStore"
-import { onMounted, ref } from "vue"
+import { computed, onMounted, ref } from "vue"
 import CreatePostModal from "./Organisms/social/CreatePostModal.vue"
 import { useDebounce, useDebounceFn } from "@vueuse/core"
 
 const postStore = usePostStore();
-const { posts } = storeToRefs(postStore);
+const { posts, query: postQuery, filteredPosts } = storeToRefs(postStore);
 const authStore = useAuthStore();
 
 const commentStore = useCommentStore();
@@ -27,9 +27,18 @@ console.log("Author Profile in Search View: ", authorProfile.value);
 const commentsByPostId = ref({});
 
 const profileStore = useProfileStore();
-const { profiles, query, filteredProfiles } = storeToRefs(profileStore);
+const { query, filteredProfiles } = storeToRefs(profileStore);
 
 const debFilteredProfiles = useDebounce(filteredProfiles, 300);
+const debFilteredPosts = useDebounce(filteredPosts, 300);
+
+const combinedQuery = computed({
+  get(){ return query.value },
+  set(newVal){
+    query.value = newVal;
+    postQuery.value = newVal;
+  }
+});
 
 const props = defineProps({
     foundProfiles:{
@@ -100,7 +109,7 @@ const handleCreatePost = async (postData) => {
 
 <template>
   <!-- search bar -->
-   <searchBar class="w-75" placeholder="Search..." v-model="query">
+   <searchBar class="w-75" placeholder="Search..." v-model="combinedQuery">
     <i class="bi bi-search"></i>
    </searchBar>
   <section class="section w-75 mx-auto">
@@ -139,7 +148,7 @@ const handleCreatePost = async (postData) => {
 
             <!-- safer prop access for post fields so a missing `profiles` doesn't break rendering -->
             <PostSearch
-                v-for="post in posts"
+                v-for="post in debFilteredPosts"
                 :key="post?.id ?? post?.link ?? post?.title"
                 :link="post?.id ?? post?.link"
                 :title="post?.title"
