@@ -37,7 +37,7 @@ function onCardClick(e) {
   const bad = e.target.closest('button, a, input, select, .no-nav');
   if (bad) return;
   //router.push({ path: '/view-recipe-post', query: { q: props.RecipeId } });
-  router.push({ path: '/viewpost/' + props.RecipeId });
+  router.push({ path: '/view-recipe-post/' + props.RecipeId });
 }
 </script>
 

@@ -125,11 +125,18 @@ const router = createRouter({
       name: 'SearchResults',
       component: () => import('@/views/MealViewSearchResult.vue')
     },
+    // {
+    //   path: '/view-recipe-post',
+    //   name: 'view-recipe-post',
+    //   component: () => import('@/views/ViewRecipePost.vue')
+    // }
     {
-      path: '/view-recipe-post',
+      path: '/view-recipe-post/:postId',
       name: 'view-recipe-post',
-      component: () => import('@/views/ViewRecipePost.vue')
-    }
+      component: () => import('@/views/ViewRecipePost.vue'),
+      props: true,
+      meta: { requiresAuth: false } // Public profiles can be viewed without authentication
+    },
     // {
     //   // route level code-splitting
     //   // this generates a separate chunk (About.[hash].js) for this route

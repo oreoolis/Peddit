@@ -21,6 +21,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
   const error = ref(null);
   const recipeQuery = ref('');
   const recipePostQuery = ref('');
+  const currentRecipePost = ref(null);
 
   // Getters
   const totalIngredients = computed(() => ingredients.value.length);
@@ -271,6 +272,66 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
         }
     }
 
+  // Single fetch
+    /**
+   * Fetches posts from the database with optional filtering and pagination
+   * @param {string} postId - The postId of post you trying to fetch
+   * @returns {Promise<{ success: boolean, error?: string }>}
+  */
+  const fetchRecipePostById = async (postId) => {
+      try {
+          loading.value = true;
+          error.value = null;
+
+          // Join post with author
+          const { data, error: supabaseError } = await supabase
+              .from('posts')
+              .select(`
+                *,
+                profiles ( 
+                  username, 
+                  display_name,
+                  avatar_url
+                  ),
+                recipes ( 
+                  recipe_name, 
+                  description, 
+                  price_per_week,
+                  pet_kind,
+                  pet_breed,
+                  recipe_ingredients (
+                    id,
+                    quantity_g,
+                    food_ingredients (
+                        id,
+                        name,
+                        type,
+                        nutrition
+                    )
+                  )
+                )
+              `)
+              .eq('id', postId)
+              .single();
+
+          if (supabaseError) throw supabaseError;
+
+          if (data.profiles?.avatar_url) {
+              data.profiles.avatar_url = getPublicImage('avatars', data.profiles.avatar_url);
+          }
+
+          currentRecipePost.value = data;
+          return { success: true, data };
+
+      } catch (err) {
+          error.value = err.message;
+          console.error('Error fetching post:', err);
+          return { success: false, error: err.message };
+      } finally {
+          loading.value = false;
+      }
+  }
+
   // Technically should be in POSTSTORE
   const fetchAllRecipePost = async () => {
     try {
@@ -289,6 +350,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
             price_per_week,
             pet_kind,
             pet_breed,
+            created_at,
             recipe_ingredients (
               id,
               quantity_g,
@@ -794,6 +856,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
     error,
     recipeQuery,
     recipePostQuery,
+    currentRecipePost,
     
     // Computed
     totalIngredients,
@@ -818,6 +881,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
     updateRecipe,
     deleteRecipe,
     fetchAllRecipePost,
+    fetchRecipePostById,
     createRecipePost,
     
     // Recipe Ingredients
