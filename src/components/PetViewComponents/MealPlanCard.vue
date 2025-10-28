@@ -3,7 +3,7 @@ import MealInfoModal from './MealInfoModal.vue';
 import { ref } from 'vue';
 
 
-const props = defineProps(["rec_id", "name", "desc"])
+const props = defineProps(["rec_id", "name", "desc","editable"])
 const showMealInfo = ref(false);
 const openMealInfo = () => {
     showMealInfo.value = true;
@@ -28,7 +28,7 @@ const openMealInfo = () => {
             </div>
         </div>
     </div>
-    <MealInfoModal v-model:show="showMealInfo" :rec_id="rec_id"/>
+    <MealInfoModal v-model:show="showMealInfo" :rec_id="rec_id" :editable="editable"/>
 </template>
 <style>
 .recipeCard {

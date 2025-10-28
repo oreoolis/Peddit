@@ -12,6 +12,7 @@ import { useProfileStore } from "@/stores/profileStore"
 import { computed, onMounted, ref } from "vue"
 import CreatePostModal from "./Organisms/social/CreatePostModal.vue"
 import { useDebounce, useDebounceFn } from "@vueuse/core"
+import ShareRecipeModal from "./Organisms/social/ShareRecipeModal.vue"
 
 const postStore = usePostStore();
 const { posts, query: postQuery, filteredPosts } = storeToRefs(postStore);
@@ -79,6 +80,7 @@ onMounted(async () => {
 });
 
 const showCreatePostModal = ref(false);
+const showShareRecipePostModal = ref(false);
 const handleCreatePost = async (postData) => {
     if (!authStore.user) {
         alert("You must be logged in to create a post.");
@@ -168,7 +170,11 @@ const handleCreatePost = async (postData) => {
     @create-post="handleCreatePost"
   />
   <Button @click="showShareRecipePostModal = true" label="ShareRecipe"></Button>
-    
+  <ShareRecipeModal
+  :show="showShareRecipePostModal"
+  @update:show="showCreatePostModal=$event"
+  @create-post="handleCreatePost"
+  />
    </div>
 
 </template>

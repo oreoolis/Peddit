@@ -17,6 +17,10 @@ const props = defineProps({
     show: {
         type: Boolean,
         default: false
+    },
+    editable:{
+        type: Boolean,
+        default: true,
     }
 });
 
@@ -87,14 +91,14 @@ onMounted(async () => {
                                 :nutrition="ingredients.food_ingredients.nutrition" :amount="ingredients.quantity_g" />
                         </div>
                     </div>
-                    <button type="button" class="btn btn-secondary bodyFont text-end" @click="editPet">
+                    <button v-if="editable" type="button" class="btn btn-secondary bodyFont text-end" @click="editPet">
                         Edit
                     </button>
                 </div>
 
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger bodyFont" @click="deleteMeal">
+                <button type="button" v-if="editable" class="btn btn-danger bodyFont" @click="deleteMeal">
                     Delete Meal
                 </button>
                 <button type="button" class="btn btn-primary bodyFont" @click="closeModal">

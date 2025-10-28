@@ -109,7 +109,7 @@ onMounted(async () => {
 
               <!-- RIGHT: card -->
               <div class="carousel-card d-flex" style="max-width:420px;">
-                <MealPlanCard :name="f.recipe_name" :rec_id="f.id" :desc="f.desc" style="width:100% !important; height:100% !important; margin:0 !important;"/>
+                <MealPlanCard :editable="false" :name="f.recipe_name" :rec_id="f.id" :desc="f.desc" style="width:100% !important; height:100% !important; margin:0 !important;"/>
               </div>
             </div>
           </div>
