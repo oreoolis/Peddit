@@ -9,18 +9,20 @@ import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
 import Button from '@/components/atoms/button.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
+import { useUserStore } from '@/stores/userStore';
+import { storeToRefs } from 'pinia';
 
 const petStore = usePetStore();
-const { fetchPets } = petStore;
+const { } = storeToRefs(petStore);
 const authStore = useAuthStore();
 const nutritionStore = usePetNutritionStore();
-const { fetchRecipes } = nutritionStore;
+const { recipes } = storeToRefs(nutritionStore);
 const route = useRoute();
 
 watch(() => authStore.userId, (newUserId) => {
     if (newUserId) {
-        fetchPets(newUserId);
-        fetchRecipes(newUserId);
+        petStore.fetchPets(newUserId);
+        nutritionStore.fetchRecipes(newUserId);
     }
 }, { immediate: true });
 
@@ -34,7 +36,10 @@ const openPetInfo = () => {
     showPetInfo.value = true;
 }
 
-onMounted(() => {
+const userStore = useUserStore();
+const { shoppingList } = storeToRefs(userStore);
+
+onMounted(async () => {
     if (route.state?.showOpSuccess) { // if route state exists, load showEditSuccess
         const toastElement = document.getElementById('liveToast');
         const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement, { autohide: true, delay: 3000 });
@@ -44,7 +49,20 @@ onMounted(() => {
         }
         toastBootstrap.show();
     }
-})
+
+    try {
+        // Fetch shopping list
+        await userStore.fetchShoppingList();
+        // debug - shows what the store returned
+        console.log("Fetched shopping list:", shoppingList.value);
+        console.log(recipes.value);
+        //await userStore.addMultipleToShoppingList();
+    } catch (err) {
+        console.error("Error fetching shopping list:", err);
+    }
+
+    console.log("HELLSO");
+});
 
 </script>
 

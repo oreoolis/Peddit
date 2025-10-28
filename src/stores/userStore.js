@@ -22,6 +22,8 @@ export const useUserStore = defineStore('user', () => {
     const loading = ref(false);
     const error = ref(null);
 
+    const shoppingList = ref([]);
+
     // Getters
     const hasProfile = computed(() => !!profile.value);
     const avatarUrl = computed(() => {
@@ -175,6 +177,87 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
+    /**
+     * Fetches the shopping list of the current authenticated user
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
+    const fetchShoppingList = async () => {
+        if (!userId.value) {
+            console.warn('No authenticated user found');
+            return { success: false, error: 'No authenticated user' };
+        }
+
+        try {
+            loading.value = true;
+            error.value = null;
+
+            const { data, error: fetchError } = await supabase
+                .from('shopping_list_items')
+                .select(`
+                    *,
+                    food_ingredients:ingredient_id (
+                        id,
+                        name,
+                        type,
+                        nutrition
+                    )
+                `)
+                .eq('user_id', userId.value)
+                .order('is_purchased')
+                .order('created_at');
+
+            if (fetchError) throw fetchError;
+
+            console.log(data);
+            shoppingList.value = data;
+            
+            return { success: true, data };
+        } catch (err) {
+            error.value = err.message;
+            shoppingList.value = null;
+            return { success: false, error: err.message };
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    /**
+     * Adds multiple ingredients to the user's shopping list.
+     * If an ingredient exists, its quantity is increased.
+     * @param {Array<Object>} ingredients - An array of objects, e.g., [{ ingredient_id: 1, quantity_g: 500 }]
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
+    const addMultipleToShoppingList = async (ingredients) => {
+        if (!userId.value) {
+            return { success: false, error: 'No authenticated user' };
+        }
+        if (!ingredients || ingredients.length === 0) {
+            return { success: true, data: [] }; // Nothing to add
+        }
+
+        try {
+            loading.value = true;
+            error.value = null;
+
+            // Call the database function we created
+            const { data, error: rpcError } = await supabase.rpc('add_to_shopping_list', {
+                p_user_id: userId.value,
+                p_items: ingredients
+            });
+
+            if (rpcError) throw rpcError;
+
+            await fetchShoppingList();
+
+            return { success: true, data };
+        } catch (err) {
+            error.value = err.message;
+            return { success: false, error: err.message };
+        } finally {
+            loading.value = false;
+        }
+    };
+
     // Clear profile value and errors, call this when sign out
     // const clearProfile = () => {
     //     profile.value = null;
@@ -198,6 +281,8 @@ export const useUserStore = defineStore('user', () => {
         fetchProfile,
         updateProfile,
         uploadProfileImage,
-        deleteProfileImage
+        deleteProfileImage,
+        fetchShoppingList,
+        addMultipleToShoppingList
     };
 });
