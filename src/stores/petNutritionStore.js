@@ -220,6 +220,57 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
   // RECIPES
   // ============================================
 
+  // TODO: Create recipe post
+  /**
+     * Create a post and tie it to current user
+     * @param {string} userId - The userId author of the post
+     * @param {string} postData - The post fields to update (title, content, is_public, nsfw(Gorey pet image like injuries), recipe_id)
+     * @returns {Promise<{ success: boolean, error?: string }>}
+    */
+    const createRecipePost = async (userId, postData) => {
+        try {
+            loading.value = true;
+            error.value = null;
+
+            if (!postData.content && !postData.title) {
+                throw new Error('Post must have content or title');
+            }
+
+            const { error: supabaseError } = await supabase
+                .from('posts')
+                .insert([{
+                    author_id: userId,
+                    title: postData.title?.trim() || null,
+                    content: postData.content?.trim() || null,
+                    is_public: postData.is_public ?? true,
+                    nsfw: postData.nsfw ?? false,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    recipe_id: postData.recipeId || null
+                }])
+                .select(`
+                    *,
+                    profiles:author_id (
+                        username,
+                        display_name,
+                        avatar_url
+                    )
+                `)
+                .single();
+
+            if (supabaseError) throw supabaseError;
+
+            return { success: true };
+
+        } catch (err) {
+            error.value = err.message;
+            console.error('Error creating post:', err);
+            return { success: false, error: err.message };
+        } finally {
+            loading.value = false;
+        }
+    }
+
   // Technically should be in POSTSTORE
   const fetchAllRecipePost = async () => {
     try {
@@ -767,6 +818,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
     updateRecipe,
     deleteRecipe,
     fetchAllRecipePost,
+    createRecipePost,
     
     // Recipe Ingredients
     addIngredientToRecipe,
