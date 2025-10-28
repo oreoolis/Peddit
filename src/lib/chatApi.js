@@ -8,6 +8,10 @@ export async function sendChat(messages, opts = {}) {
     temperature: opts.temperature ?? 0.7,
   };
 
+  if (opts.reasoning) {
+    body.reasoning = { effort: opts.reasoningEffort || 'medium' };
+  }
+
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -41,6 +45,10 @@ export async function sendChatStream(messages, opts = {}) {
     temperature: opts.temperature ?? 0.7,
     stream: true,
   };
+
+  if (opts.reasoning) {
+    body.reasoning = { effort: opts.reasoningEffort || 'medium' };
+  }
 
   const res = await fetch(url, {
     method: 'POST',
