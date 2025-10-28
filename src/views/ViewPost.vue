@@ -80,11 +80,16 @@ const handleCommentSubmit = async (content) => {
     }
 };
 
-const onVote = (v) => {
+const onVote = async (v) => {
   const num = Number(v) || 0;
   const normalized = [-1, 0, 1].includes(num) ? num : 0;
   serverVote.value = normalized;
   console.log('[VOTE]', serverVote.value); // prints -1, 0 or 1
+  console.log(user.value.id);
+
+  if(user.value.id){
+    await postStore.voteOnPost(currentPost.value.id, user.value.id, serverVote.value);
+  }
 };
 
 // helper: remove HTML and shorten content for share text
