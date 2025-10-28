@@ -109,14 +109,9 @@ onMounted(async () => {
   }
 });
 
+// DEMO ADD RECIPE
 const addRecipeToShopList = async () => {
   const result = await userStore.addUnformattedToShoppingList(recipes.value[0].recipe_ingredients);
-  // const befformatted = recipes.value[0].recipe_ingredients;
-  // console.log(befformatted);
-  // const formatted = befformatted.map(r => ({ ingredient_id: r.food_ingredients.id, quantity_g: r.quantity_g}));
-  // console.log(formatted);
-
-  // const result = await userStore.addMultipleToShoppingList(formatted);
 
   if (result.success) {
       console.log('Ingredients added successfully!');
