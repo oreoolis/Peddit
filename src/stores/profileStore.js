@@ -4,6 +4,10 @@ import { ref, computed } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
 import { useStorage } from '@/composables/useStorage';
 
+import DefAvatar from '../assets/person.jpg';
+
+const { getPublicImage } = useStorage();
+
 /**
  * Profile store for managing other users' profiles
  * Handles fetching and viewing profiles of other users (not the current user)
@@ -23,13 +27,19 @@ export const useProfileStore = defineStore('profile', () => {
     const hasProfile = computed(() => !!profile.value);
     const avatarUrl = computed(() => {
         if (!profile.value?.avatar_url) return null;
-        const { getPublicImage } = useStorage();
         return getPublicImage('avatars', profile.value.avatar_url);
     });
     const username = computed(() => profile.value?.display_name || profile.value?.username || 'user');
     const follows = computed(() => profile.value?.following_count || 0);
     const followers = computed(() => profile.value?.follower_count || 0);
-    const filteredProfiles = computed(() => profiles.value.filter(p => p.display_name.toLowerCase().includes(query.value.toLowerCase())));
+
+    const filteredProfiles = computed(() => {
+        if (!query.value) return profiles.value;
+
+        return profiles.value?.filter(profile => 
+        profile.display_name.toLowerCase().includes(query.value.toLowerCase())
+        );
+    });
 
     // Actions
     /**
@@ -86,17 +96,24 @@ export const useProfileStore = defineStore('profile', () => {
 
             const { data, error: fetchError } = await supabase
                 .from('profiles')
-                .select('*');
+                .select('*')
+                .order('follower_count', { ascending: false });
 
             if (fetchError) throw fetchError;
 
-            profile.value = data;
-            lastFetchedUsername.value = username;
+            // Change the avatar_url into the image URL inside supabase avatars storage bucket
+            const transformedProfs = data.map(prof => ({
+                ...prof,
+                avatar_url: prof.avatar_url ? getPublicImage('avatars', prof.avatar_url) : DefAvatar
+            }));
+
+            profiles.value = transformedProfs || [];
+
+            console.log(profiles.value);
             
             return { success: true, data };
         } catch (err) {
             error.value = err.message;
-            profile.value = null;
             return { success: false, error: err.message };
         } finally {
             loading.value = false;
@@ -132,6 +149,7 @@ export const useProfileStore = defineStore('profile', () => {
 
         // Actions 
         fetchProfile,
-        clearProfile
+        clearProfile,
+        fetchAllProfiles
     };
 });

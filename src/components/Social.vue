@@ -11,7 +11,7 @@ import { useAuthStore } from "@/stores/authStore"
 import { useProfileStore } from "@/stores/profileStore"
 import { onMounted, ref } from "vue"
 import CreatePostModal from "./Organisms/social/CreatePostModal.vue"
-import { useDebounce } from "@vueuse/core"
+import { useDebounce, useDebounceFn } from "@vueuse/core"
 
 const postStore = usePostStore();
 const { posts } = storeToRefs(postStore);
@@ -26,17 +26,10 @@ console.log("Author Profile in Search View: ", authorProfile.value);
 // Store comments by post ID
 const commentsByPostId = ref({});
 
-
-
 const profileStore = useProfileStore();
-const { query, filteredProfiles } = storeToRefs(profileStore);
+const { profiles, query, filteredProfiles } = storeToRefs(profileStore);
 
-const deQuery = useDebounce(query, 1000);
-
-const handleInput = () => {
-  
-};
-
+const debFilteredProfiles = useDebounce(filteredProfiles, 300);
 
 const props = defineProps({
     foundProfiles:{
@@ -66,9 +59,11 @@ const props = defineProps({
 )
 onMounted(async () => {
     try {
+        await profileStore.fetchAllProfiles();
         await postStore.fetchPosts();
         // debug - shows what the store returned
         console.log("Fetched posts:", posts.value);
+        //console.log("Fetched profiles:", profiles.value);
     } catch (err) {
         console.error("Error fetching posts:", err);
     }
@@ -105,7 +100,7 @@ const handleCreatePost = async (postData) => {
 
 <template>
   <!-- search bar -->
-   <searchBar class="w-75" placeholder="Search...">
+   <searchBar class="w-75" placeholder="Search..." v-model="query">
     <i class="bi bi-search"></i>
    </searchBar>
   <section class="section w-75 mx-auto">
@@ -116,26 +111,16 @@ const handleCreatePost = async (postData) => {
 
     <div class="grid">
       <ProfileSearch
-        v-for="(profile, idx) in props.foundProfiles"
-        :key="profile.Name + '_' + idx"
-        :Name="profile.Name"
-        :Image="profile.Image"
+        v-for="(profile, idx) in debFilteredProfiles"
+        :key="profile.id + '_' + idx"
+        :Name="profile.display_name"
+        :Image="profile.avatar_url"
+        :handle="'@'+profile.display_name"
         :Following="profile.following_count"
         :Followers="profile.follower_count"
         class="card card-profile"
       />
     </div>
-    <!-- <div class="grid">
-      <ProfileSearch
-        v-for="(profile, idx) in props.foundProfiles"
-        :key="profile.Name + '_' + idx"
-        :Name="profile.Name"
-        :Image="profile.Image"
-        :Followers="profile."
-        :Following="profile."
-        class="card card-profile"
-      />
-    </div> -->
   </section>
 
 
