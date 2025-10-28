@@ -16,9 +16,11 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
   const nutritionProfiles = ref([]);
   const ingredients = ref([]);
   const recipes = ref([]);
+  const recipePosts = ref([]);
   const loading = ref(false);
   const error = ref(null);
   const recipeQuery = ref('');
+  const recipePostQuery = ref('');
 
   // Getters
   const totalIngredients = computed(() => ingredients.value.length);
@@ -29,6 +31,14 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
     
     return recipes.value.filter(recipe => 
       recipe.recipe_name.toLowerCase().includes(recipeQuery.value.toLowerCase())
+    );
+  });
+
+  const filteredRecipePosts = computed(() => {
+    if (!recipePostQuery.value) return recipePosts.value;
+    
+    return recipePosts.value.filter(post => 
+      post.recipes.recipe_name.toLowerCase().includes(recipePostQuery.value.toLowerCase())
     );
   });
 
@@ -209,6 +219,61 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
   // ============================================
   // RECIPES
   // ============================================
+
+  // Technically should be in POSTSTORE
+  const fetchAllRecipePost = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          profiles ( 
+            username, 
+            display_name,
+            avatar_url
+            ),
+          recipes ( 
+            recipe_name, 
+            description, 
+            price_per_week,
+            pet_kind,
+            pet_breed,
+            recipe_ingredients (
+              id,
+              quantity_g,
+              food_ingredients (
+                  id,
+                  name,
+                  type,
+                  nutrition
+              )
+            )
+          )
+        `)
+        // Filter to only get posts that have a recipe
+        .not('recipe_id', 'is', null)
+        // Order by the newest posts first
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Change the avatar_url into the image URL inside supabase avatars storage bucket
+      const transformedPosts = data.map(post => {
+          if (post.profiles?.avatar_url) {
+              post.profiles.avatar_url = getPublicImage('avatars', post.profiles.avatar_url);
+          }
+          return post;
+      });
+
+      // Parse nutrition to json
+
+      console.log(transformedPosts);
+
+      recipePosts.value = transformedPosts;
+    } catch (error) {
+      console.error('Error fetching recipe posts:', error.message);
+    }
+  };
 
   /**
    * Fetch all recipes with their ingredients
@@ -677,11 +742,13 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
     loading,
     error,
     recipeQuery,
+    recipePostQuery,
     
     // Computed
     totalIngredients,
     totalRecipes,
     filteredRecipes,
+    filteredRecipePosts,
     
     // Nutrition Profiles
     fetchNutritionProfiles,
@@ -699,6 +766,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
     createRecipe,
     updateRecipe,
     deleteRecipe,
+    fetchAllRecipePost,
     
     // Recipe Ingredients
     addIngredientToRecipe,

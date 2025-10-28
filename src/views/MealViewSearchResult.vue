@@ -20,8 +20,6 @@ const initialQuery = route.query.q || '';
 
 // use the composable (local or remote search)
 //const { query, results, loading, searchNow, setItems } = useMealSearch({ debounceMs: 250 });
-const petNutritionStore = usePetNutritionStore();
-const { recipeQuery, filteredRecipes: foundPosts } = storeToRefs(petNutritionStore);
 
 // TO WORK ON
 // const props = defineProps({
@@ -127,6 +125,8 @@ const { recipeQuery, filteredRecipes: foundPosts } = storeToRefs(petNutritionSto
 //     ])
 //   }
 // });
+const petNutritionStore = usePetNutritionStore();
+const { recipePostQuery, filteredRecipePosts: foundPosts } = storeToRefs(petNutritionStore);
 
 const visibleItems = ref([]);
 
@@ -147,21 +147,22 @@ watch(foundPosts, (newList) => {
   if (!newList) visibleItems.value = [];
   else mountInBatches(newList, 6, 40);
 
-  console.log(recipeQuery.value);
+  console.log(recipePostQuery.value);
   console.log(foundPosts.value);
 });
 
 // run initial search if q present
 onMounted(() => {
   petNutritionStore.fetchRecipes();
-  recipeQuery.value = initialQuery;
-  if (initialQuery) recipeQuery.value = initialQuery;
+  petNutritionStore.fetchAllRecipePost();
+  if (initialQuery) recipePostQuery.value = initialQuery;
+  console.log(foundPosts.value);
 });
 
 // react to query param changes (browser back/forward or external navigation)
 watch(() => route.query.q, (q) => {
-  query.value = q || '';
-  if (q) recipeQuery = q;
+  recipePostQuery.value = q || '';
+  if (q) recipePostQuery.value = q;
   else {
     // clear results or re-seed if desired
     // results.value = [];
@@ -172,7 +173,7 @@ watch(() => route.query.q, (q) => {
 function goToSearchResults(submittedValue) {
   const term = (typeof submittedValue === 'string' && submittedValue.trim().length)
     ? submittedValue.trim()
-    : (recipeQuery.value ?? '').toString().trim();
+    : (recipePostQuery.value ?? '').toString().trim();
 
   // if blank, navigate to route without q (optional)
   const target = term ? { name: 'SearchResults', query: { q: term } } : { name: 'SearchResults', query: {} };
@@ -181,24 +182,22 @@ function goToSearchResults(submittedValue) {
   router.push(target).catch(() => { /* ignore NavigationDuplicated */ });
 
   // also trigger an immediate search so results populate fast
-  if (term) recipeQuery = term;
+  if (term) recipePostQuery.value = term;
 }
 </script>
 
 <template>
   <main class="p-3 ">
-
-
     <h1 class="text-center headingFont my-3">Search Meal Plans</h1>
     <div class="d-flex justify-content-center mb-3">
       <!-- keep TextInput unchanged: listen to its submit event and handle in this view -->
-      <TextInput label="Search" :modelValue="recipeQuery" @submit="goToSearchResults" class="w-75" />
+      <TextInput label="Search" :modelValue="recipePostQuery" @submit="goToSearchResults" class="w-75" />
       <!-- If your TextInput does not support modelValue/v-model, it still should emit submit(value);
            goToSearchResults will use submitted value when provided. -->
     </div>
     <header class="section-header border-bottom mb-2 d-flex w-75 mx-auto">
       <BaseBadge pill variant="info" class="px-3 fs-5 my-2 mx-3">Posts</BaseBadge>
-      <h1 class="section-title pb-2">Search results for "{{ recipeQuery }}"</h1>
+      <h1 class="section-title pb-2">Search results for "{{ recipePostQuery }}"</h1>
       
     </header>
     <!-- New Post Design For found result, with User Info, Score and other good things, we can reuse some information -->
@@ -209,13 +208,13 @@ function goToSearchResults(submittedValue) {
       :RecipeId="post.id"
       :Username="post.profiles.display_name"
       :User_Image="post.profiles.avatar_url"
-      :Recipe_Name="post.recipe_name"
-      :Recipe_Desc="post.description"
+      :Recipe_Name="post.recipes.recipe_name"
+      :Recipe_Desc="post.recipes.description"
       :Vote_score="post.vote_score"
       :Comment_count="post.comment_count"
-      :Animal_Type="post.pet_kind"
-      :Animal_Breed="post.pet_breed"
-      :Cost_Per_Week="post.price_per_week"
+      :Animal_Type="post.recipes.pet_kind"
+      :Animal_Breed="post.recipes.pet_breed"
+      :Cost_Per_Week="post.recipes.price_per_week"
       :Recipe_Nutrition_Stats="post.Recipe_Nutrition_Stats"
     > 
     </RecipeSearch>

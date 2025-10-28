@@ -12,25 +12,6 @@ import MealViewSearchResult from './MealViewSearchResult.vue';
 import router from '@/router';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { storeToRefs } from 'pinia';
-// const featured = [ // meal card data + user data
-//     { id: 'r1', name: 'Test', desc: 'Yum Yum', animal: 'Dog', breed: 'Golden Retriever', price_per_week: 69.5, likes: 99, username: 'MaryJane', user_image:'https://picsum.photos/seed/defaultpet/200/200.jpg'},
-//     { id: 'r2', name: 'Test 2', desc: 'Test Test', animal: 'Dog', breed: 'Poodle', price_per_week: 123, likes: 123 , username: 'TomCruise', user_image:'https://picsum.photos/seed/pet/200/200.jpg' },
-//     { id: 'r3', name: 'Tuna Delight', desc: 'Light, low-calorie option', animal: 'Dog', breed: 'Husky', price_per_week: 10, likes: 33 , username: 'KimJun', user_image:'https://picsum.photos/seed/dog/200/200.jpg' },
-//     { id: 'r4', name: 'Beef Boost', desc: 'Calorie-dense for underweight pets', animal: 'Cat', breed: 'Black cat', price_per_week: 15, likes: 200, username: 'BigMan', user_image:'https://picsum.photos/cat/defaultpet/200/200.jpg' },
-//     { id: 'r5', name: 'Veg Mix', desc: 'Gentle on stomachs', animal: 'Cat', breed: 'Golden Kitty', price_per_week: 25, likes: 300, username: 'Mobil', user_image:'https://picsum.photos/seed/sky/200/200.jpg' }
-
-// ];
-// const RecommendMealsData = [
-//     { id: 'r1', name: 'Test', desc: 'Yum Yum' },
-//     { id: 'r2', name: 'Test 2', desc: 'Test Test' },
-//     { id: 'r3', name: 'Tuna Delight', desc: 'Light, low-calorie option' },
-//     { id: 'r4', name: 'Beef Boost', desc: 'Calorie-dense for underweight pets' },
-//     { id: 'r5', name: 'Veg Mix', desc: 'Gentle on stomachs' }
-// ]
-
-// const { query, results, loading, setItems, searchNow } = useMealSearch({ initialItems: featured, debounceMs: 300 });
-
-
 
 
 // TODO: Bern code
@@ -81,6 +62,7 @@ onMounted(async () => {
     <div id="featuredCarousel" ref="carouselEl" class="carousel carousel-fade mb-4" data-bs-ride="carousel" data-bs-interval="5000">
       <h1 class="text-center headingFont bg-primary text-white py-2">Popular Meal Plans</h1>
       <div class="carousel-inner text-center bg-primary-light" ref="carouselInner">
+        <div v-if="!featured">Nothing</div>
         <div v-for="(f, idx) in featured" 
         :key="f.id" 
         :class="['carousel-item', {active: idx===0}]">
@@ -125,8 +107,10 @@ onMounted(async () => {
     </div>
  
      <!-- TODO: Need to insert Plans here into RecommendedMeals -->
+      <div v-if="!featured">Nothing</div>
       <RecommendedMeals
-      :plans="RecommendMealsData"></RecommendedMeals>
+        :plans="featured.value"
+      ></RecommendedMeals>
    </main>
  </template>
  
