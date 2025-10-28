@@ -1,7 +1,7 @@
 <script setup>
 import Button from "../components/atoms/button.vue"
 import searchBar from "@/components/atoms/searchBar.vue";
-
+import animatedImage from "@/components/atoms/animated/animatedImage.vue";
 import PetCard from "@/components/molecules/create-edit-pet/PetCard.vue";
 import buttonTogglable from "@/components/atoms/buttonTogglable.vue";
 import SelectAndOption from "@/components/atoms/SelectAndOption.vue";
@@ -61,6 +61,17 @@ import AtomicDemo from "@/views/AtomicDemo.vue";
                     <div class="col-md-4 mt-3"><TextInput label="Text Input Field" /></div>
                     <div class="col-md-4 mt-3 d-flex align-items-center"><buttonTogglable /></div>
                     <div class="col-md-4 mt-3"><ShareButton initial-text="Edit initial-text to edit share message!" title="Custom Title here" button-label="Share Button(adjustable text)"/></div>
+                    <animatedImage src="/src/assets/Sprite/Cat/Walk.png" :frameWidth="48" :frameHeight="48" :frames="6" :fps="8" />
+                    <animatedImage src="/src/assets/Sprite/Cat/Hurt.png" :frameWidth="48" :frameHeight="48" :frames="2" :fps="2" />
+                    <animatedImage src="/src/assets/Sprite/Cat/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" />
+                    <animatedImage src="/src/assets/Sprite/Cat/Death.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" />
+                    <animatedImage src="/src/assets/Sprite/Cat/Attack.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" />
+
+                    <animatedImage src="/src/assets/Sprite/Dog/Walk.png" :frameWidth="48" :frameHeight="48" :frames="6" :fps="8" />
+                    <animatedImage src="/src/assets/Sprite/Dog/Hurt.png" :frameWidth="48" :frameHeight="48" :frames="2" :fps="2" />
+                    <animatedImage src="/src/assets/Sprite/Dog/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" />
+                    <animatedImage src="/src/assets/Sprite/Dog/Death.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" />
+                    <animatedImage src="/src/assets/Sprite/Dog/Attack.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" />                    
                 </div>
             </div>
 
