@@ -14,6 +14,8 @@ import BaseButton from '@/components/atomic/BaseButton.vue';
 import BreedSelectorPanel from '@/components/molecules/health/BreedSelectorPanel.vue';
 import QuickStatsGrid from '@/components/molecules/health/QuickStatsGrid.vue';
 import PetHealthAccordionItem from '@/components/atomic/PetHealthAccordionItem.vue';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
+import { useUserStore } from '@/stores/userStore';
 
 const router = useRouter();
 const petStore = usePetStore();
@@ -90,16 +92,54 @@ const handleBreedClick = (breedName) => {
   console.log('Breed clicked:', breedName);
 };
 
+const petNutritionStore = usePetNutritionStore();
+const { recipes } = storeToRefs(petNutritionStore);
+
+const userStore = useUserStore();
+const { shoppingList } = storeToRefs(userStore);
+
 // Lifecycle
 onMounted(async () => {
   if (userId.value) {
     await petStore.fetchPets(userId.value);
+    await petNutritionStore.fetchRecipes();
+    await userStore.fetchShoppingList();
+    console.log(recipes.value);
+    console.log(shoppingList.value);
   }
 });
+
+const addRecipeToShopList = async () => {
+  const result = await userStore.addUnformattedToShoppingList(recipes.value[0].recipe_ingredients);
+  // const befformatted = recipes.value[0].recipe_ingredients;
+  // console.log(befformatted);
+  // const formatted = befformatted.map(r => ({ ingredient_id: r.food_ingredients.id, quantity_g: r.quantity_g}));
+  // console.log(formatted);
+
+  // const result = await userStore.addMultipleToShoppingList(formatted);
+
+  if (result.success) {
+      console.log('Ingredients added successfully!');
+      // The shoppingList.value ref will be updated by the fetchShoppingList call inside the function
+  } else {
+      console.error('Failed to add ingredients:', result.error);
+  }
+};
 </script>
 
 <template>
   <div class="health-dashboard">
+  <div>
+    <h1>Hello</h1>
+    <button @click="addRecipeToShopList">ADD</button>
+    <h1 v-if="shoppingList.length === 0">NOOO</h1>
+    <div v-else>
+      <div v-for="sl in shoppingList">
+        <h1>{{ sl.food_ingredients?.name }}</h1>
+        <h2>{{ sl.quantity_g }}</h2>
+      </div>
+    </div>
+  </div>
     <div class="container py-4">
       <!-- Header -->
       <BasePageHeader 

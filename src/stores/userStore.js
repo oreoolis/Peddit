@@ -258,6 +258,21 @@ export const useUserStore = defineStore('user', () => {
         }
     };
 
+    /**
+     * Adds multiple ingredients to the user's shopping list.
+     * If an ingredient exists, its quantity is increased.
+     * @param {Array<Object>} ingredients - An array of recipe_ingredients
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
+    const addUnformattedToShoppingList = async (unfJSON) => {
+        const formatted = recipeJsonFormatter(unfJSON);
+        return addMultipleToShoppingList(formatted);
+    };
+
+    const recipeJsonFormatter = (recipeJson) => {
+        return recipeJson.map(r => ({ ingredient_id: r.food_ingredients.id, quantity_g: r.quantity_g}));
+    };
+
     // Clear profile value and errors, call this when sign out
     // const clearProfile = () => {
     //     profile.value = null;
@@ -269,6 +284,7 @@ export const useUserStore = defineStore('user', () => {
         profile,
         loading,
         error,
+        shoppingList,
 
         // Getters
         hasProfile,
@@ -283,6 +299,7 @@ export const useUserStore = defineStore('user', () => {
         uploadProfileImage,
         deleteProfileImage,
         fetchShoppingList,
-        addMultipleToShoppingList
+        addMultipleToShoppingList,
+        addUnformattedToShoppingList
     };
 });
