@@ -1,34 +1,56 @@
 <script setup>
 import { ref } from 'vue';
 import HealthView from './HealthView.vue';
-const tab = ref('dash');
+import TemplateVariantA from '../components/home-templates/TemplateVariantA.vue';
+import TemplateVariantB from '../components/home-templates/TemplateVariantB.vue';
+import TemplateVariantC from '../components/home-templates/TemplateVariantC.vue';
+
+// template chooser state (now primary on the Home page)
+const selectedTemplate = ref('A');
+const templates = [
+  { id: 'A', name: 'Classic', comp: TemplateVariantA },
+  { id: 'B', name: 'Card grid', comp: TemplateVariantB },
+  { id: 'C', name: 'Two-column', comp: TemplateVariantC }
+];
+const templatesMap = {
+  A: TemplateVariantA,
+  B: TemplateVariantB,
+  C: TemplateVariantC
+};
 </script>
 
 <template>
 
-// IM NOT SURE HOW HOME VIEW LIKES YET BUT THIS IS THE DESIGN IM THINKING OF
-Idk the original design might not be enough to bring out our main features
-  <div class="home-tabs">
+  <div class="home-view">
     <header class="topbar">
       <h4>Peddit</h4>
     </header>
 
-    <div class="tabs">
-      <button :class="{active: tab==='dash'}" @click="tab='dash'">Dashboard</button>
-      <button :class="{active: tab==='feed'}" @click="tab='feed'">Feed</button>
-      <button :class="{active: tab==='map'}" @click="tab='map'">Map</button>
-    </div>
-
     <main class="panel">
-      <section v-if="tab==='dash'">
-        <HealthView />
+      <section class="dashboard">
+        <div class="template-explorer card">
+          <div class="controls">
+            <label style="font-weight:600; margin-right:8px">Choose template:</label>
+            <select v-model="selectedTemplate">
+              <option v-for="t in templates" :key="t.id" :value="t.id">{{ t.name }}</option>
+            </select>
+
+            <div class="thumbs">
+              <button v-for="t in templates" :key="t.id" @click="selectedTemplate = t.id" :class="{active: selectedTemplate===t.id}" class="thumb">{{ t.id }}</button>
+            </div>
+          </div>
+
+          <div class="preview">
+            <component :is="templatesMap[selectedTemplate]" />
+          </div>
+        </div>
+
+        <!-- keep HealthView for reference below the template preview -->
+        <!-- <HealthView /> -->
       </section>
 
-      <section v-if="tab==='feed'">
-        <h2>Theres nothing here now</h2>
-      </section>
-
-      <section v-if="tab==='map'">
+      <!-- quick links kept as a small card area -->
+      <section class="quick-links">
         <div class="card">
           <h5>Find nearby</h5>
           <div class="grid">
@@ -45,17 +67,27 @@ Idk the original design might not be enough to bring out our main features
 
 <style scoped>
 .topbar { padding:12px; background:#fff; border-bottom:1px solid #eee; position:sticky; top:0; z-index:10; }
-.tabs { display:flex; gap:6px; padding:8px; background:#fafafa; border-bottom:1px solid #eee; }
-.tabs button { flex:1; padding:10px; border-radius:8px; background:transparent; border:none; font-weight:600; color:#666; }
-.tabs button.active { background:#0d6efd; color:#fff; box-shadow:0 6px 12px rgba(13,110,253,0.12); }
 .panel { padding:12px; }
 .card { background:#fff; padding:12px; border-radius:10px; }
 .grid { display:flex; gap:8px; margin-top:8px; }
 .tile { flex:1; padding:10px; background:#f4f6f8; text-align:center; border-radius:8px; text-decoration:none; color:#222; }
 
-/* desktop: tabs become horizontal split */
+/* desktop: layout split */
 @media(min-width:900px){
-  .panel { display:flex; gap:16px; }
-  .panel > section { flex:1; }
+  .panel { display:grid; grid-template-columns: 1fr 320px; gap:16px; }
+}
+
+/* template chooser styles */
+.template-explorer { display:flex; flex-direction:column; gap:12px; margin-bottom:12px; }
+.template-explorer .controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.thumbs { display:flex; gap:6px; margin-left:6px; }
+.thumb { padding:6px 8px; border-radius:6px; border:1px solid #e6e6e6; background:transparent; cursor:pointer; }
+.thumb.active { background:#0d6efd; color:#fff; border-color:transparent; }
+.preview { margin-top:8px; }
+
+@media(min-width:900px){
+  .template-explorer { flex-direction:row; align-items:flex-start; }
+  .template-explorer .controls { width:280px; flex-direction:column; align-items:flex-start; }
+  .preview { flex:1; }
 }
 </style>
