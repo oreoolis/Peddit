@@ -3,6 +3,7 @@ import ProfileSearch from "./molecules/social/ProfileSearch.vue"
 import PostSearch from "./molecules/social/PostSearch.vue"
 import Button from "../components/atoms/button.vue"
 import searchBar from "./atoms/searchBar.vue"
+import buttonTogglable from "./atoms/buttonTogglable.vue"
 import { usePostStore } from "@/stores/postStore"
 import { storeToRefs } from "pinia"
 import { useCommentStore } from "@/stores/commentStore"
@@ -12,6 +13,7 @@ import { useProfileStore } from "@/stores/profileStore"
 import { computed, onMounted, ref } from "vue"
 import CreatePostModal from "./Organisms/social/CreatePostModal.vue"
 import { useDebounce, useDebounceFn } from "@vueuse/core"
+import ShareRecipePostModal from "./Organisms/social/ShareRecipePostModal.vue"
 
 const postStore = usePostStore();
 const { posts, query: postQuery, filteredPosts } = storeToRefs(postStore);
@@ -79,6 +81,7 @@ onMounted(async () => {
 });
 
 const showCreatePostModal = ref(false);
+const showShareRecipePostModal = ref(false);
 const handleCreatePost = async (postData) => {
     if (!authStore.user) {
         alert("You must be logged in to create a post.");
@@ -167,8 +170,13 @@ const handleCreatePost = async (postData) => {
     @update:show="showCreatePostModal = $event"
     @create-post="handleCreatePost"
   />
-  <Button @click="showShareRecipePostModal = true" label="ShareRecipe"></Button>
-    
+  
+<Button @click="showShareRecipePostModal = true" label="Share Recipe">
+</Button>
+  <ShareRecipePostModal
+    :show="showShareRecipePostModal" 
+    @update:show="showShareRecipePostModal = $event"  
+  ></ShareRecipePostModal>
    </div>
 
 </template>

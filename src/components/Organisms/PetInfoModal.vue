@@ -269,12 +269,6 @@ p {
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
 
-    .container:hover,
-    .container:focus-within {
-        animation: none !important;
-        transition: none !important;
-        transform: none !important;
-        box-shadow: none !important;
-    }
+
 }
 </style>
