@@ -224,22 +224,22 @@ function formatDate(d){ return d ? new Date(d).toLocaleDateString() : ''; }
             </div>
           </div>
           <!-- Content Text -->
-          <h2 v-if="props.Content && props.Content.trim()" class="mb-3 bodyFont">{{ props.Content }}</h2>
+          <h2 v-if="currentPost.content && currentPost.content.trim()" class="mb-3 bodyFont">{{ currentPost.content }}</h2>
 
           <!-- START: encapsulated recipe block -->
           <div class="recipe-banner mb-3 shadow-sm">
             <div class="recipe-badge">Recipe</div>
 
             <div class="recipe-body">
-              <h1 class="post-title h3 headingFont fw-bold mb-2">{{ props.Recipe_Name }}</h1>
-              <p class="post-subtitle text-muted mb-3">{{ props.Recipe_Desc }}</p>
+              <h1 class="post-title h3 headingFont fw-bold mb-2">{{ currentPost.recipes.recipe_name }}</h1>
+              <p class="post-subtitle text-muted mb-3">{{ currentPost.recipes.description }}</p>
 
               <!-- Nutrition grid (move inside banner) -->
               <section class="nutrition-section mb-3">
                 <h6 class="mb-2">Nutrition</h6>
                 <div class="nutr-grid">
-                  <div class="nutr-item" v-for="(n, idx) in props.Recipe_Nutrition_Stats" :key="n.LabelName + '-' + idx">
-                    <BaseLabel size="sm" variant="dark">{{ n.LabelName }}</BaseLabel>
+                  <div class="nutr-item" v-for="(n, idx) in currentPost.recipes.nutrition" :key="n.label_name + '-' + idx">
+                    <BaseLabel size="sm" variant="dark">{{ n.label_name }}</BaseLabel>
                     <BaseStatNumber :value="n.value" :unit="n.unit" />
                   </div>
                 </div>
@@ -252,8 +252,8 @@ function formatDate(d){ return d ? new Date(d).toLocaleDateString() : ''; }
                 <Button label="View Full Recipe" class="btn-primary" />
                 <Button outline label="Save" />
                 <div class="ms-auto d-flex align-items-center gap-3">
-                  <ShareButton :initialText="combinedShareText" :title="props.Recipe_Name" button-label="Share" />
-                  <UpvoteControl :initialVote="serverVote" :score="props.Vote_score" @vote="onVote" />
+                  <ShareButton :initialText="combinedShareText" :title="currentPost.recipes.recipe_name" button-label="Share" />
+                  <UpvoteControl :initialVote="serverVote" :score="currentPost.vote_score" @vote="onVote" />
                 </div>
               </div>
 
