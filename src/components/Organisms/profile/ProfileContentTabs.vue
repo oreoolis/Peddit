@@ -14,7 +14,7 @@
           <div class="content-grid">
             <!-- Pets Tab -->
             <PetContentGrid
-              v-if="activeTab === 'posts'"
+              v-if="activeTab === 'pets'"
               :pets="pets"
               empty-state-icon="grid"
               :empty-state-title="petsEmptyTitle"
@@ -25,12 +25,22 @@
               </template>
             </PetContentGrid>
             
-            <!-- Liked Tab -->
-            <ProfileContentEmptyState
-              v-if="activeTab === 'liked'"
-              icon="heart"
-              :title="likedEmptyTitle"
-              :description="likedEmptyDescription"
+            <!-- Posts Tab -->
+            <PostContentGrid
+              v-if="activeTab === 'posts'"
+              :posts="posts"
+              empty-state-icon="empty"
+              :empty-state-title="postsEmptyTitle"
+              :empty-state-description="postsEmptyDescription"
+            />
+            
+            <!-- Recipes Tab -->
+            <RecipeContentGrid
+              v-if="activeTab === 'recipes'"
+              :recipes="recipes"
+              empty-state-icon="empty"
+              :empty-state-title="recipesEmptyTitle"
+              :empty-state-description="recipesEmptyDescription"
             />
           </div>
         </div>
@@ -43,10 +53,19 @@
 import { ref, computed, h } from 'vue';
 import ProfileTabNavigation from '@/components/molecules/profile/ProfileTabNavigation.vue';
 import PetContentGrid from '@/components/molecules/profile/PetContentGrid.vue';
-import ProfileContentEmptyState from '@/components/atoms/profile/ProfileContentEmptyState.vue';
+import PostContentGrid from '@/components/molecules/profile/PostContentGrid.vue';
+import RecipeContentGrid from '@/components/molecules/profile/RecipeContentGrid.vue';
 
 const props = defineProps({
   pets: {
+    type: Array,
+    default: () => []
+  },
+  posts: {
+    type: Array,
+    default: () => []
+  },
+  recipes: {
     type: Array,
     default: () => []
   },
@@ -60,8 +79,8 @@ const props = defineProps({
   },
   initialTab: {
     type: String,
-    default: 'posts',
-    validator: (value) => ['posts', 'liked'].includes(value)
+    default: 'pets',
+    validator: (value) => ['pets', 'posts', 'recipes'].includes(value)
   }
 });
 
@@ -73,7 +92,7 @@ const activeTab = ref(props.initialTab);
 // Computed
 const tabs = computed(() => [
   {
-    id: 'posts',
+    id: 'pets',
     label: 'Pets',
     iconComponent: () => h('svg', {
       xmlns: 'http://www.w3.org/2000/svg',
@@ -93,8 +112,8 @@ const tabs = computed(() => [
     ])
   },
   {
-    id: 'liked',
-    label: 'Liked',
+    id: 'posts',
+    label: 'Posts',
     iconComponent: () => h('svg', {
       xmlns: 'http://www.w3.org/2000/svg',
       width: '20',
@@ -106,17 +125,42 @@ const tabs = computed(() => [
       'stroke-linecap': 'round',
       'stroke-linejoin': 'round'
     }, [
-      h('path', { 
-        d: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'
-      })
+      h('path', { d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' }),
+      h('polyline', { points: '14,2 14,8 20,8' }),
+      h('line', { x1: '16', y1: '13', x2: '8', y2: '13' }),
+      h('line', { x1: '16', y1: '17', x2: '8', y2: '17' }),
+      h('polyline', { points: '10,9 9,9 8,9' })
+    ])
+  },
+  {
+    id: 'recipes',
+    label: 'Recipes',
+    iconComponent: () => h('svg', {
+      xmlns: 'http://www.w3.org/2000/svg',
+      width: '20',
+      height: '20',
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': '2',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round'
+    }, [
+      h('path', { d: 'M18 8h1a4 4 0 0 1 0 8h-1' }),
+      h('path', { d: 'M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z' }),
+      h('line', { x1: '6', y1: '1', x2: '6', y2: '4' }),
+      h('line', { x1: '10', y1: '1', x2: '10', y2: '4' }),
+      h('line', { x1: '14', y1: '1', x2: '14', y2: '4' })
     ])
   }
 ]);
 
 const petsEmptyTitle = computed(() => 'No pets yet');
 const petsEmptyDescription = computed(() => `When @${props.username} adds pets, they'll appear here`);
-const likedEmptyTitle = computed(() => 'No liked pets');
-const likedEmptyDescription = computed(() => `Pets that @${props.username} likes will appear here`);
+const postsEmptyTitle = computed(() => 'No posts yet');
+const postsEmptyDescription = computed(() => `When @${props.username} shares posts, they'll appear here`);
+const recipesEmptyTitle = computed(() => 'No recipes yet');
+const recipesEmptyDescription = computed(() => `When @${props.username} shares recipes, they'll appear here`);
 
 // Methods
 const handleTabChange = (tabId) => {

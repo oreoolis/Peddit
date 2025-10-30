@@ -13,6 +13,8 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useFollowStore } from '@/stores/followStore';
 import { usePetStore } from '@/stores/petStore';
+import { usePostStore } from '@/stores/postStore';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
 
 // Others
 import { computed, onMounted, ref, watch } from 'vue';
@@ -31,11 +33,15 @@ const authStore = useAuthStore();
 const profileStore = useProfileStore();
 const followStore = useFollowStore();
 const petStore = usePetStore();
+const postStore = usePostStore();
+const petNutritionStore = usePetNutritionStore();
 
 const { user } = storeToRefs(authStore);
 const { profile, loading, username: profileUsername, follows, followers, avatarUrl } = storeToRefs(profileStore);
 const { isFollowing, loading: followLoading, error: followError } = storeToRefs(followStore);
 const { pets } = storeToRefs(petStore);
+const { posts } = storeToRefs(postStore);
+const { userRecipePosts } = storeToRefs(petNutritionStore);
 
 const defaultAvatar = personImage;
 const actionMessage = ref('');
@@ -91,8 +97,8 @@ const handleFollow = async () => {
 };
 
 const handleTabChange = (tabId) => {
-  // Optional: Add any side effects when tab changes
   console.log('Tab changed to:', tabId);
+  // Optionally fetch data for that tab if not already loaded
 };
 
 // Lifecycle
@@ -100,7 +106,12 @@ onMounted(async () => {
   if (props.username) {
     await profileStore.fetchProfile(props.username);
     if (profile.value?.id) {
-      await petStore.fetchPets(profile.value.id);
+      // Fetch all user content in parallel
+      await Promise.all([
+        petStore.fetchPets(profile.value.id),
+        postStore.fetchPosts({ userId: profile.value.id, publicOnly: false }),
+        petNutritionStore.fetchRecipePosts({ userId: profile.value.id })
+      ]);
     }
   } else {
     router.push('/');
@@ -156,9 +167,11 @@ watch([user, profile], async ([newUser, newProfile]) => {
         </template>
       </ProfileHeaderSection>
       
-      <!-- Content Tabs Section - Now using the new organism! -->
+      <!-- Content Tabs Section - Now with 3 tabs: Pets, Posts, and Recipes! -->
       <ProfileContentTabs
         :pets="pets"
+        :posts="posts"
+        :recipes="userRecipePosts"
         :username="profileUsername"
         :show-add-pet-action="isOwnProfile"
         @tab-change="handleTabChange"

@@ -17,6 +17,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
   const ingredients = ref([]);
   const recipes = ref([]);
   const recipePosts = ref([]);
+  const userRecipePosts = ref([]);
   const loading = ref(false);
   const error = ref(null);
   const recipeQuery = ref('');
@@ -385,6 +386,86 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
       recipePosts.value = transformedPosts;
     } catch (error) {
       console.error('Error fetching recipe posts:', error.message);
+    }
+  };
+
+  /**
+   * Fetch recipe posts for a specific user
+   * @param {object} options - Options for fetching recipe posts
+   * @param {string} options.userId - Filter posts by author ID
+   * @returns {Promise<{ success: boolean, data?: Array, error?: string }>}
+   */
+  const fetchRecipePosts = async (options = {}) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const { userId } = options;
+
+      let query = supabase
+        .from('posts')
+        .select(`
+          *,
+          profiles ( 
+            username, 
+            display_name,
+            avatar_url
+          ),
+          recipes ( 
+            recipe_name, 
+            description, 
+            price_per_week,
+            pet_kind,
+            pet_breed,
+            created_at,
+            total_cost_cents,
+            calories,
+            recipe_ingredients (
+              id,
+              quantity_g,
+              food_ingredients (
+                id,
+                name,
+                type,
+                nutrition
+              )
+            )
+          )
+        `)
+        // Filter to only get posts that have a recipe
+        .not('recipe_id', 'is', null)
+        // Order by the newest posts first
+        .order('created_at', { ascending: false });
+
+      // Apply user filter if provided
+      if (userId) {
+        query = query.eq('author_id', userId);
+      }
+
+      const { data, error: fetchError } = await query;
+
+      if (fetchError) throw fetchError;
+
+      // Change the avatar_url into the image URL inside supabase avatars storage bucket
+      const transformedPosts = data.map(post => {
+        if (post.profiles?.avatar_url) {
+          post.profiles.avatar_url = getPublicImage('avatars', post.profiles.avatar_url);
+        }
+        return post;
+      });
+
+      // Store in userRecipePosts if it's a user-specific query
+      if (userId) {
+        userRecipePosts.value = transformedPosts;
+      }
+
+      return { success: true, data: transformedPosts };
+    } catch (err) {
+      error.value = err.message;
+      console.error('Error fetching recipe posts:', err);
+      return { success: false, error: err.message };
+    } finally {
+      loading.value = false;
     }
   };
 
@@ -852,6 +933,8 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
     nutritionProfiles,
     ingredients,
     recipes,
+    recipePosts,
+    userRecipePosts,
     loading,
     error,
     recipeQuery,
@@ -882,6 +965,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
     deleteRecipe,
     fetchAllRecipePost,
     fetchRecipePostById,
+    fetchRecipePosts,
     createRecipePost,
     
     // Recipe Ingredients
