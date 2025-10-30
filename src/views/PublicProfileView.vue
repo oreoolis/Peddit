@@ -3,9 +3,8 @@
 import personImage from '../assets/person.jpg';
 
 // Components
-import PetCard from '@/components/molecules/create-edit-pet/PetCard.vue';
 import ProfileHeaderSection from '@/components/Organisms/profile/ProfileHeaderSection.vue';
-import ProfileTabNavigation from '@/components/molecules/profile/ProfileTabNavigation.vue';
+import ProfileContentTabs from '@/components/Organisms/profile/ProfileContentTabs.vue';
 import BaseButton from '@/components/atomic/BaseButton.vue';
 
 // Stores
@@ -16,7 +15,7 @@ import { useFollowStore } from '@/stores/followStore';
 import { usePetStore } from '@/stores/petStore';
 
 // Others
-import { computed, onMounted, ref, watch, h } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps({
@@ -41,7 +40,6 @@ const { pets } = storeToRefs(petStore);
 const defaultAvatar = personImage;
 const actionMessage = ref('');
 const actionMessageType = ref('success');
-const activeTab = ref('posts');
 const localFollowLoading = ref(false);
 
 // Computed
@@ -54,48 +52,6 @@ const profileStats = computed(() => [
   { label: 'Following', value: follows.value || 0 },
   { label: 'Followers', value: followers.value || 0 },
   { label: 'Pets', value: pets.value?.length || 0 }
-]);
-
-const tabs = computed(() => [
-  {
-    id: 'posts',
-    label: 'Pets',
-    iconComponent: () => h('svg', {
-      xmlns: 'http://www.w3.org/2000/svg',
-      width: '20',
-      height: '20',
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      'stroke-width': '2',
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'round'
-    }, [
-      h('rect', { x: '3', y: '3', width: '7', height: '7' }),
-      h('rect', { x: '14', y: '3', width: '7', height: '7' }),
-      h('rect', { x: '14', y: '14', width: '7', height: '7' }),
-      h('rect', { x: '3', y: '14', width: '7', height: '7' })
-    ])
-  },
-  {
-    id: 'liked',
-    label: 'Liked',
-    iconComponent: () => h('svg', {
-      xmlns: 'http://www.w3.org/2000/svg',
-      width: '20',
-      height: '20',
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      'stroke-width': '2',
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'round'
-    }, [
-      h('path', { 
-        d: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'
-      })
-    ])
-  }
 ]);
 
 // Methods
@@ -134,8 +90,9 @@ const handleFollow = async () => {
   }
 };
 
-const setActiveTab = (tab) => {
-  activeTab.value = tab;
+const handleTabChange = (tabId) => {
+  // Optional: Add any side effects when tab changes
+  console.log('Tab changed to:', tabId);
 };
 
 // Lifecycle
@@ -199,61 +156,22 @@ watch([user, profile], async ([newUser, newProfile]) => {
         </template>
       </ProfileHeaderSection>
       
-      <!-- Content Section -->
-      <div class="content-section">
-        <div class="container">
-          <div class="row justify-content-center">
-            <div class="col-12 col-md-10 col-lg-8">
-              <!-- Tab Navigation -->
-              <ProfileTabNavigation
-                :tabs="tabs"
-                :active-tab="activeTab"
-                @tab-change="setActiveTab"
-              />
-              
-              <!-- Content Grid -->
-              <div class="content-grid">
-                <!-- Posts Tab -->
-                <div v-if="activeTab === 'posts'">
-                  <div v-if="!pets || pets.length === 0" class="empty-state">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="15" y1="9" x2="9" y2="15"></line>
-                      <line x1="9" y1="9" x2="15" y2="15"></line>
-                    </svg>
-                    <h3>No pets yet</h3>
-                    <p>When @{{ profileUsername }} adds pets, they'll appear here</p>
-                  </div>
-                  <div v-else class="pet-grid">
-                    <PetCard 
-                      v-for="pet in pets"
-                      :key="pet.id"
-                      :name="pet.name"
-                      :gender="pet.gender"
-                      :breed="pet.breed"
-                      :birthday="pet.birthday"
-                      :weight="pet.weight"
-                      :allergies="pet.allergies"
-                      :photo_url="pet.photo_url"
-                    />
-                  </div>
-                </div>
-                
-                <!-- Liked Tab -->
-                <div v-if="activeTab === 'liked'">
-                  <div class="empty-state">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg>
-                    <h3>No liked pets</h3>
-                    <p>Pets that @{{ profileUsername }} likes will appear here</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Content Tabs Section - Now using the new organism! -->
+      <ProfileContentTabs
+        :pets="pets"
+        :username="profileUsername"
+        :show-add-pet-action="isOwnProfile"
+        @tab-change="handleTabChange"
+      >
+        <template v-if="isOwnProfile" #addPetAction>
+          <BaseButton 
+            variant="primary" 
+            @click="router.push('/pet')"
+          >
+            Add Your First Pet
+          </BaseButton>
+        </template>
+      </ProfileContentTabs>
     </div>
     
     <!-- Profile Not Found -->
@@ -283,65 +201,6 @@ watch([user, profile], async ([newUser, newProfile]) => {
   justify-content: center;
   align-items: center;
   min-height: 60vh;
-}
-
-.content-section {
-  padding: 0 16px;
-  margin-top: 8px;
-}
-
-.content-grid {
-  min-height: 300px;
-}
-
-.pet-grid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 20px;
-}
-
-@media (min-width: 768px) {
-  .pet-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 992px) {
-  .pet-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
-  .content-section {
-    padding: 0 24px;
-  }
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  color: #71717a;
-}
-
-.empty-state svg {
-  margin-bottom: 20px;
-  opacity: 0.5;
-}
-
-.empty-state h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #18181b;
-  margin: 0 0 8px 0;
-}
-
-.empty-state p {
-  font-size: 0.9375rem;
-  color: #71717a;
-  margin: 0;
 }
 
 .not-found-state {
