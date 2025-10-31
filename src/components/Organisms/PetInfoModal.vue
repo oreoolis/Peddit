@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
-import MealPlanCards from '../PetViewComponents/MealPlanCard.vue';
+import MealPlanCard from '../PetViewComponents/MealPlanCard.vue';
 import Button from '../atoms/button.vue';
 import PetInfoCard from '../molecules/PetInfoCard.vue';
 import buttonTogglable from '../atoms/buttonTogglable.vue';
@@ -65,8 +65,12 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['update:show', 'uploaded', 'error', 'click']);
-
+const emit = defineEmits(['update:show', 'uploaded', 'error', 'click', 'open-meal-info']);
+const handleOpenMealInfo = () => {
+    emit('open-meal-info', {
+        rec_id: props.recipeDetails.id
+    })
+}
 const view = ref(false);
 
 // // Reset when modal opens/closes
@@ -125,7 +129,10 @@ const closeModal = () => {
                         <h2 class="headingFont fw-semibold">Preferred Meal</h2>
                         <div class="row d-flex justify-content-center">
                             <div v-if="props.recipeDetails" class="col-lg-5 mt-5">
-                                <MealPlanCards :rec_id="props.recipeDetails.id" :name="props.recipeDetails.recipe_name" :desc="props.recipeDetails.description"/>
+                                <MealPlanCard :rec_id="props.recipeDetails.id" 
+                                :name="props.recipeDetails.recipe_name" 
+                                :desc="props.recipeDetails.description"
+                                @open-meal-info="handleOpenMealInfo"/>
                             </div>
                         </div>
                     </div>

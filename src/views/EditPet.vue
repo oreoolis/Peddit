@@ -10,6 +10,7 @@ import { usePetInfoApi } from '@/composables/usePetInfoApi';
 import BreedSelect from '@/components/molecules/create-edit-pet/BreedSelect.vue';
 import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelect.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
+import Button from '@/components/atoms/button.vue';
 
 
 const petStore = usePetStore();
@@ -141,7 +142,7 @@ const showToast = (text) => {
 
 onMounted(async () => {
     const res = await nutritionStore.fetchRecipes(authStore.userId);
-    if (res.success){
+    if (res.success) {
         recipes.value = res.data;
     }
 })
@@ -303,15 +304,13 @@ onMounted(async () => {
                         </div>
                     </div>
                     <div class="form-actions d-flex justify-content-center">
-                        <button class="button-recommend bodyFont d-inline" type="button" @click="resetForm"
-                            :disabled="petStore.loading">
-                            Reset
-                        </button>
-                        <button class="button-add-pet bodyFont d-inline" type="submit"
-                            :disabled="petStore.loading || !form.name || !form.kind">
+                        <Button class=" bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm"
+                            label="Reset" :disabled="petStore.loading">
+                        </Button>
+                        <Button class="bodyFont d-inline mx-2" :label="petStore.loading ? 'Creating...' : 'Edit Pet'"
+                            type="submit" :disabled="petStore.loading || !form.name || !form.kind">
                             <span v-if="petStore.loading" class="spinner"></span>
-                            {{ petStore.loading ? 'Editing...' : 'Edit Pet' }}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

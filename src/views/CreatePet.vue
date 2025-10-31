@@ -5,6 +5,7 @@ import { usePetInfoApi } from '@/composables/usePetInfoApi';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { onMounted, ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import Button from '@/components/atoms/button.vue';
 import searchBar from '@/components/atoms/searchBar.vue';
 import BreedSelect from '@/components/molecules/create-edit-pet/BreedSelect.vue';
 import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelect.vue';

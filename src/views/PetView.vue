@@ -243,7 +243,7 @@ onMounted(async () => {
                         </div>
 
                         <!-- Empty State -->
-                        <div v-if="recipes.length === 0" class="empty-state text-center py-5">
+                        <div v-else-if="recipes.length === 0" class="empty-state text-center py-5">
                             <h2 class="headingFont fw-semibold mb-3">No Meal Plans Yet</h2>
                             <p class="bodyFont text-muted mb-4">Create your first meal plan to get started!</p>
                         </div>
