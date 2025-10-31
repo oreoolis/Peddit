@@ -78,10 +78,6 @@
 @media(max-width:900px){ .mag-grid { grid-template-columns:1fr; } }
 </style>
 
-<!-- Add a small sample pet widget and quick services area for B -->
-<template>
-  <!-- visual-only helper — rendered via the main template, but keep a compact widget below -->
-</template>
 
 <style scoped>
 .mag-extras { margin-top:12px; display:flex; gap:10px; }

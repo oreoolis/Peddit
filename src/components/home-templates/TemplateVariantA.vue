@@ -1,3 +1,44 @@
+<script setup>
+import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
+import { usePetStore } from '@/stores/petStore';
+import QuickStatsGrid from '@/components/molecules/health/QuickStatsGrid.vue';
+
+// keep QuickStatsGrid data synced with the pet store
+const petStore = usePetStore();
+const { pets } = storeToRefs(petStore);
+
+const healthyPetsCount = computed(() => {
+  if (!pets.value) return 0;
+  return pets.value.filter(pet => {
+    const scale = pet.body_condition_scale;
+    if (!scale) return 0;
+    return scale >= 4 && scale <= 6;
+  }).length;
+});
+
+const needsAttentionCount = computed(() => {
+  if (!pets.value) return 0;
+  return pets.value.filter(pet => {
+    const scale = pet.body_condition_scale;
+    if (!scale) return 1;
+    return scale < 4 || scale > 6;
+  }).length;
+});
+
+const neuteredCount = computed(() => {
+  if (!pets.value) return 0;
+  return pets.value.filter(pet => pet.neutered).length;
+});
+
+const statsData = computed(() => [
+  { icon: 'heart-fill', value: pets.value?.length || 0, label: 'Total Pets', variant: 'primary' },
+  { icon: 'shield-fill-check', value: healthyPetsCount.value, label: 'Healthy', variant: 'success' },
+  { icon: 'exclamation-triangle-fill', value: needsAttentionCount.value, label: 'Needs Attention', variant: 'warning' },
+  { icon: 'calendar-check', value: neuteredCount.value, label: 'Neutered', variant: 'info' }
+]);
+</script>
+
 <template>
   <div class="template-a sample-home">
     <div class="hero">
@@ -5,7 +46,7 @@
         <h1>Welcome to Peddit</h1>
         <p class="muted">Discover pets, read tips and share moments with other pet lovers.</p>
         <div class="hero-actions">
-          <button class="btn primary">Create a post</button>
+          <button class="btn">Create a post</button>
           <button class="btn">Explore meals</button>
         </div>
       </div>
@@ -16,26 +57,9 @@
         </div>
       </div>
     </div>
-
-    <section class="featured grid-cards">
-      <article class="card">
-        <div class="card-media"/>
-        <h4>Featured pet: Luna</h4>
-        <p class="muted">A playful kitten looking for a playmate.</p>
-      </article>
-
-      <article class="card">
-        <div class="card-media alt"/>
-        <h4>Nutrition tip</h4>
-        <p class="muted">How to balance protein and veg for adult dogs.</p>
-      </article>
-
-      <article class="card">
-        <div class="card-media alt2"/>
-        <h4>Community highlight</h4>
-        <p class="muted">Local meetup this Saturday at the park.</p>
-      </article>
-    </section>
+    <div>Pet Dashboard</div>
+    <QuickStatsGrid :stats="statsData" />
+    
 
     <section class="feed">
       <h3>Latest Posts</h3>
@@ -72,6 +96,8 @@
     <!-- Pet tracking dashboard sample -->
     <section class="pet-dashboard">
       <h3>Your pet dashboard</h3>
+      <!-- quick stats grid (synced with pet store) -->
+      
       <div class="dash-grid">
         <div class="dash-card">
           <h4>Weight</h4>
@@ -105,9 +131,6 @@
     </section>
   </div>
 </template>
-
-<script setup>
-</script>
 
 <style scoped>
 .sample-home { display:flex; flex-direction:column; gap:14px; }
