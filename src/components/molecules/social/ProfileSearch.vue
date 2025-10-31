@@ -1,5 +1,8 @@
 <script setup>
+import { computed } from 'vue';
+import { defineProps } from 'vue';
 import Button from "../../atoms/button.vue"
+const LinkStart = "./profile/"
 const props = defineProps({
     Name: {
         required: true,
@@ -21,7 +24,12 @@ const props = defineProps({
     Following: {
         type: Number,
         default: 999
+    },
+    LinkID: {
+      type: String,
+      default: "123"
     }
+
 })
 </script>
 
@@ -58,7 +66,9 @@ const props = defineProps({
         </div>
       <!-- Column 3: Action Button (no change) -->
       <div class="flex-shrink-0">
-        <Button label="View" size="sm" />
+        <RouterLink :to="LinkStart+LinkID">
+         <Button label="View" size="sm" />
+        </RouterLink>
       </div>
     </div>
   </div>

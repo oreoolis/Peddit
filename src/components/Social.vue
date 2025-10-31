@@ -130,6 +130,7 @@ const handleCreatePost = async (postData) => {
         :handle="'@'+profile.display_name"
         :Following="profile.following_count"
         :Followers="profile.follower_count"
+        :LinkID="profile.display_name"
         class="card card-profile"
       />
     </div>
