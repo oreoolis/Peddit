@@ -86,8 +86,8 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
       const { data, error: fetchError } = await supabase
         .from('pet_nutrition_profiles')
         .select('*')
-        .eq('kind')
-        .eq('life_stage')
+        .eq('kind', kind)
+        .eq('life_stage', lifeStage)
         .single();
 
       if (fetchError) throw fetchError;
