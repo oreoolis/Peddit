@@ -41,7 +41,7 @@ const { profile, loading, username: profileUsername, follows, followers, avatarU
 const { isFollowing, loading: followLoading, error: followError } = storeToRefs(followStore);
 const { pets } = storeToRefs(petStore);
 const { posts } = storeToRefs(postStore);
-const { userRecipePosts } = storeToRefs(petNutritionStore);
+const { userRecipePosts, recipes } = storeToRefs(petNutritionStore);
 
 const defaultAvatar = personImage;
 const actionMessage = ref('');
@@ -110,8 +110,11 @@ onMounted(async () => {
       await Promise.all([
         petStore.fetchPets(profile.value.id),
         postStore.fetchPosts({ userId: profile.value.id, publicOnly: false }),
-        petNutritionStore.fetchRecipePosts({ userId: profile.value.id })
+        petNutritionStore.fetchRecipes(profile.value.id)
       ]);
+
+      console.log("HERE");
+      console.log(recipes.value);
     }
   } else {
     router.push('/');
