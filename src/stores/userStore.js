@@ -145,6 +145,8 @@ export const useUserStore = defineStore('user', () => {
         } catch (err) {
             error.value = err.message;
             return { success: false, error: err.message };
+        } finally {
+            loading.value = false;
         }
     };
 
@@ -174,6 +176,8 @@ export const useUserStore = defineStore('user', () => {
         } catch (err) {
             error.value = err.message;
             return { success: false, error: err.message };
+        } finally {
+            loading.value = false;
         }
     };
 
