@@ -9,16 +9,18 @@ import { useRoute, useRouter } from 'vue-router'
 import { usePetInfoApi } from '@/composables/usePetInfoApi';
 import BreedSelect from '@/components/molecules/create-edit-pet/BreedSelect.vue';
 import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelect.vue';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
 
 
 const petStore = usePetStore();
 const authStore = useAuthStore();
+const nutritionStore = usePetNutritionStore();
 const route = useRoute(); // get route params - retrieve info from state
 const router = useRouter(); // naivgate to next page
 
 const showSuccess = ref(false);
-
 const currentPet = ref(petStore.getPetById(route.query.id))
+const recipes = ref(null);
 
 // initial form data
 const petKind = ref(currentPet.value.kind); // default value on load
@@ -136,6 +138,13 @@ const showToast = (text) => {
     }
     toastBootstrap.show();
 }
+
+onMounted(async () => {
+    const res = await nutritionStore.fetchRecipes(authStore.userId);
+    if (res.success){
+        recipes.value = res.data;
+    }
+})
 
 </script>
 

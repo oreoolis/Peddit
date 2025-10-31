@@ -80,6 +80,8 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
    * Life stages: 'adult_maintenance', 'growth_and_reproduction'
    */
   const getNutritionProfile = async (kind, lifeStage) => {
+    console.log(kind);
+    console.log(lifeStage);
     loading.value = true;
     error.value = null;
     try {

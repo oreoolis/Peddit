@@ -1,43 +1,29 @@
 <script setup>
-import PetInfoModal from '@/components/Organisms/PetInfoModal.vue';
 import { ref, defineProps, computed, onMounted } from 'vue';
 import Button from '@/components/atoms/button.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 
 
-const props = defineProps(['id', 'name', 'kind', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'photo_url', 'recipe_id'])
+const props = defineProps(['id', 'name', 'kind', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'neutered', 'photo_url', 'recipe_id'])
 const nutritionStore = usePetNutritionStore();
 const recipeDetails = ref({});
+const emit = defineEmits(['open-pet-info']);
 
-// tbd: may have to scrap feature
-// this will denote the emoji shown
-const score = 65; // out of 100, for progress bar
-// convert score to percentage for progress bar
-const showPetInfo = ref(false);
-const openPetInfo = () => {
-    showPetInfo.value = true;
+const handleOpenPetInfo = () => {
+    emit('open-pet-info', {
+        id: props.id,
+        name: props.name,
+        gender: props.gender,
+        breed: props.breed,
+        birthday: props.birthday,
+        weight: props.weight,
+        allergies: props.allergies,
+        neutered: props.neutered,
+        photo_url: props.photo_url,
+        recipeDetails: recipeDetails.value
+    });
 }
-const StatusDetails = computed(() =>{
-    if (score > 55){
-        return {
-            icon: 'bi-emoji-laughing-fill',
-            colorClass: 'success',
-        };
 
-    }
-    else if (score >= 25 && score <= 55){
-        return {
-            icon: 'bi-emoji-neutral-fill',
-            colorClass: 'warning',
-        };
-    }
-    else{
-        return {
-            icon: 'bi-emoji-frown-fill',
-            colorClass: 'danger',
-        };
-    }
-});
 
 onMounted(async () => {
     const res = await nutritionStore.getRecipe(props.recipe_id);
@@ -55,21 +41,21 @@ onMounted(async () => {
                     <h4 class="bodyFont fw-bold text-start">{{ name }}</h4>
                 </div>
                 <div class="col-3 text-end">
-                    <div v-if="gender == 'male'">
+                    <div v-if="props.gender == 'male'">
                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" fill="blue"
                             class="bi bi-gender-male" viewBox="0 0 16 16">
                             <path fill-rule="evenodd"
                                 d="M9.5 2a.5.5 0 0 1 0-1h5a.5.5 0 0 1 .5.5v5a.5.5 0 0 1-1 0V2.707L9.871 6.836a5 5 0 1 1-.707-.707L13.293 2zM6 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8" />
                         </svg>
                     </div>
-                    <div v-if="gender == 'female'">
+                    <div v-if="props.gender == 'female'">
                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" fill="red"
                             class="bi bi-gender-female" viewBox="0 0 16 16">
                             <path fill-rule="evenodd"
                                 d="M8 1a4 4 0 1 0 0 8 4 4 0 0 0 0-8M3 5a5 5 0 1 1 5.5 4.975V12h2a.5.5 0 0 1 0 1h-2v2.5a.5.5 0 0 1-1 0V13h-2a.5.5 0 0 1 0-1h2V9.975A5 5 0 0 1 3 5" />
                         </svg>
                     </div>
-                    <div v-if="gender == 'unknown'">
+                    <div v-if="props.gender == 'unknown'">
                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 64 64" 
                             fill="purple">
                             <g fill-rule="evenodd">
@@ -80,10 +66,10 @@ onMounted(async () => {
             </div>
         </div>
          <div class="ratio mb-3" style="--bs-aspect-ratio: 75%;">
-            <img :src="photo_url" class="w-100 h-100 rounded-5 object-fit-cover" alt="pet photo">
+            <img :src="props.photo_url" class="w-100 h-100 rounded-5 object-fit-cover" alt="pet photo">
         </div>
         <div class="ratio mb-3 image-area">
-            <img :src="photo_url" class="w-100 h-100 rounded-5 object-fit-cover" alt="pet photo">
+            <img :src="props.photo_url" class="w-100 h-100 rounded-5 object-fit-cover" alt="pet photo">
         </div>
 
         <div class="card-body d-flex flex-column ">
@@ -99,7 +85,7 @@ onMounted(async () => {
                 </section>
             </div>
             <div class="summary-container container-fluid position-absolute bottom-0 end-0 px-3 py-3 bg-primary"
-                @click="openPetInfo">
+                @click="handleOpenPetInfo">
                 <div class="text-center text-light fw-bold h5 bodyFont">
                     Summary
                 </div>
@@ -108,14 +94,15 @@ onMounted(async () => {
     </div>
     <!-- to pass in props here -->
     <PetInfoModal v-model:show="showPetInfo"
-        :id="id"
-        :name="name"
-        :gender="gender"
-        :breed="breed"
-        :birthday="birthday"
-        :weight="weight"
-        :allergies="allergies"
-        :photo_url="photo_url"
+        :id="props.id"
+        :name="props.name"
+        :gender="props.gender"
+        :breed="props.breed"
+        :birthday="props.birthday"
+        :weight="props.weight"
+        :allergies="props.allergies"
+        :neutered="props.neutered"
+        :photo_url="props.photo_url"
         :recipeDetails="recipeDetails"
      />
 

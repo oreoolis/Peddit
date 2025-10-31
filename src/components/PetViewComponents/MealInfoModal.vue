@@ -18,9 +18,18 @@ const props = defineProps({
         type: Boolean,
         default: false
     },
-    editable:{
+    editable: {
         type: Boolean,
         default: true,
+    }
+});
+
+watch(() => props.rec_id, async (newRecId) => {
+    if (newRecId) {
+        const res = await nutritionStore.getRecipe(newRecId);
+        if (res.success) {
+            recipeInfo.value = res.data;
+        }
     }
 });
 
@@ -56,13 +65,6 @@ const deleteMeal = async () => {
         }
     }
 }
-
-onMounted(async () => {
-    const res = await nutritionStore.getRecipe(props.rec_id);
-    if (res.success) {
-        recipeInfo.value = res.data;
-    }
-})
 
 </script>
 <template>
