@@ -11,6 +11,7 @@ import BreedSelect from '@/components/molecules/create-edit-pet/BreedSelect.vue'
 import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelect.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import Button from '@/components/atoms/button.vue';
+import { useToastStore } from '@/stores/toastStore';
 
 
 const petStore = usePetStore();
@@ -18,7 +19,7 @@ const authStore = useAuthStore();
 const nutritionStore = usePetNutritionStore();
 const route = useRoute(); // get route params - retrieve info from state
 const router = useRouter(); // naivgate to next page
-
+const toastStore = useToastStore();
 const showSuccess = ref(false);
 const currentPet = ref(petStore.getPetById(route.query.id))
 const recipes = ref(null);
@@ -92,9 +93,9 @@ const handleSubmit = async () => {
 
         showSuccess.value = true;
         resetForm();
+        toastStore.showToast("Pet has been updated!");
         router.push({
-            path: '/pet',
-            state: { showOpSuccess: true, message: currentPet.name + "has been updated." }
+            path: '/pet'
         });
 
         // Hide success message after 3 seconds
@@ -126,18 +127,6 @@ const resetForm = () => {
 const selectPetKind = (kind) => {
     petKind.value = kind;
     form.value.kind = kind;
-    showToast(`You have chosen ${kind.charAt(0).toUpperCase() + kind.slice(1)}!`);
-}
-
-const showToast = (text) => {
-    const toastElement = document.getElementById('liveToast');
-    if (!toastElement) { return }
-    const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement, { autohide: true, delay: 3000 });
-    if (document.getElementById("message")) {
-        document.getElementById("message").innerText = text;
-        document.getElementById("message").style.fontWeight = "bold";
-    }
-    toastBootstrap.show();
 }
 
 onMounted(async () => {
@@ -151,18 +140,6 @@ onMounted(async () => {
 
 <template>
     <div class="container-fluid">
-        <!-- toast message: to change to vue component -->
-        <div class="toast-container position-fixed bottom-0 end-0 p-3">
-            <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header bg-success">
-                    <strong class="me-auto text-light">Peddit</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body" id="message">
-                </div>
-            </div>
-        </div>
-
         <form @submit.prevent="handleSubmit" class="pet-form">
             <div class="pet-selector mt-4 mb-5">
                 <div class="row d-flex justify-content-evenly">
@@ -313,12 +290,6 @@ onMounted(async () => {
                         </Button>
                     </div>
                 </div>
-            </div>
-            <div v-if="showSuccess" class='success-msg'>
-                Pet created successfully.
-            </div>
-            <div v-if="petStore.error" class='error-msg'>
-                {{ petStore.error }}
             </div>
         </form>
     </div>

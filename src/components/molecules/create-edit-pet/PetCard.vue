@@ -92,19 +92,6 @@ onMounted(async () => {
             </div>
         </div>       
     </div>
-    <!-- to pass in props here -->
-    <PetInfoModal v-model:show="showPetInfo"
-        :id="props.id"
-        :name="props.name"
-        :gender="props.gender"
-        :breed="props.breed"
-        :birthday="props.birthday"
-        :weight="props.weight"
-        :allergies="props.allergies"
-        :neutered="props.neutered"
-        :photo_url="props.photo_url"
-        :recipeDetails="recipeDetails"
-     />
 
 </template>
 <style>
@@ -114,9 +101,7 @@ onMounted(async () => {
 
 .pet-card:hover {
     transform: scale(1.03);
-    /* Zooms in the card by 5% */
     box-shadow: 0 8px 16px rgba(75, 75, 75, 0.2);
-    /* Adds a subtle shadow */
     z-index: 1;
 }
 
@@ -154,5 +139,34 @@ onMounted(async () => {
 .summary-container:hover::before {
     opacity: 1;
     transform: scale(1);
+}
+
+/* Responsive text sizes */
+@media (max-width: 576px) {
+    .pet-card h4 {
+        font-size: 1rem;
+    }
+
+    .pet-info h4 {
+        font-size: 0.95rem;
+    }
+
+    .summary-container h5 {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .pet-card h4 {
+        font-size: 0.9rem;
+    }
+
+    .pet-info h4 {
+        font-size: 0.85rem;
+    }
+
+    .summary-container h5 {
+        font-size: 0.9rem;
+    }
 }
 </style>

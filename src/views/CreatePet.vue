@@ -3,6 +3,7 @@ import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
 import { usePetInfoApi } from '@/composables/usePetInfoApi';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
+import { useToastStore } from '@/stores/toastStore';
 import { onMounted, ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import Button from '@/components/atoms/button.vue';
@@ -13,6 +14,7 @@ import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelec
 const petStore = usePetStore();
 const authStore = useAuthStore();
 const nutritionStore = usePetNutritionStore();
+const toastStore = useToastStore();
 const router = useRouter(); // push to next page
 
 const showSuccess = ref(false);
@@ -87,11 +89,10 @@ const handleSubmit = async () => {
 
     showSuccess.value = true;
     resetForm();
+    toastStore.showToast("Pet has been created!");
     router.push({
-      path: '/pet',
-      state: { showOpSuccess: true, message: form.value.name + "has been created!" }
+      path: '/pet'
     });
-
 
     // Hide success message after 3 seconds
     setTimeout(() => {
@@ -141,7 +142,6 @@ onMounted( async () => {
 
 <template>
   <div class="container-fluid">
-
     <form @submit.prevent="handleSubmit" class="pet-form">
       <!-- Pet Species Selector -->
       <div class="pet-selector mt-4 mb-5">
@@ -266,10 +266,6 @@ onMounted( async () => {
           </div>
         </div>
       </div>
-
-      <!-- Success/Error Messages -->
-      <div v-if="showSuccess" class="alert alert-success text-center">Pet created successfully.</div>
-      <div v-if="petStore.error" class="alert alert-danger text-center">{{ petStore.error }}</div>
     </form>
   </div>
 </template>
