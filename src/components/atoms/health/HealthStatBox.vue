@@ -80,6 +80,7 @@ const variantClass = computed(() => `stat-box-${props.variant}`);
 
 .stat-content {
   flex: 1;
+  min-width: 0; /* allow content to shrink inside flex container to prevent overflow */
 }
 
 .stat-number {
@@ -93,6 +94,8 @@ const variantClass = computed(() => `stat-box-${props.variant}`);
   font-size: 0.9rem;
   opacity: 0.9;
   font-weight: 500;
+  /* Prefer wrapping between words and avoid breaking words into single letters */
+
 }
 
 @media (max-width: 768px) {
@@ -110,6 +113,20 @@ const variantClass = computed(() => `stat-box-${props.variant}`);
     flex-direction: column;
     text-align: center;
     padding: 1rem 0.75rem;
+  }
+  .stat-content {
+    min-width: 0; /* ensure wrapping on very small screens */
+  }
+  .stat-number {
+    font-size: 1.25rem;
+  }
+  .stat-icon {
+    font-size: 1.25rem; /* reduce icon size on very small screens */
+  }
+  .stat-label {
+    /* On very small widths, prefer a single line with ellipsis to avoid weird vertical stacking */
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 </style>

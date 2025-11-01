@@ -1,18 +1,23 @@
 <script setup>
 import { computed, onMounted } from 'vue';
+import { useAuthStore } from '@/stores/authStore';
 import { storeToRefs } from 'pinia';
 import { usePetStore } from '@/stores/petStore';
 import QuickStatsGrid from '@/components/molecules/health/QuickStatsGrid.vue';
 
 // social/post data
+import animatedImage from '@/components/atoms/animated/animatedImage.vue';
 import { usePostStore } from '@/stores/postStore';
 import { useProfileStore } from '@/stores/profileStore';
 import PostSearch from '@/components/molecules/social/PostSearch.vue';
 import { useDebounce } from '@vueuse/core';
 import Button from '@/components/atoms/button.vue';
+import { useRouter } from 'vue-router';
 // --- inlined from HomeTemplate (kept here so HomeView is self-contained) ---
 const petStore = usePetStore();
 const { pets } = storeToRefs(petStore);
+const authStore = useAuthStore();
+const { userId } = storeToRefs(authStore);
 
 const healthyPetsCount = computed(() => {
   if (!pets.value) return 0;
@@ -56,11 +61,33 @@ onMounted(async () => {
     await profileStore.fetchAllProfiles();
     await postStore.fetchPosts();
     console.log('Fetched posts (HomeView):', posts.value);
+    // fetch pets so stats update when HomeView is shown
+    try {
+      // if we have a userId, fetch for that user; otherwise fetch default
+      if (userId && userId.value) {
+        await petStore.fetchPets(userId.value);
+      } else if (petStore.fetchPets) {
+        await petStore.fetchPets();
+      }
+    } catch (petErr) {
+      console.warn('Failed to fetch pets in HomeView:', petErr);
+    }
   } catch (err) {
     console.error('Error fetching social data in HomeView:', err);
   }
 });
 console.log(debFilteredPosts.data);
+const router = useRouter();
+function goToMap(type){
+  router.push({ path: '/map', query: { type } });
+}
+function goToHealthDashboard(){
+  router.push({ path: '/health'});
+}
+
+function goToMeal(){
+  router.push({ path: '/meal'});
+}
 </script>
 
 <template>
@@ -78,21 +105,20 @@ console.log(debFilteredPosts.data);
                   <div class=" sample-home">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                       <div class="flex-grow-1">
-                        <h1 class="mb-1 brandFont">Welcome to Peddit!</h1>
+                        <h1 class="mb-1 brandFont">
+                        <animatedImage src="/src/assets/Sprite/Dog/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />
+                          Welcome to Peddit!              
+                        <animatedImage src="/src/assets/Sprite/Cat/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />     </h1>
                         <p class="text-muted mb-2">Discover pets, read tips and share moments with other pet lovers.</p>
-                        <div class="d-flex gap-2 flex-wrap">
+                        <div class="d-flex gap-2 flex-wrap justify-content-end">
                           <Button outline label="Create a post"></Button>
-                          <Button outline label="Explore Meals" color="secondary"></Button>
+                          <Button outline label="Explore Meals" color="secondary"  @click.prevent="goToMeal()" ></Button>
                         </div>
-                      </div>
-                      <div class="d-none d-md-flex flex-column text-end ms-3">
-                        <div class="mb-1"><strong>1.2k</strong><div class="small text-muted">Members</div></div>
-                        <div><strong>384</strong><div class="small text-muted">Posts</div></div>
                       </div>
                     </div>
 
                     <section class="feed mt-3">
-                      <h5>Latest Posts</h5>
+                      <h1 class="brandFont text-center m-3 border-bottom pb-2">Latest Posts</h1>
 
                       <div v-if="(posts || []).length === 0" class="text-muted mb-2">No posts to display — check the console (Fetched posts:)</div>
 
@@ -126,15 +152,22 @@ console.log(debFilteredPosts.data);
           <section class="quick-links">
             <div class="card">
               <div class="card-body">
-                <h5 class="mb-2">Find nearby</h5>
-                <div class="d-flex gap-2">
-                  <router-link :to="{ path:'/map', query:{type:'petstore'} }" class="btn btn-light flex-fill">Pet stores</router-link>
-                  <router-link :to="{ path:'/map', query:{type:'clinic'} }" class="btn btn-light flex-fill">Clinics</router-link>
+                <h2 class="mb-4 headingFont primary">Find nearby</h2>
+                <div class="d-flex">
+                  <Button class="w-50 justify-content-center mx-2" outline label="Pet Stores" @click.prevent="goToMap('petstore')" />
+                  <Button class="w-50 justify-content-center mx-2" outline label="Pet Clinics" @click.prevent="goToMap('clinic')" />
                 </div>
               </div>
             </div>
-                    <div class="mb-2"><strong>Pet Dashboard</strong></div>
-                    <QuickStatsGrid :stats="statsData" />
+              <div class="card">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between">
+                    <h2 class=" headingFont primary">Pet Dashboard</h2>
+                    <Button outline label="View DashBoard" @click.prevent="goToHealthDashboard()"></Button>
+                  </div>
+                  <QuickStatsGrid class="shadow-none" :stats="statsData" />
+                </div>
+            </div>
           </section>
         </aside>
       </div>

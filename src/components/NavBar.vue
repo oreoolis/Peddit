@@ -6,6 +6,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useAuthStore } from '@/stores/authStore';
 import { storeToRefs } from 'pinia';
 import NavBarBottom from './molecules/NavBarBottom.vue';
+import NavItem from '@/components/atoms/NavItem.vue';
 const defaultAvatar = personImage;
 const userStore = useUserStore();
 const authStore = useAuthStore();
@@ -33,16 +34,14 @@ onMounted(async () => {
 
         <div class="collapse navbar-collapse">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item"><RouterLink class="nav-link" to="/home">Home</RouterLink></li>
-            <li class="nav-item"><RouterLink class="nav-link" to="/about">About</RouterLink></li>
-            <li class="nav-item"><RouterLink class="nav-link" to="/login">Login</RouterLink></li>
+            <li class="nav-item"><RouterLink class="nav-link" to="/about">About (TODO)</RouterLink></li>
+            <!-- <li class="nav-item"><RouterLink class="nav-link" to="/login">Login</RouterLink></li> -->
             <li class="nav-item"><RouterLink class="nav-link" to="/health">Health</RouterLink></li>
-            <li class="nav-item"><RouterLink class="nav-link" to="/profile">Profile</RouterLink></li>
-            <li class="nav-item"><RouterLink class="nav-link" to="/meal">Meal</RouterLink></li>
-            <li class="nav-item"><RouterLink class="nav-link" to="/pet">Pet</RouterLink></li>
+            <li class="nav-item"><RouterLink class="nav-link" to="/meal">Explore Meal</RouterLink></li>
+            <li class="nav-item"><RouterLink class="nav-link" to="/pet">My Pets</RouterLink></li>
             <li class="nav-item"><RouterLink class="nav-link" to="/social">Social</RouterLink></li>
             <li class="nav-item"><RouterLink class="nav-link" to="/map">Map</RouterLink></li>
-            <li class="nav-item"><RouterLink class="nav-link" to="/temp">Temp</RouterLink></li>
+            <!-- <li class="nav-item"><RouterLink class="nav-link" to="/temp">Temp</RouterLink></li> -->
           </ul>
 
           <div class="d-flex align-items-center gap-2">

@@ -5,7 +5,6 @@ import Profile from '../components/Profile.vue';
 
 <template>
     <main>
-        <h2>Profile</h2>
         <Profile class="mx-auto"/>
         <!-- <Profile /> -->
     </main>
