@@ -71,14 +71,15 @@ onMounted(async () => {
 
 <template>
     <div class="pet-view">
-        <ToastStatus :showOpSuccess="toastStore.showOpSuccess" :message="toastStore.message"/>
+        <ToastStatus :showOpSuccess="toastStore.showOpSuccess" :message="toastStore.message" />
         <div class="pet-card-container container-fluid">
             <!-- Header Section -->
             <div class="row justify-content-center align-items-center py-5">
-                <div class="col-lg-10">
+                <div class="col-lg-9">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                         <h1 class="headingFont fw-semibold display-4 mb-0">My Pets</h1>
-                        <router-link to="/create-pet" custom v-slot="{ href, navigate }">
+                        <router-link to="/create-pet" v-if="petStore.pets.length > 0" custom
+                            v-slot="{ href, navigate }">
                             <Button label="+ Add Pet" color="primary" :href="href" role="link" @click="navigate"
                                 class="shadow-sm">
                             </Button>
@@ -86,55 +87,57 @@ onMounted(async () => {
                     </div>
                 </div>
             </div>
-
-            <!-- Loading State -->
-            <div v-if="petStore.loading" class="loading-wrapper">
-                <section class="loading-dots-container">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                </section>
-            </div>
-
-            <!-- Empty State -->
-            <div v-else-if="petStore.pets.length === 0" class="empty-state-container">
-                <div class="empty-state-content">
-                    <div class="empty-state-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="8" r="7"></circle>
-                            <path d="M12 15v6"></path>
-                            <path d="M9 18h6"></path>
-                        </svg>
-                    </div>
-                    <h2 class="headingFont fw-semibold mb-3">No Pets Yet</h2>
-                    <p class="bodyFont text-muted mb-4">Start by adding your first furry friend to track their health
-                        and nutrition.</p>
-                    <router-link to="/create-pet" custom v-slot="{ href, navigate }">
-                        <Button label="Add Your First Pet" color="primary" :href="href" role="link" @click="navigate"
-                            class="shadow-sm px-4 py-2">
-                        </Button>
-                    </router-link>
+            <div class="row">
+                <!-- Loading State -->
+                <div v-if="petStore.loading" class="loading-wrapper">
+                    <section class="loading-dots-container">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </section>
                 </div>
-            </div>
 
-            <!-- Pet Cards Grid -->
-            <div v-else class="row justify-content-center">
-                <div class="col-lg-10">
-                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 pb-5">
-                        <div v-for="pet in petStore.pets" :key="pet.id" class="col">
-                            <PetCards :id="pet.id" :name="pet.name" :kind="pet.kind" :gender="pet.gender"
-                                :breed="pet.breed" :birthday="pet.birthdate" :weight="pet.weight_kg"
-                                :allergies="pet.allergies" :neutered="pet.neutered" :photo_url="pet.photo_url"
-                                :recipe_id="pet.preferred_recipe" @open-pet-info="openPetInfo" />
+                <!-- Empty State -->
+                <div v-else-if="petStore.pets.length === 0" class="empty-state-container">
+                    <div class="empty-state-content">
+                        <div class="empty-state-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <circle cx="12" cy="8" r="7"></circle>
+                                <path d="M12 15v6"></path>
+                                <path d="M9 18h6"></path>
+                            </svg>
+                        </div>
+                        <h2 class="headingFont fw-semibold mb-3">No Pets Yet</h2>
+                        <p class="bodyFont text-muted mb-4">Start by adding your first furry friend to track their
+                            health and nutrition.</p>
+                        <router-link to="/create-pet" custom v-slot="{ href, navigate }">
+                            <Button label="Add Your First Pet" color="primary" :href="href" role="link"
+                                @click="navigate" class="shadow-sm px-4 py-2">
+                            </Button>
+                        </router-link>
+                    </div>
+                </div>
+
+                <!-- Pet Cards Grid -->
+                <div v-else class="row justify-content-center">
+                    <div class="col-12 col-lg-10 px-5">
+                        <div class="row g-4 pb-5 d-flex justify-content-center">
+                            <div v-for="pet in petStore.pets" :key="pet.id"
+                                class="col-12 col-sm-12 col-md-4 col-lg-4 g-5 mb-5">
+                                <PetCards :id="pet.id" :name="pet.name" :kind="pet.kind" :gender="pet.gender"
+                                    :breed="pet.breed" :birthday="pet.birthdate" :weight="pet.weight_kg"
+                                    :allergies="pet.allergies" :neutered="pet.neutered" :photo_url="pet.photo_url"
+                                    :recipe_id="pet.preferred_recipe" @open-pet-info="openPetInfo" />
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
 
         <div class="grocery-checklist container-fluid">
             <div class="row d-flex justify-content-center">
@@ -203,11 +206,16 @@ onMounted(async () => {
                         <!-- Recipe Cards Grid -->
                         <div v-else class="row g-4">
                             <div v-for="recipe in nutritionStore.recipes" :key="recipe.id"
-                                class="col-sm-12 col-md-6 col-lg-4">
-                                <MealPlanCard :rec_id="recipe.id" :name="recipe.recipe_name" :desc="recipe.description"
-                                    :petKind="recipe.pet_kind" @open-meal-info="openMealInfo(recipe.id)"/>
+                                class="col-12 col-sm-12 col-md-4 col-lg-4 mx-auto d-flex justify-content-center">
+                                <div style="width: 100%; max-width: 340px;">
+                                    <MealPlanCard :rec_id="recipe.id" :name="recipe.recipe_name"
+                                        :desc="recipe.description" :petKind="recipe.pet_kind"
+                                        @open-meal-info="openMealInfo(recipe.id)" />
+                                </div>
                             </div>
                         </div>
+
+
                     </div>
                 </div>
             </div>
@@ -218,8 +226,9 @@ onMounted(async () => {
             :gender="selectedPetData?.gender" :breed="selectedPetData?.breed" :birthday="selectedPetData?.birthday"
             :weight="selectedPetData?.weight" :allergies="selectedPetData?.allergies"
             :neutered="selectedPetData?.neutered" :photo_url="selectedPetData?.photo_url"
-            :recipeDetails="selectedPetData?.recipeDetails" />
-        <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId"/>
+            :recipeDetails="selectedPetData?.recipeDetails"
+            @open-meal-info="openMealInfo(selectedPetData.recipeDetails.id)" />
+        <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId" />
 
     </div>
 </template>
@@ -543,6 +552,26 @@ onMounted(async () => {
     .g-4 {
         --bs-gutter-x: 2rem;
         --bs-gutter-y: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .d-flex.gap-3 {
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .pet-card-container .display-4 {
+        font-size: 2.5rem;
+        margin-bottom: 0;
+    }
+
+    .meal-plans-container .display-4 {
+        font-size: 2.5rem;
+        margin-bottom: 0;
+        text-align: center;
     }
 }
 </style>
