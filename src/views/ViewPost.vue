@@ -2,7 +2,6 @@
 import { onMounted, ref, computed } from 'vue';
 import Comment  from '../components/atoms/social/Comment.vue';
 import TextInput from '@/components/atoms/TextInput.vue';
-import searchBar from '@/components/atoms/searchBar.vue';
 import { usePostStore } from '@/stores/postStore';
 import { storeToRefs } from 'pinia';
 import { useCommentStore } from '@/stores/commentStore';
@@ -10,11 +9,9 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useUserStore } from '@/stores/userStore';
-import SelectAndOption from '@/components/atoms/SelectAndOption.vue';
-import Button from '@/components/atoms/button.vue';
 import UpvoteControl from '@/components/molecules/social/VoteControl.vue';
 import ShareButton from '@/components/Organisms/social/ShareButton.vue';
-
+import PostContentCarousel from '@/components/molecules/social/PostContentCarousel.vue';
 const router = useRouter();
 
 const props = defineProps({
@@ -119,6 +116,9 @@ console.log(currentPost)
                     </div>
                     <h1 class="post-title h2 headingFont fw-bold mb-4">{{ currentPost.title }}</h1>
                     <div class="post-body bodyFont fs-5" v-html="currentPost.content"></div>
+                    <!-- TODO: TO ATTACH post_media -->
+                    <PostContentCarousel  :data="currentPost.post_media" class="border-top :data "></PostContentCarousel>
+                    
                 </div>
                 <div class="card-footer bg-transparent d-flex align-items-center gap-3 justify-content-end border-top">
 

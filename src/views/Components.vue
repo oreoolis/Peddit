@@ -17,6 +17,7 @@ import RecipeSearch from "@/components/social/RecipeSearch.vue";
 import RecipePost from "@/components/social/RecipePost.vue";
 import ShareButton from "@/components/Organisms/social/ShareButton.vue";
 import AtomicDemo from "@/views/AtomicDemo.vue";
+import PostContentCarousel from "@/components/molecules/social/PostContentCarousel.vue";
 </script>
 
 <template>
@@ -94,6 +95,7 @@ import AtomicDemo from "@/views/AtomicDemo.vue";
                     <div class="col-md-6 mb-3"><h4 class="text-center">ProfileSearch</h4><ProfileSearch /></div>
                     <div class="col-md-6 mb-3"><h4 class="text-center">RecipeSearch</h4><RecipeSearch/></div>
                     <div class="col-md-6 mb-3"><h4 class="text-center">RecipePost</h4><RecipePost /></div>
+                    <div class="col-md-6 mb-3"><h4 class="text-center">PostContentCarousel</h4><PostContentCarousel /></div>
                 </div>
             </div>
 
