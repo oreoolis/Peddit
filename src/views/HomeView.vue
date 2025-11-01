@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import { storeToRefs } from 'pinia';
 import { usePetStore } from '@/stores/petStore';
@@ -7,6 +7,8 @@ import QuickStatsGrid from '@/components/molecules/health/QuickStatsGrid.vue';
 
 // social/post data
 import animatedImage from '@/components/atoms/animated/animatedImage.vue';
+import CreatePostModal from '@/components/Organisms/social/CreatePostModal.vue';
+import ShareRecipePostModal from '@/components/Organisms/social/ShareRecipePostModal.vue';
 import { usePostStore } from '@/stores/postStore';
 import { useProfileStore } from '@/stores/profileStore';
 import PostSearch from '@/components/molecules/social/PostSearch.vue';
@@ -81,6 +83,27 @@ const router = useRouter();
 function goToMap(type){
   router.push({ path: '/map', query: { type } });
 }
+
+// Create post / share recipe modal state & handler (moved from Social.vue)
+const showCreatePostModal = ref(false);
+const showShareRecipePostModal = ref(false);
+
+const handleCreatePost = async (postData) => {
+  if (!authStore.user) {
+    alert('You must be logged in to create a post.');
+    return;
+  }
+  console.log('--- New Post Data Received (HomeView) ---');
+  console.log('Author ID:', authStore.user.id);
+  console.log('Title:', postData.title);
+  console.log('Content:', postData.content);
+  if (postData.imageFile) {
+    console.log('Image File Attached:', postData.imageFile.name, postData.imageFile.size, postData.imageFile.type);
+  }
+
+  await postStore.createPost(authStore.user.id, postData);
+  showCreatePostModal.value = false;
+};
 function goToHealthDashboard(){
   router.push({ path: '/health'});
 }
@@ -88,6 +111,8 @@ function goToHealthDashboard(){
 function goToMeal(){
   router.push({ path: '/meal'});
 }
+
+
 </script>
 
 <template>
@@ -111,7 +136,17 @@ function goToMeal(){
                         <animatedImage src="/src/assets/Sprite/Cat/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />     </h1>
                         <p class="text-muted mb-2">Discover pets, read tips and share moments with other pet lovers.</p>
                         <div class="d-flex gap-2 flex-wrap justify-content-end">
-                          <Button outline label="Create a post"></Button>
+                             <Button @click="showCreatePostModal = true" label="Create Post" ></Button>
+                                <CreatePostModal 
+                                :show="showCreatePostModal" 
+                                @update:show="showCreatePostModal = $event"
+                                @create-post="handleCreatePost"
+                              />
+                              <Button class="ms-2" outline label="Share Recipe" @click="showShareRecipePostModal = true" />
+                              <ShareRecipePostModal
+                                :show="showShareRecipePostModal"
+                                @update:show="showShareRecipePostModal = $event"
+                              />
                           <Button outline label="Explore Meals" color="secondary"  @click.prevent="goToMeal()" ></Button>
                         </div>
                       </div>

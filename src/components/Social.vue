@@ -11,9 +11,7 @@ import { useUserStore } from "@/stores/userStore"
 import { useAuthStore } from "@/stores/authStore"
 import { useProfileStore } from "@/stores/profileStore"
 import { computed, onMounted, ref } from "vue"
-import CreatePostModal from "./Organisms/social/CreatePostModal.vue"
 import { useDebounce, useDebounceFn } from "@vueuse/core"
-import ShareRecipePostModal from "./Organisms/social/ShareRecipePostModal.vue"
 
 const postStore = usePostStore();
 const { posts, query: postQuery, filteredPosts } = storeToRefs(postStore);
@@ -42,32 +40,32 @@ const combinedQuery = computed({
   }
 });
 
-const props = defineProps({
-    foundProfiles:{
-        type: Array,
-        default:
-            [
-                {
-                    Name: "@bernardcks",
-                    Image: "/src/assets/person.jpg",
-                    Following: 1,
-                    followers: 100,
-                },{
-                    Name: "@johnDoe",
-                    Image: "/src/assets/person.jpg",
-                    Following: 111,
-                    followers: 100,                    
-                },{
-                    Name: "@MaryJane",
-                    Image: "/src/assets/person.jpg",
-                    Following: 179,
-                    followers: 999,
-                }
-            ]
-    } ,
+// const props = defineProps({
+//     foundProfiles:{
+//         type: Array,
+//         default:
+//             [
+//                 {
+//                     Name: "@bernardcks",
+//                     Image: "/src/assets/person.jpg",
+//                     Following: 1,
+//                     followers: 100,
+//                 },{
+//                     Name: "@johnDoe",
+//                     Image: "/src/assets/person.jpg",
+//                     Following: 111,
+//                     followers: 100,                    
+//                 },{
+//                     Name: "@MaryJane",
+//                     Image: "/src/assets/person.jpg",
+//                     Following: 179,
+//                     followers: 999,
+//                 }
+//             ]
+//     } ,
 
-}
-)
+// }
+// )
 onMounted(async () => {
     try {
         await profileStore.fetchAllProfiles();
@@ -80,32 +78,7 @@ onMounted(async () => {
     }
 });
 
-const showCreatePostModal = ref(false);
-const showShareRecipePostModal = ref(false);
-const handleCreatePost = async (postData) => {
-    if (!authStore.user) {
-        alert("You must be logged in to create a post.");
-        return;
-    }
-    
-    // Call the Pinia store action to create the post
-    console.log("--- New Post Data Received ---");
-    console.log("Author ID:", authStore.user.id);
-    console.log("Title:", postData.title);
-    console.log("Content:", postData.content);
 
-    // Check if an image file was included and log its details
-    if (postData.imageFile) {
-        console.log("Image File Attached:", postData.imageFile);
-        console.log("  - Name:", postData.imageFile.name);
-        console.log("  - Size:", postData.imageFile.size, "bytes");
-        console.log("  - Type:", postData.imageFile.type);
-    } else {
-        console.log("Image File Attached: None");
-    }
-
-    postStore.createPost(authStore.user.id, postData);
-};
 
 </script>
 
@@ -132,6 +105,7 @@ const handleCreatePost = async (postData) => {
         :Followers="profile.follower_count"
         :LinkID="profile.display_name"
         class="card card-profile"
+        
       />
     </div>
   </section>
@@ -160,25 +134,12 @@ const handleCreatePost = async (postData) => {
                 :Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
                 :CommentCount="post?.comment_count"
                 :VoteScore="post?.vote_score"
+                :created_at="post?.created_at"
             />
         </div>
     </section>
   <!-- create post modal here -->
-   <div class="d-flex justify-content-center my-2">
-   <Button @click="showCreatePostModal = true" label="Create Post" ></Button>
-     <CreatePostModal 
-    :show="showCreatePostModal" 
-    @update:show="showCreatePostModal = $event"
-    @create-post="handleCreatePost"
-  />
-  
-<Button @click="showShareRecipePostModal = true" label="Share Recipe">
-</Button>
-  <ShareRecipePostModal
-    :show="showShareRecipePostModal" 
-    @update:show="showShareRecipePostModal = $event"  
-  ></ShareRecipePostModal>
-   </div>
+  <!-- Create / Share controls moved to HomeView -->
 
 </template>
 <style scoped>
