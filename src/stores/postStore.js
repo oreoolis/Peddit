@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
-const { getPublicImage } = useStorage();
+const { getPublicImage, uploadImage } = useStorage();
 
 /**
  * Post store for managing posts, including fetching, creating, updating, and deleting posts
@@ -144,6 +144,55 @@ export const usePostStore = defineStore('posts', () => {
                 data.profiles.avatar_url = getPublicImage('avatars', data.profiles.avatar_url);
             }
 
+            // Handle multiple media uploads if provided
+            const files = [];
+            if (Array.isArray(postData?.mediaFiles)) files.push(...postData.mediaFiles);
+            if (postData?.mediaFile) files.push(postData.mediaFile);
+
+            if (files.length > 0) {
+                const mediaRows = [];
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (!file) continue;
+                    const storagePath = `posts/${data.id}/${Date.now()}-${i}-${file.name}`;
+
+                    const { error: uploadErr } = await uploadImage('post-media', file, storagePath);
+                    if (uploadErr) throw uploadErr;
+
+                    mediaRows.push({
+                        post_id: data.id,
+                        storage_path: storagePath,
+                        mime: file.type,
+                        size_bytes: file.size,
+                        ordinal: i + 1
+                    });
+                }
+
+                if (mediaRows.length > 0) {
+                    const { data: mediaData, error: mediaError } = await supabase
+                        .from('post_media')
+                        .insert(mediaRows)
+                        .select();
+
+                    if (mediaError) throw mediaError;
+
+                    data.post_media = (mediaData || []).map(m => ({
+                        ...m,
+                        url: getPublicImage('post-media', m.storage_path)
+                    })).sort((a, b) => (a.ordinal ?? 999) - (b.ordinal ?? 999) || new Date(a.created_at) - new Date(b.created_at));
+                }
+            }
+
+            if (Array.isArray(data.post_media)) {
+                // Ensure media are ordered and expose public URLs for the carousel
+                data.post_media = data.post_media
+                    .sort((a, b) => (a.ordinal ?? 999) - (b.ordinal ?? 999) || new Date(a.created_at) - new Date(b.created_at))
+                    .map(m => ({
+                        ...m,
+                        url: getPublicImage('post-media', m.storage_path)
+                    }));
+            }
+
             currentPost.value = data;
             return { success: true, data };
 
@@ -199,6 +248,55 @@ export const usePostStore = defineStore('posts', () => {
 
             if (data.profiles?.avatar_url) {
                 data.profiles.avatar_url = getPublicImage('avatars', data.profiles.avatar_url);
+            }
+
+            // Handle multiple media uploads if provided
+            const files = [];
+            if (Array.isArray(postData?.mediaFiles)) files.push(...postData.mediaFiles);
+            if (postData?.mediaFile) files.push(postData.mediaFile);
+
+            if (files.length > 0) {
+                const mediaRows = [];
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (!file) continue;
+                    const storagePath = `posts/${data.id}/${Date.now()}-${i}-${file.name}`;
+
+                    const { error: uploadErr } = await uploadImage('post-media', file, storagePath);
+                    if (uploadErr) throw uploadErr;
+
+                    mediaRows.push({
+                        post_id: data.id,
+                        storage_path: storagePath,
+                        mime: file.type,
+                        size_bytes: file.size,
+                        ordinal: i + 1
+                    });
+                }
+
+                if (mediaRows.length > 0) {
+                    const { data: mediaData, error: mediaError } = await supabase
+                        .from('post_media')
+                        .insert(mediaRows)
+                        .select();
+
+                    if (mediaError) throw mediaError;
+
+                    data.post_media = (mediaData || []).map(m => ({
+                        ...m,
+                        url: getPublicImage('post-media', m.storage_path)
+                    })).sort((a, b) => (a.ordinal ?? 999) - (b.ordinal ?? 999) || new Date(a.created_at) - new Date(b.created_at));
+                }
+            }
+            
+            if (Array.isArray(data.post_media)) {
+                // Ensure media are ordered and expose public URLs for the carousel
+                data.post_media = data.post_media
+                    .sort((a, b) => (a.ordinal ?? 999) - (b.ordinal ?? 999) || new Date(a.created_at) - new Date(b.created_at))
+                    .map(m => ({
+                        ...m,
+                        url: getPublicImage('post-media', m.storage_path)
+                    }));
             }
 
             // Add to local state (at beginning for newest first)
