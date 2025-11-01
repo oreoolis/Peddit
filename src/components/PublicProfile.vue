@@ -169,7 +169,7 @@ watch([user, profile], async ([newUser, newProfile]) => {
       
       <!-- Content Tabs -->
       <div class="content-section">
-        <div class="container">
+        <div class="container ">
           <div class="row justify-content-center">
             <div class="col-12 col-md-10 col-lg-8">
               <!-- Tab Navigation -->
@@ -220,7 +220,6 @@ watch([user, profile], async ([newUser, newProfile]) => {
                     />
                   </div>
                 </div>
-                
                 <!-- Liked Tab -->
                 <div v-if="activeTab === 'liked'">
                   <div class="empty-state">

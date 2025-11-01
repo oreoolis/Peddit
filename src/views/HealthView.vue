@@ -125,17 +125,16 @@ const addRecipeToShopList = async () => {
 <template>
   <div class="health-dashboard">
   <div>
-    <h1>Hello</h1>
-    <button @click="addRecipeToShopList">ADD</button>
+    <!-- <button @click="addRecipeToShopList">ADD</button>
     <h1 v-if="shoppingList.length === 0">NOOO</h1>
     <div v-else>
       <div v-for="sl in shoppingList">
         <h1>{{ sl.food_ingredients?.name }}</h1>
         <h2>{{ sl.quantity_g }}</h2>
       </div>
-    </div>
+    </div> -->
   </div>
-    <div class="container py-4">
+    <div class="container py-4 mx-auto">
       <!-- Header -->
       <BasePageHeader 
         title="Health Dashboard" 
