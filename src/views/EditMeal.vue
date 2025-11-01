@@ -6,14 +6,15 @@ import searchBar from '@/components/atoms/searchBar.vue';
 import Button from '@/components/atoms/Button.vue';
 import NutritionalOutputCard from '@/components/molecules/NutritionalOutputCard.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
-import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useToastStore } from '@/stores/toastStore';
+
 import { storeToRefs } from 'pinia';
 import { useRouter, useRoute } from 'vue-router';
 
 // stores
 const nutritionStore = usePetNutritionStore();
-const petStore = usePetStore();
+const toastStore = useToastStore();
 const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute(); // get id from route params
@@ -68,27 +69,8 @@ const nutrients = computed(() => {
   };
 });
 
-// set date to conform with supabase standard
-const formatDate = () => {
-  const ms = Date.now();                   // epoch ms
-  const d = new Date(ms);                  // Date object
-
-  const pad = (n, l = 2) => String(n).padStart(l, "0");
-  const yyyy = d.getUTCFullYear();
-  const MM = pad(d.getUTCMonth() + 1);
-  const dd = pad(d.getUTCDate());
-  const HH = pad(d.getUTCHours());
-  const mm = pad(d.getUTCMinutes());
-  const ss = pad(d.getUTCSeconds());
-  const SSS = pad(d.getUTCMilliseconds(), 3);
-
-  // Date only has ms precision; microseconds beyond ms default to 000
-  const uuu = "000";                       // microseconds beyond ms
-  return `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}.${SSS}${uuu}+00`;
-}
 
 const showIngredientModal = ref(false);
-
 const openIngredientModal = () => {
   showIngredientModal.value = true;
 }
@@ -153,9 +135,9 @@ const handleSubmit = async () => {
 
   showSuccess.value = true;
   resetForm();
+  toastStore.showToast("Meal has been updated!");
   router.push({
-    path: '/pet',
-    state: { showOpSuccess: true, message: recipeName.value + "has been created!" }
+    path: '/pet'
   });
 
 
@@ -169,17 +151,6 @@ const handleSubmit = async () => {
 const selectPetKind = (kind) => {
   petKind.value = kind;
   form.value.kind = kind;
-  showToast(`You have chosen ${kind.charAt(0).toUpperCase() + kind.slice(1)}!`);
-}
-
-const showToast = (text) => {
-  const toastElement = document.getElementById('liveToast');
-  if (!toastElement) return;
-  const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement);
-  if (document.getElementById("message")) {
-    document.getElementById("message").innerText = text;
-  }
-  toastBootstrap.show();
 }
 
 onMounted(async () => {
@@ -212,15 +183,13 @@ onMounted(async () => {
               <div class="row justify-content-center mt-3 mb-3">
                 <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
                   <div @click="selectPetKind('dog')" class="dog-breed-card"
-                    :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }"
-                    id="dog-breed-card">
+                    :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
                     <p class="pet-title brandFont text-light display-1">Dog</p>
                   </div>
                 </div>
                 <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
                   <div @click="selectPetKind('cat')" class="cat-breed-card"
-                    :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }"
-                    id="cat-breed-card">
+                    :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
                     <p class="pet-title brandFont text-light display-1">Cat</p>
                   </div>
                 </div>
@@ -274,118 +243,117 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-
 .dog-breed-card {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 600px;
-    height: 300px;
-    background-image: url("../assets/Pixel Art/dog (1).png");
-    background-position: center;
-    background-size: cover;
-    border: 1px solid white;
-    box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(6px);
-    border-radius: 17px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.5s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    font-weight: bolder;
-    color: black;
-    margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  background-image: url("../assets/Pixel Art/dog (1).png");
+  background-position: center;
+  background-size: cover;
+  border: 1px solid white;
+  box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(6px);
+  border-radius: 17px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.5s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  font-weight: bolder;
+  color: black;
+  margin: 0 auto;
 }
 
 .cat-breed-card {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 600px;
-    height: 300px;
-    background-image: url("../assets/Pixel Art/cat (5).png");
-    background-position: center;
-    background-size: cover;
-    border: 1px solid white;
-    box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(6px);
-    border-radius: 17px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.5s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    font-weight: bolder;
-    color: black;
-    margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  background-image: url("../assets/Pixel Art/cat (5).png");
+  background-position: center;
+  background-size: cover;
+  border: 1px solid white;
+  box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(6px);
+  border-radius: 17px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.5s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  font-weight: bolder;
+  color: black;
+  margin: 0 auto;
 }
 
 /* Responsive heights using Bootstrap breakpoints */
 @media (min-width: 576px) {
 
-    .dog-breed-card,
-    .cat-breed-card {
-        height: 350px;
-    }
+  .dog-breed-card,
+  .cat-breed-card {
+    height: 350px;
+  }
 }
 
 @media (min-width: 768px) {
 
-    .dog-breed-card,
-    .cat-breed-card {
-        height: 400px;
-    }
+  .dog-breed-card,
+  .cat-breed-card {
+    height: 400px;
+  }
 }
 
 @media (min-width: 992px) {
 
-    .dog-breed-card,
-    .cat-breed-card {
-        height: 450px;
-    }
+  .dog-breed-card,
+  .cat-breed-card {
+    height: 450px;
+  }
 }
 
 @media (min-width: 1200px) {
 
-    .dog-breed-card,
-    .cat-breed-card {
-        height: 500px;
-    }
+  .dog-breed-card,
+  .cat-breed-card {
+    height: 500px;
+  }
 }
 
 .dog-breed-card:hover,
 .cat-breed-card:hover {
-    border: 1px solid black;
-    transform: scale(1.05);
+  border: 1px solid black;
+  transform: scale(1.05);
 }
 
 .dog-breed-card:active,
 .cat-breed-card:active {
-    transform: scale(0.95) rotateZ(1.7deg);
+  transform: scale(0.95) rotateZ(1.7deg);
 }
 
 /* Selected pet card styling */
 .selected-pet {
-    border: 5px solid #407dff !important;
-    box-shadow: 0 0 30px rgba(64, 125, 255, 0.7) !important;
-    transform: scale(1.03);
-    position: relative;
+  border: 5px solid #407dff !important;
+  box-shadow: 0 0 30px rgba(64, 125, 255, 0.7) !important;
+  transform: scale(1.03);
+  position: relative;
 }
 
 /* Dimmed/unselected pet card */
 .dimmed-pet {
-    opacity: 0.5;
-    filter: grayscale(60%);
-    transform: scale(0.97);
+  opacity: 0.5;
+  filter: grayscale(60%);
+  transform: scale(0.97);
 }
 
 .dimmed-pet:hover {
-    opacity: 0.7;
-    filter: grayscale(40%);
-    transform: scale(1);
+  opacity: 0.7;
+  filter: grayscale(40%);
+  transform: scale(1);
 }
 
 

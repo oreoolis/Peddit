@@ -6,20 +6,21 @@ import { RouterLink, useRoute } from 'vue-router';
 import { ref, watch, onMounted } from 'vue';
 import ShoppingListModal from '@/components/PetViewComponents/ShoppingListModal.vue';
 import PetInfoModal from '@/components/Organisms/PetInfoModal.vue';
+import MealInfoModal from '@/components/PetViewComponents/MealInfoModal.vue';
+import ToastStatus from '@/components/molecules/ToastStatus.vue';
+import Button from '@/components/atoms/button.vue';
 import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
-import Button from '@/components/atoms/button.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
-import MealInfoModal from '@/components/PetViewComponents/MealInfoModal.vue';
+import { useToastStore } from '@/stores/toastStore';
 
 const petStore = usePetStore();
-const { } = storeToRefs(petStore);
+const toastStore = useToastStore();
 const authStore = useAuthStore();
 const nutritionStore = usePetNutritionStore();
 const { recipes } = storeToRefs(nutritionStore);
-const route = useRoute();
 
 watch(() => authStore.userId, (newUserId) => {
     if (newUserId) {
@@ -51,46 +52,26 @@ const userStore = useUserStore();
 const { shoppingList } = storeToRefs(userStore);
 
 onMounted(async () => {
-    if (route.state?.showOpSuccess) { // if route state exists, load showEditSuccess
-        const toastElement = document.getElementById('liveToast');
-        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement, { autohide: true, delay: 3000 });
-        if (document.getElementById("message")) {
-            document.getElementById("message").innerText = route.state.message;
-            document.getElementById("message").style.fontWeight = "bold";
-        }
-        toastBootstrap.show();
-    }
 
     try {
         // Fetch shopping list
         await userStore.fetchShoppingList();
         // debug - shows what the store returned
+
+        // TODO: Bern - fully implement shoppingListStore
         console.log("Fetched shopping list:", shoppingList.value);
         console.log(recipes.value);
         //await userStore.addMultipleToShoppingList();
     } catch (err) {
         console.error("Error fetching shopping list:", err);
     }
-
-    console.log("HELLSO");
 });
 
 </script>
 
 <template>
     <div class="pet-view">
-        <!-- Toast Message -->
-        <div class="toast-container position-fixed bottom-0 end-0 p-3">
-            <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header bg-success">
-                    <strong class="me-auto text-light">Peddit</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body" id="message">
-                </div>
-            </div>
-        </div>
-
+        <ToastStatus :showOpSuccess="toastStore.showOpSuccess" :message="toastStore.message"/>
         <div class="pet-card-container container-fluid">
             <!-- Header Section -->
             <div class="row justify-content-center align-items-center py-5">
@@ -158,43 +139,15 @@ onMounted(async () => {
         <div class="grocery-checklist container-fluid">
             <div class="row d-flex justify-content-center">
                 <div class="col-lg-9">
-                    <h1 class="headingFont fw-semibold display-4 mt-5 mb-2">Weekly Grocery Checklist</h1>
+                    <h1 class="headingFont fw-semibold display-4 mt-5 mb-2">My Grocery Checklist</h1>
                 </div>
             </div>
             <div class="row">
                 <div class="col-lg-12 d-flex justify-content-center">
                     <div class="bg-light container bodyFont fw-bold rounded-3 shadow p-3 mt-3">
                         <!--Use v-for to loop through list of grocery items, Max number of cols per row: 3 (col-lg-4) -->
-                        <div class="row px-3 py-3">
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                        </div>
                         <div class="row px-3 py-3 justify-evenly">
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                        </div>
-                        <div class="row px-3 py-3 justify-evenly">
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                            <div class="col-lg-4">
+                            <div v-for="items in shoppingList" class="col-lg-4">
                                 <ItemsChecklist />
                             </div>
                         </div>
@@ -202,7 +155,6 @@ onMounted(async () => {
                             <!-- size: none -->
                             <Button label="+ Edit" color="primary" class="button-edit-list fw-bold bodyFont"
                                 @click="openShoppingList">
-
                             </Button>
                         </div>
                     </div>

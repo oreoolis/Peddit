@@ -185,6 +185,7 @@ export const useUserStore = defineStore('user', () => {
      * Fetches the shopping list of the current authenticated user
      * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
     */
+    // TODO: Bern - fully implement shoppingListStore
     const fetchShoppingList = async () => {
         if (!userId.value) {
             console.warn('No authenticated user found');

@@ -6,14 +6,14 @@ import searchBar from '@/components/atoms/searchBar.vue';
 import Button from '@/components/atoms/Button.vue';
 import NutritionalOutputCard from '@/components/molecules/NutritionalOutputCard.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
-import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
+import { useToastStore } from '@/stores/toastStore';
 
 // stores
 const nutritionStore = usePetNutritionStore();
-const petStore = usePetStore();
+const toastStore = useToastStore();
 const authStore = useAuthStore();
 const router = useRouter();
 
@@ -93,25 +93,6 @@ const nutrients = computed(() => {
   };
 });
 
-// set date to conform with supabase standard
-const formatDate = () => {
-  const ms = Date.now();                   // epoch ms
-  const d = new Date(ms);                  // Date object
-
-  const pad = (n, l = 2) => String(n).padStart(l, "0");
-  const yyyy = d.getUTCFullYear();
-  const MM = pad(d.getUTCMonth() + 1);
-  const dd = pad(d.getUTCDate());
-  const HH = pad(d.getUTCHours());
-  const mm = pad(d.getUTCMinutes());
-  const ss = pad(d.getUTCSeconds());
-  const SSS = pad(d.getUTCMilliseconds(), 3);
-
-  // Date only has ms precision; microseconds beyond ms default to 000
-  const uuu = "000";                       // microseconds beyond ms
-  return `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}.${SSS}${uuu}+00`;
-}
-
 const showIngredientModal = ref(false);
 
 const openIngredientModal = () => {
@@ -178,9 +159,9 @@ const handleSubmit = async () => {
 
   showSuccess.value = true;
   resetForm();
+  toastStore.showToast("Meal has been created!");
   router.push({
-    path: '/pet',
-    state: { showOpSuccess: true, message: recipeName.value + "has been created!" }
+    path: '/pet'
   });
 
 

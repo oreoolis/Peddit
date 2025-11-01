@@ -3,7 +3,16 @@ const props = defineProps({
     /* You can pass in a label prop to customize the text */
     label: {
         type: String,
-        default: 'Rectangle'
+
+        default: "Add a new recipe!"
+    },
+    ingredient_id: {
+        type: String,
+        default: null
+    },
+    qty: {
+        type: String,
+        default: "0g"
     }
 });
 
