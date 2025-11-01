@@ -123,6 +123,13 @@ export const usePostStore = defineStore('posts', () => {
             loading.value = true;
             error.value = null;
 
+
+            if (!postId) {
+                const msg = 'fetchPostById requires a postId argument';
+                error.value = msg;
+                console.error(msg);
+                return { success: false, error: msg };
+            }
             // Join post with author
             const { data, error: supabaseError } = await supabase
                 .from('posts')
@@ -140,10 +147,11 @@ export const usePostStore = defineStore('posts', () => {
 
             if (supabaseError) throw supabaseError;
 
-            if (data.profiles?.avatar_url) {
+            // defensive: only transform avatar if data and profiles exist
+            if (data?.profiles?.avatar_url) {
                 data.profiles.avatar_url = getPublicImage('avatars', data.profiles.avatar_url);
             }
-
+            currentPost.value = data || null;
             // Handle multiple media uploads if provided
             const files = [];
             if (Array.isArray(postData?.mediaFiles)) files.push(...postData.mediaFiles);

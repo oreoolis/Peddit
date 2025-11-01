@@ -12,6 +12,7 @@ import { useUserStore } from '@/stores/userStore';
 import UpvoteControl from '@/components/molecules/social/VoteControl.vue';
 import ShareButton from '@/components/Organisms/social/ShareButton.vue';
 import PostContentCarousel from '@/components/molecules/social/PostContentCarousel.vue';
+import { supabase } from '@/lib/supabaseClient';
 const router = useRouter();
 
 const props = defineProps({
@@ -49,13 +50,50 @@ const displayedComments = computed(() => {
   // Otherwise, show only the initial amount
   return comments.value.slice(0, INITIAL_COMMENT_COUNT);
 });
-// --- END: "Show More" Logic ---
 
 onMounted(async () =>{
     if (props.postId) {
         await postStore.fetchPostById(props.postId);
         await commentStore.fetchCommentsByPostID(props.postId);
-        // optionally: fetch user's vote here and set serverVote
+        // Attempt to determine current user's persisted vote for UI
+        try {
+            // 1) If the fetched post includes per-post votes, use them
+            const post = currentPost.value;
+            let myVote = 0;
+            if (post) {
+                // common shapes: post.post_votes (array of { voter_id, vote })
+                if (Array.isArray(post.post_votes)) {
+                    const found = post.post_votes.find(v => v && v.voter_id === user.value?.id);
+                    if (found) myVote = Number(found.vote) || 0;
+                }
+                // alternate shape: post.user_vote or post.my_vote
+                if (!myVote && typeof post.user_vote !== 'undefined') {
+                    myVote = Number(post.user_vote) || 0;
+                }
+                if (!myVote && typeof post.my_vote !== 'undefined') {
+                    myVote = Number(post.my_vote) || 0;
+                }
+            }
+
+            // 2) Fallback: query post_votes table directly (no store changes)
+            if ((myVote === 0) && user.value?.id) {
+                const { data: voteRow, error: voteErr } = await supabase
+                    .from('post_votes')
+                    .select('vote')
+                    .eq('post_id', props.postId)
+                    .eq('voter_id', user.value.id)
+                    .single();
+
+                if (!voteErr && voteRow) {
+                    myVote = Number(voteRow.vote) || 0;
+                }
+            }
+
+            serverVote.value = myVote;
+        } catch (err) {
+            // don't block rendering on vote lookup errors
+            console.error('Error resolving persisted vote for post:', err);
+        }
     } else {
         router.push('/');
     }
