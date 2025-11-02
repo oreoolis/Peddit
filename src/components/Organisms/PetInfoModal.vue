@@ -66,10 +66,17 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:show', 'uploaded', 'error', 'click', 'open-meal-info']);
-const handleOpenMealInfo = () => {
+const handleOpenMealInfo = (payload) => {
+    // If child MealPlanCard forwards a payload, re-emit it so parents can respect editable flags.
+    if (payload && typeof payload === 'object') {
+        emit('open-meal-info', payload);
+        return;
+    }
+
+    // Fallback: emit the recipe id from props
     emit('open-meal-info', {
-        rec_id: props.recipeDetails.id
-    })
+        rec_id: props.recipeDetails?.id
+    });
 }
 const view = ref(false);
 
@@ -132,7 +139,9 @@ const closeModal = () => {
                                 <MealPlanCard :rec_id="props.recipeDetails.id" 
                                 :name="props.recipeDetails.recipe_name" 
                                 :desc="props.recipeDetails.description"
-                                @open-meal-info="handleOpenMealInfo"/>
+                                :petKind="props.recipeDetails.pet_kind ?? props.kind"
+                                @open-meal-info="handleOpenMealInfo"
+                                :editable="false"/>
                             </div>
                         </div>
                     </div>

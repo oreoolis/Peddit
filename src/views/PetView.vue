@@ -43,8 +43,17 @@ const openPetInfo = (petData) => {
 
 const selectedRecipeId = ref(null);
 const showMealInfo = ref(false);
-const openMealInfo = (recipeId) => {
-    selectedRecipeId.value = recipeId;
+// whether modal should show edit/delete actions when opened from various places
+const modalEditable = ref(true);
+const openMealInfo = (payload) => {
+    // payload might be an id or an object { rec_id, editable }
+    if (payload && typeof payload === 'object') {
+        selectedRecipeId.value = payload.rec_id ?? payload.id ?? null;
+        modalEditable.value = typeof payload.editable === 'boolean' ? payload.editable : true;
+    } else {
+        selectedRecipeId.value = payload;
+        modalEditable.value = true;
+    }
     showMealInfo.value = true;
 }
 
@@ -223,12 +232,12 @@ onMounted(async () => {
 
         <ShoppingListModal v-model:show="showShoppingList" />
         <PetInfoModal v-model:show="showPetInfo" :id="selectedPetData?.id" :name="selectedPetData?.name"
-            :gender="selectedPetData?.gender" :breed="selectedPetData?.breed" :birthday="selectedPetData?.birthday"
+            :kind="selectedPetData?.kind" :gender="selectedPetData?.gender" :breed="selectedPetData?.breed" :birthday="selectedPetData?.birthday"
             :weight="selectedPetData?.weight" :allergies="selectedPetData?.allergies"
             :neutered="selectedPetData?.neutered" :photo_url="selectedPetData?.photo_url"
             :recipeDetails="selectedPetData?.recipeDetails"
-            @open-meal-info="openMealInfo(selectedPetData.recipeDetails.id)" />
-        <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId" />
+            @open-meal-info="openMealInfo" />
+    <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId" :editable="modalEditable" />
 
     </div>
 </template>

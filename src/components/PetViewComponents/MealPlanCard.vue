@@ -22,7 +22,7 @@ const cardStyle = computed(() => ({
 
 // Image sizing adjusts for compact mode to avoid overflowing the card
 const imgSize = computed(() => {
-    if (compact.value) return { width: 140, height: 120, frameWidth: 48, frameHeight: 48, frames: 6, fps: 8 };
+    if (compact.value) return { width: 140, height: 140, frameWidth: 48, frameHeight: 48, frames: 6, fps: 8 };
     return { width: 256, height: 256, frameWidth: 48, frameHeight: 48, frames: 6, fps: 8 };
 });
 

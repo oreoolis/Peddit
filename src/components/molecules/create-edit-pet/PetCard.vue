@@ -13,6 +13,7 @@ const handleOpenPetInfo = () => {
     emit('open-pet-info', {
         id: props.id,
         name: props.name,
+        kind: props.kind,
         gender: props.gender,
         breed: props.breed,
         birthday: props.birthday,
@@ -21,6 +22,7 @@ const handleOpenPetInfo = () => {
         neutered: props.neutered,
         photo_url: props.photo_url,
         recipeDetails: recipeDetails.value
+        
     });
 }
 
