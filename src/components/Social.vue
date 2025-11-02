@@ -77,20 +77,6 @@ onMounted(async () => {
     }
 });
 
-const showCreatePostModal = ref(false);
-const showShareRecipePostModal = ref(false);
-const handleCreatePost = async (postData) => {
-    if (!authStore.user) {
-        alert("You must be logged in to create a post.");
-        return;
-    }
-    // Check if an image file was included and log its details
-    if (postData.imageFile) {
-    } else {
-    }
-
-    postStore.createPost(authStore.user.id, postData);
-};
 
 </script>
 
@@ -151,21 +137,7 @@ const handleCreatePost = async (postData) => {
         </div>
     </section>
   <!-- create post modal here -->
-   <div class="d-flex justify-content-center my-2">
-   <Button @click="showCreatePostModal = true" label="Create Post" ></Button>
-     <CreatePostModal 
-    :show="showCreatePostModal" 
-    @update:show="showCreatePostModal = $event"
-    @create-post="handleCreatePost"
-  />
-  
-<Button @click="showShareRecipePostModal = true" label="Share Recipe">
-</Button>
-  <ShareRecipePostModal
-    :show="showShareRecipePostModal" 
-    @update:show="showShareRecipePostModal = $event"  
-  ></ShareRecipePostModal>
-   </div>
+
 
 </template>
 <style scoped>

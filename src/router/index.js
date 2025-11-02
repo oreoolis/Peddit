@@ -52,7 +52,7 @@ const router = createRouter({
       path: '/meal',
       name: 'meal',
       component: () => import('@/views/MealView.vue'),
-	  meta: { requiresAuth: true } // true
+	  meta: { requiresAuth: false } // true
     },{
       path: '/chatbot',
       name: 'chatbot',
@@ -62,7 +62,7 @@ const router = createRouter({
       path: '/social',
       name: 'social',
       component: () => import('@/views/SocialView.vue'),
-	  meta: { requiresAuth: true } // true
+	  meta: { requiresAuth: false } // true
     },{
       path: '/viewpost/:postId',
       name: 'publicPosts',
@@ -85,7 +85,7 @@ const router = createRouter({
       path: '/create-pet',
       name: 'create-pet',
       component: () => import('@/views/CreatePet.vue'),
-	  meta: { requiresAuth: false } 
+	  meta: { requiresAuth: true } 
     },
         {
       path: '/viewpost',
@@ -125,11 +125,6 @@ const router = createRouter({
       name: 'SearchResults',
       component: () => import('@/views/MealViewSearchResult.vue')
     },
-    // {
-    //   path: '/view-recipe-post',
-    //   name: 'view-recipe-post',
-    //   component: () => import('@/views/ViewRecipePost.vue')
-    // }
     {
       path: '/view-recipe-post/:postId',
       name: 'view-recipe-post',

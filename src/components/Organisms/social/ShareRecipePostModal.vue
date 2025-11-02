@@ -3,6 +3,10 @@ import { ref, watch } from 'vue';
 import Button from '../../atoms/button.vue';
 import searchBar from '../../atoms/searchBar.vue';
 import MealPlanCard from '@/components/PetViewComponents/MealPlanCard.vue';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
+import { storeToRefs } from 'pinia';
+import { useAuthStore } from '@/stores/authStore';
+
 const props = defineProps({
     show: {
         type: Boolean,
@@ -22,26 +26,63 @@ const props = defineProps({
 const emit = defineEmits(['update:show', 'create-post']);
 
 // Form state
-// Form state
 const postContent = ref('');
+const selectedPlanId = ref(null);
 
-// TODO: Get Current User's Recipes
+// Stores
+const petNutritionStore = usePetNutritionStore();
+const { recipes: storeRecipes } = storeToRefs(petNutritionStore);
+const authStore = useAuthStore();
 
-// Reset form when modal is closed
-watch(() => props.show, (newVal) => {
+// Local meal plans shown in modal (defaults to prop sample)
+const userMealPlans = ref(props.user_MealPlans || []);
+
+// Fetch the current user's recipes when modal opens
+watch(() => props.show, async (newVal) => {
     if (!newVal) {
         postContent.value = '';
+        selectedPlanId.value = null;
+        return;
+    }
+
+    // If user is logged in, fetch their recipes from the store
+    const userId = authStore.user?.id;
+    if (userId) {
+        try {
+            await petNutritionStore.fetchRecipes(userId);
+            // Map store recipes to the simple shape used by this modal
+            userMealPlans.value = (storeRecipes.value || []).map(r => ({
+                rec_id: r.id,
+                name: r.recipe_name,
+                desc: r.description,
+                petKind: r.pet_kind ?? null
+            }));
+        } catch (err) {
+            console.warn('Failed to fetch user meal plans for Share modal:', err);
+            userMealPlans.value = props.user_MealPlans || [];
+        }
+    } else {
+        // Not logged in: use provided sample or empty
+        userMealPlans.value = props.user_MealPlans || [];
     }
 });
 
 const closeModal = () => {
     emit('update:show', false);
 };
-// Need some logic for Recipe Id
+
+const selectPlan = (payload) => {
+    // payload might be an object emitted by MealPlanCard or a primitive id
+    if (!payload) return;
+    const id = (typeof payload === 'object') ? (payload.rec_id ?? payload.id) : payload;
+    selectedPlanId.value = id;
+};
+
 const handleSubmit = () => {
     if ( postContent.value) {
         emit('create-post', {
             content: postContent.value,
+            recipeId: selectedPlanId.value ?? null
         });
         closeModal();
     } else {
@@ -73,14 +114,18 @@ const handleSubmit = () => {
                     <div class="mb-3">
                         <label  class="form-label headingFont fw-bold h5 mb-3">Select a Meal Plan</label>
                         <div class="d-flex px-2 gap-3">
+                        <div v-if="userMealPlans.length === 0" class="text-muted">No meal plans found</div>
                         <MealPlanCard class="me-2"
-                        v-for="Meal in props.user_MealPlans"
-                        :key="Meal"
+                        v-for="Meal in userMealPlans"
+                        :key="Meal.rec_id"
                         :rec_id="Meal.rec_id"
                         :name="Meal.name"
                         :desc="Meal.desc"
+                        :petKind="Meal.petKind"
                         :editable="false"
                         :compact="true"
+                        @open-meal-info="selectPlan"
+                        :class="{ 'selected-plan': selectedPlanId === Meal.rec_id }"
                         ></MealPlanCard>
                         </div>
                     </div>
@@ -158,5 +203,12 @@ textarea.form-control {
   width: 150px;
   height: 150px;
   border: 2px solid #e0e0e0;
+}
+
+.selected-plan {
+        transform: scale(1.03);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        border-radius: 12px;
+        outline: 3px solid rgba(var(--bs-primary-rgb), 0.18);
 }
 </style>

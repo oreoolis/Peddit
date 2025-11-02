@@ -51,6 +51,16 @@ const displayedComments = computed(() => {
   return comments.value.slice(0, INITIAL_COMMENT_COUNT);
 });
 
+// Disable the comment input when submitting or when the user is not authenticated
+const commentDisabled = computed(() => {
+    return submitting.value || !user.value || !user.value.id;
+});
+
+// Show a helpful label when the input is disabled due to auth
+const commentLabel = computed(() => {
+    return (!user.value || !user.value.id) ? 'Please Log in to comment' : 'What are your thoughts?';
+});
+
 onMounted(async () =>{
     if (props.postId) {
         await postStore.fetchPostById(props.postId);
@@ -116,15 +126,24 @@ const handleCommentSubmit = async (content) => {
 };
 
 const onVote = async (v) => {
-  const num = Number(v) || 0;
-  const normalized = [-1, 0, 1].includes(num) ? num : 0;
-  serverVote.value = normalized;
-  console.log('[VOTE]', serverVote.value); // prints -1, 0 or 1
-  console.log(user.value.id);
+    // Require authentication before allowing vote changes
+    if (!user.value || !user.value.id) {
+        alert('Please sign in to vote.');
+        return;
+    }
 
-  if(user.value.id){
+    const num = Number(v) || 0;
+    const normalized = [-1, 0, 1].includes(num) ? num : 0;
+    serverVote.value = normalized;
+    console.log('[VOTE]', serverVote.value); // prints -1, 0 or 1
+
     await postStore.voteOnPost(currentPost.value.id, user.value.id, serverVote.value);
-  }
+};
+
+const handleAuthRequired = () => {
+    // parent reacts when VoteControl blocked an interaction due to disabled state
+    alert('Please sign in to vote.');
+    router.push('/login');
 };
 
 // helper: remove HTML and shorten content for share text
@@ -168,7 +187,9 @@ console.log(currentPost)
                      <UpvoteControl
                          :initialVote="serverVote"
                          :score="currentPost.vote_score"
+                         :disabled="!user || !user.id"
                          @vote="onVote"
+                         @auth-required="handleAuthRequired"
                      />
                  </div>
             </div>
@@ -177,7 +198,7 @@ console.log(currentPost)
             <div v-if="comments && comments.length > 0" class="card mt-4" id="CommentSection">
                 <div class="card-body">
                     <h5 class="mb-4">Comments ({{ comments.length }})</h5>
-                    <TextInput class="mb-4" label="What are your thoughts?" @submit="handleCommentSubmit" :disabled="submitting" />
+                    <TextInput class="mb-4" :label="commentLabel" @submit="handleCommentSubmit" :disabled="commentDisabled" />
                     <div class="comment-list">
                         <!-- 3. Loop over the new 'displayedComments' computed property -->
                         <Comment v-for="comment in displayedComments" :key="comment.id" :Name="comment.profiles.display_name" :Picture="comment.profiles.avatar_url" :Content="comment.content" :timestamp="comment.created_at" />
@@ -194,7 +215,7 @@ console.log(currentPost)
                 <div v-else class="card mt-4" id="CommentSection">
                 <div class="card-body">
                     <h5 class="mb-4">Comments ({{ comments.length }})</h5>
-                    <TextInput class="mb-4" label="What are your thoughts?" @submit="handleCommentSubmit" :disabled="submitting" />
+                    <TextInput class="mb-4" :label="commentLabel" @submit="handleCommentSubmit" :disabled="commentDisabled" />
                     <div class="comment-list">
                         <!-- 3. Loop over the new 'displayedComments' computed property -->
                         <Comment v-for="comment in displayedComments" :key="comment.id" :Name="comment.profiles.display_name" :Picture="comment.profiles.avatar_url" :Content="comment.content" :timestamp="comment.created_at" />

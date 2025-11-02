@@ -20,12 +20,20 @@ const petNutritionStore = usePetNutritionStore();
 const { recipeQuery, recipes } = storeToRefs(petNutritionStore);
 
 const featured = computed(() => recipes.value);
+console.log(recipes)
 
 // modal state for viewing meal info
 const selectedRecipeId = ref(null);
 const showMealInfo = ref(false);
 // whether the modal should show edit/delete actions
 const modalEditable = ref(true);
+
+// carousel refs used in the template
+const carouselEl = ref(null);
+const carouselInner = ref(null);
+
+// style used to constrain carousel content width (keeps controls visible)
+const contentMaxWidth = computed(() => 'min(1100px, 95vw)');
 
 const openMealInfo = (payload) => {
   // payload might be a plain id, or an object like { rec_id }
@@ -111,7 +119,7 @@ onMounted(async () => {
 
               <!-- RIGHT: card -->
               <div class="carousel-card d-flex" style="max-width:420px;">
-                <MealPlanCard :editable="false" :name="f.recipe_name" :rec_id="f.id" :desc="f.desc" @open-meal-info="openMealInfo" />
+                <MealPlanCard :editable="false" :name="f.recipe_name" :rec_id="f.id" :desc="f.desc" :petKind="f.pet_kind" @open-meal-info="openMealInfo" />
               </div>
             </div>
           </div>
@@ -129,7 +137,8 @@ onMounted(async () => {
      <!-- TODO: Need to insert Plans here into RecommendedMeals -->
       <div v-if="!featured">Nothing</div>
       <RecommendedMeals
-        :plans="featured.value"
+        :plans="featured"
+        @open-meal-info="openMealInfo"
       ></RecommendedMeals>
       
     <!-- Meal info modal -->

@@ -36,9 +36,9 @@ onMounted(async () => {
         <div class="collapse navbar-collapse">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <!-- <li class="nav-item"><RouterLink class="nav-link" to="/about">About (TODO)</RouterLink></li> -->
-            <li class="nav-item"><RouterLink class="nav-link" to="/health">Health</RouterLink></li>
+            <li v-if="isLoggedIn" class="nav-item"><RouterLink class="nav-link" to="/health">Pet Dashboard</RouterLink></li>
             <li class="nav-item"><RouterLink class="nav-link" to="/meal">Explore Meal</RouterLink></li>
-            <li class="nav-item"><RouterLink class="nav-link" to="/pet">My Pets</RouterLink></li>
+            <li v-if="isLoggedIn" class="nav-item"><RouterLink class="nav-link" to="/pet">My Pets</RouterLink></li>
             <li class="nav-item"><RouterLink class="nav-link" to="/social">Social</RouterLink></li>
             <li class="nav-item"><RouterLink class="nav-link" to="/map">Map</RouterLink></li>
             <!-- <li class="nav-item"><RouterLink class="nav-link" to="/temp">Temp</RouterLink></li> -->
