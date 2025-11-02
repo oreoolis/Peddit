@@ -6,7 +6,7 @@ import { usePetStore } from '@/stores/petStore';
 import QuickStatsGrid from '@/components/molecules/health/QuickStatsGrid.vue';
 
 // social/post data
-import animatedImage from '@/components/atoms/animated/animatedImage.vue';
+import AnimatedImage from '@/components/atoms/animated/animatedImage.vue';
 import CreatePostModal from '@/components/Organisms/social/CreatePostModal.vue';
 import ShareRecipePostModal from '@/components/Organisms/social/ShareRecipePostModal.vue';
 import { usePostStore } from '@/stores/postStore';
@@ -82,6 +82,13 @@ function goToMap(type){
   router.push({ path: '/map', query: { type } });
 }
 
+// Helpers
+const truncate = (text = '', max = 100) => {
+  if (!text) return '';
+  if (text.length <= max) return text;
+  return text.slice(0, max).trimEnd() + '…';
+}
+
 // Create post / share recipe modal state & handler (moved from Social.vue)
 const showCreatePostModal = ref(false);
 const showShareRecipePostModal = ref(false);
@@ -121,12 +128,12 @@ function goToMeal(){
                 <div class="preview p-3">
                   <!-- inlined HomeTemplate content (converted to Bootstrap utilities) -->
                   <div class=" sample-home">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
                       <div class="flex-grow-1">
                         <h1 class="mb-1 brandFont ">
-                        <animatedImage src="/src/assets/Sprite/Dog/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />
+                        <AnimatedImage src="/src/assets/Sprite/Dog/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />
                           Welcome to Peddit!              
-                        <animatedImage src="/src/assets/Sprite/Cat/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />     </h1>
+                        <AnimatedImage src="/src/assets/Sprite/Cat/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />
+                          </h1>
                         <p class="text-muted mb-2">Discover pets, read tips and share moments with other pet lovers.</p>
                         <div class="d-flex gap-2 flex-wrap justify-content-end">
                              <Button @click="showCreatePostModal = true" label="Create Post" ></Button>
@@ -162,14 +169,13 @@ function goToMeal(){
                           :VoteScore="post?.vote_score"
                           :created_at="post?.created_at"
                         >
-                        <div class="mt-2 ms-1">{{ post?.content }}</div>
+                        <div class="mt-2 ms-1" >{{ truncate(post?.content, 100) }}</div>
                       </PostSearch>
                         
                       </div>
 
                     </section>
                   </div>
-                </div>
               </div>
             </div>
           </section>

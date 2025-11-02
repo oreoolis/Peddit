@@ -19,6 +19,31 @@ const postContent = ref('');
 const imageFiles = ref([]);
 const imagePreviews = ref([]); // array of { url, name, size }
 
+// Character limits
+const TITLE_MAX_CHARS = 120;
+const CONTENT_MAX_CHARS = 5000;
+
+const enforceChars = (text = '', max = Infinity) => {
+    if (!text) return '';
+    return text.slice(0, max);
+}
+
+const titleCharsRemaining = () => Math.max(0, TITLE_MAX_CHARS - (postTitle.value?.length || 0));
+const contentCharsRemaining = () => Math.max(0, CONTENT_MAX_CHARS - (postContent.value?.length || 0));
+
+// Keep inputs within character limits as user types/pastes
+watch(postTitle, (val) => {
+    if (val == null) return;
+    const enforced = enforceChars(val, TITLE_MAX_CHARS);
+    if (enforced !== val) postTitle.value = enforced;
+});
+
+watch(postContent, (val) => {
+    if (val == null) return;
+    const enforced = enforceChars(val, CONTENT_MAX_CHARS);
+    if (enforced !== val) postContent.value = enforced;
+});
+
 
 const formatFileSize = (bytes) => {
   if (!bytes) return '0 Bytes';
@@ -71,6 +96,10 @@ const closeModal = () => {
 };
 
 const handleSubmit = () => {
+    // enforce limits again before submit
+    postTitle.value = enforceChars(postTitle.value, TITLE_MAX_CHARS);
+    postContent.value = enforceChars(postContent.value, CONTENT_MAX_CHARS);
+
     if (postTitle.value && postContent.value) {
         emit('create-post', {
             title: postTitle.value,
@@ -102,6 +131,9 @@ const handleSubmit = () => {
                             placeholder="What's the title of your post?" 
                             v-model="postTitle"
                         />
+                        <div class="form-text text-muted small mt-1">
+                            {{ titleCharsRemaining() }} chars remaining
+                        </div>
                     </div>
 
                     <!-- Post Content -->
@@ -112,6 +144,9 @@ const handleSubmit = () => {
                             type="textarea"
                             placeholder="What's on your mind?"
                         />
+                        <div class="form-text text-muted small mt-1">
+                            {{ contentCharsRemaining() }} chars remaining
+                        </div>
                     </div>
 
                     <!-- Image Upload -->

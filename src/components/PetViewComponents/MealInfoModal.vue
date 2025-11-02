@@ -3,8 +3,8 @@ import { ref, watch, onMounted, computed } from 'vue';
 import IngredientCard from './IngredientCard.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { useRouter } from 'vue-router';
+import Button from '../atoms/button.vue';
 import PetNutritionTest from '@/views/PetNutritionTest.vue';
-
 const nutritionStore = usePetNutritionStore();
 const recipeInfo = ref(null); // hold all recipe information
 const router = useRouter()
@@ -86,7 +86,7 @@ const deleteMeal = async () => {
                         </svg>
                     </div>
                 </div>
-                <button type="button" class="btn-close ms-auto" @click="closeModal"></button>
+                <Button label="X" color="danger" outline="true" class="ms-auto px-4" @click="closeModal"></Button>
             </div>
             <div class="modal-body">
                 <div class="container-fluid">

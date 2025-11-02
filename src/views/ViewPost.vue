@@ -114,10 +114,14 @@ const handleCommentSubmit = async (content) => {
         console.error("User is not logged in or profile not loaded.");
         return;
     }
+    // enforce comment character limit
+    const MAX_COMMENT_CHARS = 2000;
+    const enforced = (content || '').slice(0, MAX_COMMENT_CHARS);
+
     const result = await commentStore.createComment({
         postId: props.postId,
         authorId: user.value.id,
-        content: content,
+        content: enforced,
         authorProfile: authorProfile.value
     });
     if (!result.success) {
@@ -172,7 +176,8 @@ console.log(currentPost)
                         <span class="fw-bold text-body">{{ currentPost.profiles.display_name }}</span>
                     </div>
                     <h1 class="post-title h2 headingFont fw-bold mb-4">{{ currentPost.title }}</h1>
-                    <div class="post-body bodyFont fs-5" v-html="currentPost.content"></div>
+                    <!-- Render content as plain text and preserve newlines via CSS -->
+                    <div class="post-body bodyFont fs-5" style="white-space: pre-wrap;">{{ currentPost.content }}</div>
                     <!-- TODO: TO ATTACH post_media -->
                     <PostContentCarousel  :data="currentPost.post_media" class="border-top :data "></PostContentCarousel>
                     
@@ -198,10 +203,15 @@ console.log(currentPost)
             <div v-if="comments && comments.length > 0" class="card mt-4" id="CommentSection">
                 <div class="card-body">
                     <h5 class="mb-4">Comments ({{ comments.length }})</h5>
-                    <TextInput class="mb-4" :label="commentLabel" @submit="handleCommentSubmit" :disabled="commentDisabled" />
+                    <TextInput class="mb-4" :label="commentLabel" @submit="handleCommentSubmit" :disabled="commentDisabled" :max-chars="2000" />
                     <div class="comment-list">
                         <!-- 3. Loop over the new 'displayedComments' computed property -->
-                        <Comment v-for="comment in displayedComments" :key="comment.id" :Name="comment.profiles.display_name" :Picture="comment.profiles.avatar_url" :Content="comment.content" :timestamp="comment.created_at" />
+                        <Comment v-for="comment in displayedComments" 
+                        :key="comment.id" 
+                        :Name="comment.profiles.display_name" 
+                        :Picture="comment.profiles.avatar_url" 
+                        :Content="comment.content" 
+                        :timestamp="comment.created_at" />
                     </div>
                     
                     <!-- 4. "View More" Button -->
@@ -215,7 +225,7 @@ console.log(currentPost)
                 <div v-else class="card mt-4" id="CommentSection">
                 <div class="card-body">
                     <h5 class="mb-4">Comments ({{ comments.length }})</h5>
-                    <TextInput class="mb-4" :label="commentLabel" @submit="handleCommentSubmit" :disabled="commentDisabled" />
+                    <TextInput class="mb-4" :label="commentLabel" @submit="handleCommentSubmit" :disabled="commentDisabled" :max-chars="1000" />
                     <div class="comment-list">
                         <!-- 3. Loop over the new 'displayedComments' computed property -->
                         <Comment v-for="comment in displayedComments" :key="comment.id" :Name="comment.profiles.display_name" :Picture="comment.profiles.avatar_url" :Content="comment.content" :timestamp="comment.created_at" />

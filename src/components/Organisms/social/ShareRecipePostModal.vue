@@ -29,6 +29,22 @@ const emit = defineEmits(['update:show', 'create-post']);
 const postContent = ref('');
 const selectedPlanId = ref(null);
 
+// Character limits for share modal
+const CONTENT_MAX_CHARS = 5000;
+
+const enforceChars = (text = '', max = Infinity) => {
+    if (!text) return '';
+    return text.slice(0, max);
+}
+
+const contentCharsRemaining = () => Math.max(0, CONTENT_MAX_CHARS - (postContent.value?.length || 0));
+
+watch(postContent, (val) => {
+    if (val == null) return;
+    const enforced = enforceChars(val, CONTENT_MAX_CHARS);
+    if (enforced !== val) postContent.value = enforced;
+});
+
 // Stores
 const petNutritionStore = usePetNutritionStore();
 const { recipes: storeRecipes } = storeToRefs(petNutritionStore);
@@ -79,6 +95,9 @@ const selectPlan = (payload) => {
 };
 
 const handleSubmit = () => {
+    // enforce limits again before submit
+    postContent.value = enforceChars(postContent.value, CONTENT_MAX_CHARS);
+
     if ( postContent.value) {
         emit('create-post', {
             content: postContent.value,
@@ -108,6 +127,9 @@ const handleSubmit = () => {
                             type="textarea"
                             placeholder="What's on your mind?"
                         />
+                        <div class="form-text text-muted small mt-1">
+                            {{ contentCharsRemaining() }} chars remaining
+                        </div>
                     </div>
 
                     <!-- Meal Plan -->

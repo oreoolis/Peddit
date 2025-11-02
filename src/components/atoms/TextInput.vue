@@ -12,6 +12,10 @@ const props = defineProps({
   disabled: {
     type: Boolean,
     default: false
+  },
+  maxChars: {
+    type: Number,
+    default: null
   }
 });
 
@@ -21,10 +25,24 @@ const emit = defineEmits(['submit']);
 // Internal state for the input field
 const inputValue = ref('');
 
+const charsRemaining = computed(() => {
+  if (!props.maxChars) return null;
+  return Math.max(0, props.maxChars - (inputValue.value?.length || 0));
+});
+
+// Keep within limit
+const enforceMax = (val) => {
+  if (!props.maxChars) return val;
+  return val?.slice(0, props.maxChars) ?? '';
+}
+
 // Method to handle submission
 const handleSubmit = () => {
   // Don't submit if the input is empty or disabled
   if (!inputValue.value.trim() || props.disabled) return;
+
+  // enforce max
+  inputValue.value = enforceMax(inputValue.value);
 
   // Emit the 'submit' event with the input's value
   emit('submit', inputValue.value.trim());
@@ -36,14 +54,15 @@ const handleSubmit = () => {
 
 <template>
     <form @submit.prevent="handleSubmit" class="text-input-wrapper pill-layout">
-        <div class="wave-group">
-            <input 
-                v-model="inputValue" 
-                required 
-                type="text" 
-                class="input"
-                :disabled="disabled"
-            >
+      <div class="wave-group">
+          <input 
+            v-model="inputValue" 
+            required 
+            type="text" 
+            class="input"
+            :disabled="disabled"
+            :maxlength="maxChars || null"
+          >
             <span class="bar"></span>
             <label class="label">
                 <span v-for="(char, index) in label" :key="index" class="label-char" :style="{ '--index': index }">
@@ -51,6 +70,7 @@ const handleSubmit = () => {
                 </span>
             </label>
         </div>
+        <div v-if="charsRemaining !== null" class="small text-muted ms-3 me-2">{{ charsRemaining }} chars</div>
         <Button type="submit" :disabled="disabled" label="Send">
             <i class="bi bi-send-fill pe-2"></i>
         </Button>

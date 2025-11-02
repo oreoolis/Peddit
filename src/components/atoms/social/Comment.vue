@@ -1,6 +1,6 @@
 <script setup>
 import { useTimeAgo } from '@vueuse/core';
-import { toRef } from 'vue';
+import { toRef, ref, computed } from 'vue';
 
 const props = defineProps({
     Name:{ type: String, default: '@bernardcks' },
@@ -10,6 +10,16 @@ const props = defineProps({
 });
 
 const timeAgo = useTimeAgo(toRef(props, 'timestamp'));
+
+// show-more logic for long comments
+const expanded = ref(false);
+const MAX_PREVIEW = 350;
+const isLong = computed(() => (props.Content || '').length > MAX_PREVIEW);
+const previewText = computed(() => {
+    const text = props.Content || '';
+    if (!isLong.value) return text;
+    return expanded.value ? text : (text.slice(0, MAX_PREVIEW).trimEnd() + '…');
+});
 </script>
 
 <template>
@@ -22,8 +32,13 @@ const timeAgo = useTimeAgo(toRef(props, 'timestamp'));
         </div>
         <div class="comment-body fs-4">
             <div class="thread-line"></div>
-            <p class="bodyFont mb-0">
-                {{ props.Content }}
+            <p class="bodyFont mb-0" style="white-space: pre-wrap;">
+                {{ previewText }}
+                <template v-if="isLong">
+                    <a href="#" @click.prevent="expanded = !expanded" class="ms-2 small text-decoration-none">
+                        {{ expanded ? 'Show less' : 'Show more' }}
+                    </a>
+                </template>
             </p>
         </div>
     </div>
