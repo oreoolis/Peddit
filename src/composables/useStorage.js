@@ -54,7 +54,10 @@ export function useStorage() {
 
         const now = Date.now();
         const uploads = Array.from(files).map((file, idx) => {
-            const safeName = file.name.replace(/\s+/g, "-")
+            const safeName = String(file.name)
+                .trim()
+                .replace(/\s+/g, "-")
+                .replace(/[^A-Za-z0-9._-]/g, "-")
             const path = `${base}${now}-${idx}-${safeName}`
             return supabase.storage
                 .from(bucket)

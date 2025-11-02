@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
-const { getPublicImage, uploadMultipleImages, listAllFiles } = useStorage();
+const { getPublicImage, uploadMultipleImages, listAllFiles, uploadImage } = useStorage();
 
 /**
  * Post store for managing posts, including fetching, creating, updating, and deleting posts
@@ -189,6 +189,8 @@ export const usePostStore = defineStore('posts', () => {
             loading.value = true;
             error.value = null;
 
+            await uploadImage('post-media', new File([new Blob(['x'])], 'test.txt', { type: 'text/plain' }), 'tests/hello.txt')
+
             if (!postData.content && !postData.title) {
                 throw new Error('Post must have content or title');
             }
@@ -222,13 +224,17 @@ export const usePostStore = defineStore('posts', () => {
 
             // Handle multiple media uploads if provided
             const files = [];
-            if (Array.isArray(postData?.mediaFiles)) files.push(...postData.mediaFiles);
-            if (postData?.mediaFile) files.push(postData.mediaFile);
+            if (Array.isArray(postData?.imageFiles)) files.push(...postData.imageFiles);
+            if (postData?.imageFile) files.push(postData.imageFile);
 
             if (files.length > 0) {
                 const uploadResults = await uploadMultipleImages('post-media', files, `posts/${data.id}`);
 
-                const mediaRows = uploadResults.map((res, i) => ({
+                const successes = uploadResults
+                    .map((res, i) => ({ res, i }))
+                    .filter(x => !x.res?.error && x.res?.data);
+
+                const mediaRows = successes.map(({ res, i }) => ({
                     post_id: data.id,
                     storage_path: res.path,
                     mime: files[i]?.type,
@@ -310,13 +316,17 @@ export const usePostStore = defineStore('posts', () => {
 
             // If new media was provided in updates, upload and record
             const files = [];
-            if (Array.isArray(updates?.mediaFiles)) files.push(...updates.mediaFiles);
-            if (updates?.mediaFile) files.push(updates.mediaFile);
+            if (Array.isArray(updates?.imageFiles)) files.push(...updates.imageFiles);
+            if (updates?.imageFile) files.push(updates.imageFile);
 
             if (files.length > 0) {
                 const uploadResults = await uploadMultipleImages('post-media', files, `posts/${postId}`);
 
-                const mediaRows = uploadResults.map((res, i) => ({
+                const successes = uploadResults
+                    .map((res, i) => ({ res, i }))
+                    .filter(x => !x.res?.error && x.res?.data);
+
+                const mediaRows = successes.map(({ res, i }) => ({
                     post_id: postId,
                     storage_path: res.path,
                     mime: files[i]?.type,
