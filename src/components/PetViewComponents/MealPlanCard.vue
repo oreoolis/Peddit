@@ -2,12 +2,14 @@
 import { ref, computed } from 'vue';
 
 
-const props = defineProps(["rec_id", "name", "desc", "petKind", "compact"])
+const props = defineProps(["rec_id", "name", "desc", "petKind", "compact","editable"])
 const emit = defineEmits(['open-meal-info']);
 
 const handleOpenMealInfo = () => {
+    // Emit the rec_id and the editable flag so parent can forward edit permissions to any modal
     emit('open-meal-info', {
-        rec_id: props.rec_id
+        rec_id: props.rec_id,
+        editable: props.editable === undefined ? true : !!props.editable
     })
 }
 

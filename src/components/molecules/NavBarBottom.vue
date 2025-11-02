@@ -36,7 +36,6 @@ const navItems = computed(()=>{
             label: 'Profile',
         });
     }
-    console.log(items);
     return items;
 })
 const activeItemName = computed(() => {

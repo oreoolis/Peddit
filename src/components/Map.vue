@@ -423,8 +423,6 @@ function searchPlaces() {
         // Only update allPlaces once all requests are complete
         allPlaces.value = tempPlaces
         loading.value = false
-        console.log('Total unique places:', allPlaces.value.length)
-        console.log('Place IDs:', allPlaces.value.map(p => p.place_id))
         renderMarkers()
       }      
     })

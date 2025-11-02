@@ -62,7 +62,6 @@ onMounted(async () => {
   try {
     await profileStore.fetchAllProfiles();
     await postStore.fetchPosts();
-    console.log('Fetched posts (HomeView):', posts.value);
     // fetch pets so stats update when HomeView is shown
     try {
       // if we have a userId, fetch for that user; otherwise fetch default
@@ -78,7 +77,6 @@ onMounted(async () => {
     console.error('Error fetching social data in HomeView:', err);
   }
 });
-console.log(debFilteredPosts.data);
 const router = useRouter();
 function goToMap(type){
   router.push({ path: '/map', query: { type } });
@@ -93,14 +91,9 @@ const handleCreatePost = async (postData) => {
     alert('You must be logged in to create a post.');
     return;
   }
-  console.log('--- New Post Data Received (HomeView) ---');
-  console.log('Author ID:', authStore.user.id);
-  console.log('Title:', postData.title);
-  console.log('Content:', postData.content);
   if (postData.imageFile) {
-    console.log('Image File Attached:', postData.imageFile.name, postData.imageFile.size, postData.imageFile.type);
+   
   }
-
   await postStore.createPost(authStore.user.id, postData);
   showCreatePostModal.value = false;
 };
@@ -130,7 +123,7 @@ function goToMeal(){
                   <div class=" sample-home">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                       <div class="flex-grow-1">
-                        <h1 class="mb-1 brandFont">
+                        <h1 class="mb-1 brandFont ">
                         <animatedImage src="/src/assets/Sprite/Dog/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />
                           Welcome to Peddit!              
                         <animatedImage src="/src/assets/Sprite/Cat/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />     </h1>
@@ -187,7 +180,7 @@ function goToMeal(){
           <section class="quick-links">
             <div class="card">
               <div class="card-body">
-                <h2 class="mb-4 headingFont primary">Find nearby</h2>
+                <h2 class="mb-4 primary section-title">Find nearby</h2>
                 <div class="d-flex">
                   <Button class="w-50 justify-content-center mx-2" outline label="Pet Stores" @click.prevent="goToMap('petstore')" />
                   <Button class="w-50 justify-content-center mx-2" outline label="Pet Clinics" @click.prevent="goToMap('clinic')" />
@@ -197,7 +190,7 @@ function goToMeal(){
               <div class="card">
                 <div class="card-body">
                   <div class="d-flex justify-content-between">
-                    <h2 class=" headingFont primary">Pet Dashboard</h2>
+                    <h2 class="primary section-title">Pet Dashboard</h2>
                     <Button outline label="View DashBoard" @click.prevent="goToHealthDashboard()"></Button>
                   </div>
                   <QuickStatsGrid class="shadow-none" :stats="statsData" />

@@ -12,6 +12,7 @@ import MealViewSearchResult from './MealViewSearchResult.vue';
 import router from '@/router';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { storeToRefs } from 'pinia';
+import MealInfoModal from '@/components/PetViewComponents/MealInfoModal.vue';
 
 
 // TODO: Bern code
@@ -19,6 +20,25 @@ const petNutritionStore = usePetNutritionStore();
 const { recipeQuery, recipes } = storeToRefs(petNutritionStore);
 
 const featured = computed(() => recipes.value);
+
+// modal state for viewing meal info
+const selectedRecipeId = ref(null);
+const showMealInfo = ref(false);
+// whether the modal should show edit/delete actions
+const modalEditable = ref(true);
+
+const openMealInfo = (payload) => {
+  // payload might be a plain id, or an object like { rec_id }
+  if (payload && typeof payload === 'object') {
+    selectedRecipeId.value = payload.rec_id ?? payload.id ?? null;
+    // if editable was provided, use it; otherwise default true
+    modalEditable.value = typeof payload.editable === 'boolean' ? payload.editable : true;
+  } else {
+    selectedRecipeId.value = payload;
+    modalEditable.value = true;
+  }
+  showMealInfo.value = true;
+}
 
 function goToSearchResults(submittedValue) {
   // const term = (typeof submittedValue === 'string' && submittedValue.trim().length)
@@ -63,9 +83,9 @@ onMounted(async () => {
       <h1 class="text-center headingFont bg-primary text-white py-2">Popular Meal Plans</h1>
       <div class="carousel-inner text-center bg-primary-light" ref="carouselInner">
         <div v-if="!featured">Nothing</div>
-        <div v-for="(f, idx) in featured" 
-        :key="f.id" 
-        :class="['carousel-item', {active: idx===0}]">
+    <div v-for="(f, idx) in featured" 
+  :key="f.id" 
+  :class="['carousel-item', {active: idx===0}]">
           <!-- centered content container: keeps content away from the very edges so controls stay visible -->
           <div class="carousel-content-container w-100 py-3 px-2">
             <div class="carousel-content mx-auto d-flex flex-column flex-md-row align-items-center justify-content-center" :style="{ maxWidth: contentMaxWidth }">
@@ -91,7 +111,7 @@ onMounted(async () => {
 
               <!-- RIGHT: card -->
               <div class="carousel-card d-flex" style="max-width:420px;">
-                <MealPlanCard :editable="false" :name="f.recipe_name" :rec_id="f.id" :desc="f.desc" style="width:100% !important; height:100% !important; margin:0 !important;"/>
+                <MealPlanCard :editable="false" :name="f.recipe_name" :rec_id="f.id" :desc="f.desc" @open-meal-info="openMealInfo" />
               </div>
             </div>
           </div>
@@ -111,6 +131,9 @@ onMounted(async () => {
       <RecommendedMeals
         :plans="featured.value"
       ></RecommendedMeals>
+      
+    <!-- Meal info modal -->
+    <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId" :editable="modalEditable" />
    </main>
  </template>
  

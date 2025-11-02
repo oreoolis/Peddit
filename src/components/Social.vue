@@ -11,7 +11,9 @@ import { useUserStore } from "@/stores/userStore"
 import { useAuthStore } from "@/stores/authStore"
 import { useProfileStore } from "@/stores/profileStore"
 import { computed, onMounted, ref } from "vue"
+import CreatePostModal from "./Organisms/social/CreatePostModal.vue"
 import { useDebounce, useDebounceFn } from "@vueuse/core"
+import ShareRecipePostModal from "./Organisms/social/ShareRecipePostModal.vue"
 
 const postStore = usePostStore();
 const { posts, query: postQuery, filteredPosts } = storeToRefs(postStore);
@@ -22,7 +24,7 @@ const { comments, commentLoading: loading } = storeToRefs(commentStore);
 
 const userStore = useUserStore();
 const { profile: authorProfile } = storeToRefs(userStore);
-console.log("Author Profile in Search View: ", authorProfile.value);
+
 // Store comments by post ID
 const commentsByPostId = ref({});
 
@@ -70,15 +72,25 @@ onMounted(async () => {
     try {
         await profileStore.fetchAllProfiles();
         await postStore.fetchPosts();
-        // debug - shows what the store returned
-        console.log("Fetched posts:", posts.value);
-        //console.log("Fetched profiles:", profiles.value);
     } catch (err) {
         console.error("Error fetching posts:", err);
     }
 });
 
+const showCreatePostModal = ref(false);
+const showShareRecipePostModal = ref(false);
+const handleCreatePost = async (postData) => {
+    if (!authStore.user) {
+        alert("You must be logged in to create a post.");
+        return;
+    }
+    // Check if an image file was included and log its details
+    if (postData.imageFile) {
+    } else {
+    }
 
+    postStore.createPost(authStore.user.id, postData);
+};
 
 </script>
 
@@ -91,7 +103,7 @@ onMounted(async () => {
   <section class="section w-75 mx-auto">
     <header class="section-header border-bottom mb-2">
       <div class="badge mx-2">Profiles</div>
-      <h1 class="section-title pb-2">Discover people</h1>
+      <h1 class="pb-2 section-title" >Discover people</h1>
     </header>
 
     <div class="grid">
@@ -139,7 +151,21 @@ onMounted(async () => {
         </div>
     </section>
   <!-- create post modal here -->
-  <!-- Create / Share controls moved to HomeView -->
+   <div class="d-flex justify-content-center my-2">
+   <Button @click="showCreatePostModal = true" label="Create Post" ></Button>
+     <CreatePostModal 
+    :show="showCreatePostModal" 
+    @update:show="showCreatePostModal = $event"
+    @create-post="handleCreatePost"
+  />
+  
+<Button @click="showShareRecipePostModal = true" label="Share Recipe">
+</Button>
+  <ShareRecipePostModal
+    :show="showShareRecipePostModal" 
+    @update:show="showShareRecipePostModal = $event"  
+  ></ShareRecipePostModal>
+   </div>
 
 </template>
 <style scoped>
@@ -171,13 +197,6 @@ onMounted(async () => {
   box-shadow: 0 6px 18px rgba(60,160,220,0.12);
 }
 
-/* Title styling */
-.section-title {
-  margin: 0;
-  font-weight: 800;
-  color: #112;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-}
 
 /* Grids */
 .grid {

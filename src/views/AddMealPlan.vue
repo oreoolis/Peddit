@@ -183,7 +183,7 @@ const selectPetKind = async (kind) => {
 
   if (result.success) {
     petNutritionProfile.value = result.data;
-    console.log('Nutrition profile loaded:', result.data);
+    
   } else {
     console.error('Failed to load nutrition profile:', result.error);
   }

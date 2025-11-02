@@ -279,4 +279,7 @@
   background: linear-gradient(180deg, rgba(var(--bs-primary-rgb)), rgba(var(--bs-primary-rgb),0.9));
 }
 
+.section-title{
+  font-weight: 800;
+}
 

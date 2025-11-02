@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { storeToRefs } from 'pinia';
 import NavBarBottom from './molecules/NavBarBottom.vue';
 import NavItem from '@/components/atoms/NavItem.vue';
+import Button from './atoms/button.vue';
 const defaultAvatar = personImage;
 const userStore = useUserStore();
 const authStore = useAuthStore();
@@ -30,12 +31,11 @@ onMounted(async () => {
     <!-- Top navbar (hidden on small screens) -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow d-none d-lg-flex">
       <div class="container-fluid">
-        <RouterLink to="/home" class="navbar-brand fw-bold text-white pe-4">Peddit</RouterLink>
-
+        <RouterLink  v-if="isLoggedIn" to="/home" class="navbar-brand fw-bold text-white pe-4">Peddit</RouterLink>
+        <RouterLink  v-else to="/about" class="navbar-brand fw-bold text-white pe-4">Peddit</RouterLink>
         <div class="collapse navbar-collapse">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item"><RouterLink class="nav-link" to="/about">About (TODO)</RouterLink></li>
-            <!-- <li class="nav-item"><RouterLink class="nav-link" to="/login">Login</RouterLink></li> -->
+            <!-- <li class="nav-item"><RouterLink class="nav-link" to="/about">About (TODO)</RouterLink></li> -->
             <li class="nav-item"><RouterLink class="nav-link" to="/health">Health</RouterLink></li>
             <li class="nav-item"><RouterLink class="nav-link" to="/meal">Explore Meal</RouterLink></li>
             <li class="nav-item"><RouterLink class="nav-link" to="/pet">My Pets</RouterLink></li>
@@ -45,12 +45,15 @@ onMounted(async () => {
           </ul>
 
           <div class="d-flex align-items-center gap-2">
-            <RouterLink v-if="isLoggedIn" to="/profile" class="btn btn-sm btn-outline-light d-flex align-items-center gap-2">
-              <img :src="displayAvatar" alt="avatar" class="rounded-circle avatar-sm" />
-              <span class="d-none d-xl-inline text-white">Profile</span>
+            <RouterLink v-if="isLoggedIn" to="/profile" class="btn btn-sm  d-flex align-items-center gap-2">
+              <Button label="Profile">
+                <img :src="displayAvatar" alt="avatar" class="mx-2 rounded-circle avatar-sm" />
+              </Button>
             </RouterLink>
-
-            <RouterLink v-else to="/login" class="btn btn-sm btn-outline-light">Sign in</RouterLink>
+            <RouterLink v-else to="/login" class="btn btn-sm  d-flex align-items-center gap-2">
+              <Button label="Sign in">
+              </Button>
+            </RouterLink>
           </div>
         </div>
       </div>
@@ -75,6 +78,7 @@ onMounted(async () => {
 /* subtle hover for links */
 .nav-link {
   transition: color 140ms ease, transform 140ms ease;
+  margin-left: 30px;
 }
 .nav-link:hover {
   color: #ffdca3 !important;

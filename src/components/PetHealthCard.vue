@@ -195,9 +195,7 @@ const defaultPetImage = 'https://picsum.photos/seed/defaultpet/200/200.jpg';
 
 // Methods
 const handleToggle = () => {
-  console.log('Toggle clicked, current state:', isExpanded.value);
   isExpanded.value = !isExpanded.value;
-  console.log('New state:', isExpanded.value);
 };
 
 // Responsive sizing based on window width

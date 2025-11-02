@@ -104,8 +104,6 @@ onMounted(async () => {
     await petStore.fetchPets(userId.value);
     await petNutritionStore.fetchRecipes();
     await userStore.fetchShoppingList();
-    console.log(recipes.value);
-    console.log(shoppingList.value);
   }
 });
 

@@ -17,7 +17,6 @@ const props = defineProps({
 </script>
 
 <template>
-         <!-- Recommended: GRID (variant 1) -->
      <section class="mx-auto">
         <h1 class="text-center headingFont bg-primary text-white py-2 ">Recommended</h1>
        <div class=" py-4 row recommend-grid row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 d-flex justify-content-center">
@@ -34,10 +33,5 @@ const props = defineProps({
 <style scoped>
 /* Recommended grid tweaks remain... */
 .recommend-grid .card-wrapper { display:flex; align-items:stretch; }
-.recommend-grid .card-wrapper .recipeCard {
-  width: 100% !important;
-  height: auto !important;
-  min-height: 240px;
-  margin-bottom: 0;
-}
+
 </style>
