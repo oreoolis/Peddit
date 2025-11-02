@@ -13,11 +13,11 @@ const props = defineProps({
 const emit = defineEmits(['update:show', 'create-post']);
 
 // Form state
-// Form state
 const postTitle = ref('');
 const postContent = ref('');
-const imageFile = ref(null);
-const imagePreview = ref(null);
+// support multiple files
+const imageFiles = ref([]);
+const imagePreviews = ref([]); // array of { url, name, size }
 
 
 const formatFileSize = (bytes) => {
@@ -29,19 +29,27 @@ const formatFileSize = (bytes) => {
 }
 
 const handleImageSelect = (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
 
-  imageFile.value = file;
-  imagePreview.value = URL.createObjectURL(file);
+    // append new files (avoid duplicates by name+size) and create previews
+    files.forEach(file => {
+        const exists = imageFiles.value.some(f => f.name === file.name && f.size === file.size);
+        if (!exists) {
+            imageFiles.value.push(file);
+            imagePreviews.value.push({ url: URL.createObjectURL(file), name: file.name, size: file.size });
+        }
+    });
+
+    // clear the native input so same file can be re-selected if removed
+    event.target.value = '';
 }
 
-const removeImage = () => {
-  if (imagePreview.value) {
-    URL.revokeObjectURL(imagePreview.value);
-  }
-  imageFile.value = null;
-  imagePreview.value = null;
+const removeImage = (index) => {
+    const prev = imagePreviews.value[index];
+    if (prev && prev.url) URL.revokeObjectURL(prev.url);
+    imagePreviews.value.splice(index, 1);
+    imageFiles.value.splice(index, 1);
 }
 
 
@@ -51,7 +59,10 @@ watch(() => props.show, (newVal) => {
     if (!newVal) {
         postTitle.value = '';
         postContent.value = '';
-        removeImage(); 
+        // revoke and clear all previews
+        imagePreviews.value.forEach(p => p.url && URL.revokeObjectURL(p.url));
+        imagePreviews.value = [];
+        imageFiles.value = [];
     }
 });
 
@@ -64,7 +75,9 @@ const handleSubmit = () => {
         emit('create-post', {
             title: postTitle.value,
             content: postContent.value,
-            imageFile: imageFile.value
+            // keep backward-compatible single-file key plus new array key
+            imageFile: imageFiles.value[0] ?? null,
+            imageFiles: imageFiles.value.length ? imageFiles.value.slice() : null
         });
         closeModal();
     } else {
@@ -103,12 +116,12 @@ const handleSubmit = () => {
 
                     <!-- Image Upload -->
                     <div class="mb-3">
-                        <label for="post-photo-input" class="form-label headingFont fw-bold h5">Attach an Image (Optional)</label>
-                        <input id="post-photo-input" type="file" accept="image/*" @change="handleImageSelect" class="d-none" />
+                        <label for="post-photo-input" class="form-label headingFont fw-bold h5">Attach Images (Optional)</label>
+                        <input id="post-photo-input" type="file" accept="image/*" multiple @change="handleImageSelect" class="d-none" />
                         <label for="post-photo-input" class="d-block" style="cursor: pointer;">
                             <searchBar 
-                                :model-value="imageFile ? imageFile.name : ''" 
-                                placeholder="Click to select an image..." 
+                                :model-value="imageFiles.length ? (imageFiles.length === 1 ? imageFiles[0].name : imageFiles.length + ' files selected') : ''" 
+                                placeholder="Click to select images..." 
                                 readonly
                             >
                                 <template #icon><i class="bi bi-upload"></i></template>
@@ -116,14 +129,15 @@ const handleSubmit = () => {
                         </label>
                     </div>
 
-                    <!-- Image Preview -->
-                    <div v-if="imagePreview" class="image-preview-container text-center p-3 border border-2 border-dashed rounded bg-light mb-3">
-                        <h6 class="preview-title">Preview</h6>
-                        <div class="position-relative d-inline-block">
-                            <img :src="imagePreview" alt="Preview" class="preview-image rounded object-fit-cover" />
-                            <button type="button" @click="removeImage" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle">×</button>
+                    <!-- Image Previews (multiple) -->
+                    <div v-if="imagePreviews.length" class="image-preview-container d-flex flex-wrap gap-3 p-3 border border-2 border-dashed rounded bg-light mb-3">
+                        <div class="w-100"><h6 class="preview-title">Preview</h6></div>
+                        <div v-for="(p, idx) in imagePreviews" :key="p.name + '-' + p.size" class="position-relative d-inline-block">
+                            <img :src="p.url" :alt="p.name" class="preview-image rounded object-fit-cover" />
+                            <button type="button" @click="removeImage(idx)" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle">×</button>
+                            <div class="text-center small text-truncate mt-1" style="max-width:150px">{{ p.name }}</div>
+                            <div class="text-center text-muted small">{{ formatFileSize(p.size) }}</div>
                         </div>
-                        <p class="text-muted small mt-1 mb-0">{{ imageFile?.name }} ({{ formatFileSize(imageFile?.size) }})</p>
                     </div>
                 </div>
 

@@ -53,7 +53,7 @@ const containerId = computed(() => `carousel-${Math.random().toString(36).slice(
           </div>
 
           <!-- controls (Bootstrap) -->
-          <button
+          <button v-if="props.data.length >1"
             class="carousel-control-prev"
             type="button"
             :data-bs-target="'#' + containerId"
@@ -64,7 +64,7 @@ const containerId = computed(() => `carousel-${Math.random().toString(36).slice(
             <span class="visually-hidden">Previous</span>
           </button>
 
-          <button
+          <button v-if="props.data.length >1"
             class="carousel-control-next"
             type="button"
             :data-bs-target="'#' + containerId"
