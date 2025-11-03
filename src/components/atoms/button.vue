@@ -41,7 +41,7 @@ export default {
 <template>
 <button :class="buttonClasses" @click="handleClick" aria-label="button">
   <slot width="16px" height="16px"></slot>
-  <span class="button-content">
+  <span class="button-content mx-auto">
     {{ label }}
   </span>
 </button>
@@ -64,7 +64,10 @@ export default {
 button.app-button {
   transition: box-shadow .18s ease, transform .12s ease;
   will-change: transform, box-shadow;
-  overflow: hidden
+  overflow: hidden;
+  /* Prevent button from collapsing on narrow viewports */
+  min-width: 72px;
+
 }
 
 button.app-button:not(:disabled):hover {

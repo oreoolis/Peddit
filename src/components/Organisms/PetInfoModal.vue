@@ -126,16 +126,23 @@ const closeModal = () => {
             </div>
             <form>
                 <div class="modal-body">
-                    <div class="row">
-                        <img :src="photo_url" class=" col-8 img-fluid container-fluid p-0 rounded-start-5 shadow "
-                            alt="...">
-                        <PetInfoCard class="col-4 p-0 rounded-end-5" :name="name" :gender="gender" :birthday="birthday"
-                            :breed="breed" :weight="weight" :allergies="allergies" :neutered="neutered"/>
+                    <div class="row g-3 align-items-start">
+                        <!-- Image (full width on small, left on md+) -->
+                        <div class="col-12 col-md-8">
+                            <img :src="photo_url" class="img-fluid w-100 rounded-3 shadow" alt="...">
+                        </div>
+
+                        <!-- Pet info (stacked under image on small screens) -->
+                        <div class="col-12 col-md-4">
+                            <PetInfoCard class="w-100 h-100" :name="name" :gender="gender" :birthday="birthday"
+                                :breed="breed" :weight="weight" :allergies="allergies" :neutered="neutered"/>
+                        </div>
                     </div>
-                    <div class="preferred-meal-container container py-5 px-5 mt-4 rounded-5 bg-light shadow">
+
+                    <div class="preferred-meal-container container-fluid py-3 py-md-5 px-3 px-md-5 mt-4 rounded-5 bg-light shadow">
                         <h2 class="headingFont fw-semibold">Preferred Meal</h2>
                         <div class="row d-flex justify-content-center">
-                            <div v-if="props.recipeDetails" class="col-lg-5 mt-5">
+                            <div v-if="props.recipeDetails" class="col-12 col-lg-6 mt-3 mt-md-5">
                                 <MealPlanCard :rec_id="props.recipeDetails.id" 
                                 :name="props.recipeDetails.recipe_name" 
                                 :desc="props.recipeDetails.description"
@@ -175,11 +182,14 @@ const closeModal = () => {
 
 .modal-content {
     border-radius: 8px;
-    width: 90%;
-    max-width: 100vh;
-    max-height: 90%;
+    width: 95%;
+    max-width: 920px; /* keep desktop width similar to original but constrained */
+    max-height: 95vh;
     overflow-y: auto;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    /* ensure footer and actions are reachable above any fixed bottom UI (navbar)
+       reserve extra scroll padding using the CSS variable set by NavBarBottom */
+    padding-bottom: calc(var(--nav-bottom-height, 56px) + 1rem);
 }
 
 .modal-header {
@@ -210,6 +220,34 @@ const closeModal = () => {
 
 .img-fluid {
     object-fit: cover;
+}
+
+/* Mobile tweaks: ensure modal uses most of the viewport and content stacks cleanly */
+@media (max-width: 767.98px) {
+    .modal-content {
+        width: 98%;
+        max-width: 98%;
+        border-radius: 0.5rem;
+        margin: 0.5rem;
+    }
+    .modal-header {
+        padding: 0.75rem 1rem;
+    }
+    .modal-body {
+        padding: 1rem;
+    }
+    .preferred-meal-container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}
+
+@media (min-width: 768px) {
+    /* keep larger desktop spacing where the original design shines */
+    .modal-content {
+        width: 90%;
+        max-width: 1000px;
+    }
 }
 
 p {

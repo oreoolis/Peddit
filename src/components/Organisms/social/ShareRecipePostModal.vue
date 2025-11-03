@@ -91,6 +91,8 @@ const selectPlan = (payload) => {
     // payload might be an object emitted by MealPlanCard or a primitive id
     if (!payload) return;
     const id = (typeof payload === 'object') ? (payload.rec_id ?? payload.id) : payload;
+    // log selection for debugging and verify emitted payloads
+    console.log('[ShareRecipePostModal] meal plan select payload:', payload, 'resolved id:', id, 'previous selected:', selectedPlanId.value);
     selectedPlanId.value = id;
 };
 
@@ -113,7 +115,7 @@ const handleSubmit = () => {
 <template>
     <div v-if="show" class="modal-backdrop" @click="closeModal">
         <div class="modal-content bg-white" @click.stop>
-            <div class="modal-header">
+            <div class="modal-header sticky-top">
                 <h5 class="modal-title headingFont">Share A Recipe</h5>
                 <Button icon="bi-x-lg" outline color="danger" @click="closeModal" label="X" class="ms-auto" />
             </div>
@@ -135,7 +137,7 @@ const handleSubmit = () => {
                     <!-- Meal Plan -->
                     <div class="mb-3">
                         <label  class="form-label headingFont fw-bold h5 mb-3">Select a Meal Plan</label>
-                        <div class="d-flex px-2 gap-3">
+                        <div class="d-flex px-2 gap-3 row">
                         <div v-if="userMealPlans.length === 0" class="text-muted">No meal plans found</div>
                         <MealPlanCard class="me-2"
                         v-for="Meal in userMealPlans"
@@ -146,6 +148,7 @@ const handleSubmit = () => {
                         :petKind="Meal.petKind"
                         :editable="false"
                         :compact="true"
+                        actionLabel="Select Plan"
                         @open-meal-info="selectPlan"
                         :class="{ 'selected-plan': selectedPlanId === Meal.rec_id }"
                         ></MealPlanCard>
@@ -229,7 +232,7 @@ textarea.form-control {
 
 .selected-plan {
         transform: scale(1.03);
-        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        box-shadow: 0 6px 18px rgba(192, 32, 171, 0.301);
         border-radius: 12px;
         outline: 3px solid rgba(var(--bs-primary-rgb), 0.18);
 }

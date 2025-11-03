@@ -78,8 +78,9 @@ onMounted(async () => {
             <div class="card-text py-1">
                 <section class="pet-info headingFont ">
 
-                    <h4 class="fw-bold d-flex align-items-center">Current Diet: 
-                        <Button v-if="recipeDetails.recipe_name" class="h-75 mx-1" :label="recipeDetails.recipe_name">
+                    <h4 class="fw-bold d-flex align-items-center" >Current Diet: 
+                        <Button v-if="recipeDetails.recipe_name" class="h-75 mx-1" :label="recipeDetails.recipe_name"
+                        >
                         </Button>
                         <Button v-else class="h-75 mx-1" label="None">
                         </Button>
@@ -99,6 +100,8 @@ onMounted(async () => {
 <style>
 .pet-card {
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    /* Prevent card from becoming too narrow on small viewports */
+    min-width: 220px;
 }
 
 .pet-card:hover {

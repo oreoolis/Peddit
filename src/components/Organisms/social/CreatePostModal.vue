@@ -118,7 +118,7 @@ const handleSubmit = () => {
 <template>
     <div v-if="show" class="modal-backdrop" @click="closeModal">
         <div class="modal-content bg-white" @click.stop>
-            <div class="modal-header">
+            <div class="modal-header d-flex shadow sticky-top">
                 <h5 class="modal-title headingFont">Create a New Post</h5>
                 <Button icon="bi-x-lg" outline color="danger" @click="closeModal" label="X" class="ms-auto" />
             </div>

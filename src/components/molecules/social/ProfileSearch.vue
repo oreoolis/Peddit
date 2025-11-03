@@ -35,40 +35,23 @@ const props = defineProps({
 
 <template>
   <div class="card profile-row w-100 p-2">
-    <div class="d-flex align-items-center gap-3">
-      <!-- Column 1: Avatar (no change) -->
-      <div class="flex-shrink-0">
-        <img
-          :src="props.Image"
-          alt="avatar"
-          class="avatar rounded-circle"
-        />
+    <div class="row align-items-center gx-2">
+      <div class="col-auto">
+        <img :src="props.Image" alt="avatar" class="avatar rounded-circle" />
       </div>
 
-      <!-- Column 2: User Info (now includes stats) -->
-      <div class="flex-grow-1 profile-meta">
-        <!-- Name and Handle -->
-        <div>
-          <h6 class="fw-bold bodyFont name mb-0">{{ props.Name }}</h6>
-          <span class="text-muted small handle">{{ props.handle }}</span>
-        </div>
-        <!-- Follower Stats -->
+      <div class="col">
+        <h6 class="fw-bold bodyFont name mb-0 text-truncate">{{ props.Name }}</h6>
+        <span class="text-muted small handle">{{ props.handle }}</span>
       </div>
-        <div class="d-flex align-items-center gap-3 mt-2 user-stats">
-          <div class="stat">
-            <span class="fw-bold">{{ props.Followers }}</span>
-            <span class="text-muted small">Followers</span>
-          </div>
-          <div class="stat">
-            <span class="fw-bold">{{ props.Following }}</span>
-            <span class="text-muted small">Following</span>
-          </div>
-        </div>
-      <!-- Column 3: Action Button (no change) -->
-      <div class="flex-shrink-0">
-        <RouterLink :to="LinkStart+LinkID">
-         <Button label="View" size="sm" />
-        </RouterLink>
+
+      <div class="col-auto d-none d-sm-flex align-items-center user-stats">
+        <div class="stat me-3"><span class="fw-bold">{{ props.Followers }}</span><br/><small class="text-muted">Followers</small></div>
+        <div class="stat"><span class="fw-bold">{{ props.Following }}</span><br/><small class="text-muted">Following</small></div>
+      </div>
+
+      <div class="col-auto">
+        <RouterLink :to="LinkStart+LinkID"><Button label="View" size="sm" /></RouterLink>
       </div>
     </div>
   </div>

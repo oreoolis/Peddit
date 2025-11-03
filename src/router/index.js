@@ -11,13 +11,13 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
-	  meta: { requiresAuth: false } 
+	  meta: { requiresAuth: true } 
     },
     {
       path: '/home',
       name: 'home',
       component: HomeView,
-	  meta: { requiresAuth: false } 
+	  meta: { requiresAuth: true } 
     },
     {
       path: '/about',

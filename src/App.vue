@@ -44,12 +44,13 @@ watch(
   <!-- give the root an app-bg class so styles are scoped to the app container -->
   <NavBar />
   <div class="app-bg min-vh-100 d-flex flex-column">
-    <NavBarBottom />
     <div class="router-view flex-grow-1 pb-4 pb-sm-5">
       <RouterView />
     </div>
     <ChatbotWidget v-if="SHOW_CHATBOT" />
+    <!-- keep NavBarBottom after the main content in DOM order; its height is exposed via --nav-bottom-height -->
   </div>
+   <NavBarBottom />
 </template>
 
 <style>
@@ -105,5 +106,11 @@ watch(
   0%   { background-position: 0   0; }
   50%  { background-position: 600px 400px; } /* mid-way diagonal offset */
   100% { background-position: 1200px 800px; } /* full diagonal travel */
+}
+
+/* reserve space at the bottom of the main router area so fixed bottom navbar doesn't overlap content
+   Uses the --nav-bottom-height variable set by NavBarBottom (falls back to 56px) */
+.router-view {
+  padding-bottom: calc(var(--nav-bottom-height, 56px) + 0.5rem);
 }
 </style>

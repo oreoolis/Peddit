@@ -2,7 +2,15 @@
 import { ref, computed } from 'vue';
 import animatedImage from '../atoms/animated/animatedImage.vue';
 
-const props = defineProps(["rec_id", "name", "desc", "petKind", "compact","editable"])
+const props = defineProps({
+    rec_id: { type: [String, Number], required: true },
+    name: { type: String, required: true },
+    desc: { type: String, required: false },
+    petKind: { type: String, required: false },
+    compact: { type: Boolean, default: false },
+    editable: { type: Boolean, default: true },
+    actionLabel: { type: String, default: 'View Info' }
+})
 const emit = defineEmits(['open-meal-info']);
 
 const compact = computed(() => props.compact === true);
@@ -23,8 +31,11 @@ const cardStyle = computed(() => ({
 // Image sizing adjusts for compact mode to avoid overflowing the card
 const imgSize = computed(() => {
     if (compact.value) return { width: 140, height: 140, frameWidth: 48, frameHeight: 48, frames: 6, fps: 8 };
-    return { width: 256, height: 256, frameWidth: 48, frameHeight: 48, frames: 6, fps: 8 };
+    return { width: 200, height: 200, frameWidth: 48, frameHeight: 48, frames: 6, fps: 8 };
 });
+
+// label for the summary/action area (allows consumer to show "Select Plan" in modals)
+const actionLabel = computed(() => props.actionLabel || 'View Info');
 
 </script>
 <template>
@@ -47,9 +58,9 @@ const imgSize = computed(() => {
                 class="summary-container container-fluid position-absolute bottom-0 start-0 end-0 px-3 py-3 bg-primary">
                 <div class="summary-container container-fluid position-absolute bottom-0 start-0 end-0 px-5 py-3 bg-white"
                     @click="handleOpenMealInfo">
-                    <div class="text-center black fw-bold h5 bodyFont">
-                        View Info
-                    </div>
+                        <div class="text-center black fw-bold h5 bodyFont">
+                            {{ actionLabel }}
+                        </div>
                 </div>
             </div>
         </div>
@@ -102,7 +113,7 @@ const imgSize = computed(() => {
 /* Tablet and below */
 @media (max-width: 768px) {
     .recipeCard svg {
-        width: 14rem;
+        width: 2rem;
         height: 7.5rem;
     }
 

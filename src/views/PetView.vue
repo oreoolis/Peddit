@@ -134,9 +134,9 @@ onMounted(async () => {
                 <!-- Pet Cards Grid -->
                 <div v-else class="row justify-content-center">
                     <div class="col-12 col-lg-10 px-5">
-                        <div class="row g-4 pb-5 d-flex justify-content-center">
+                        <div class="row g-4 pb-1 d-flex justify-content-center">
                             <div v-for="pet in petStore.pets" :key="pet.id"
-                                class="col-12 col-sm-12 col-md-4 col-lg-4 g-5 mb-5">
+                                class="col-12 col-sm-12 col-md-12 col-lg-5 g-5 mb-5">
                                 <PetCards :id="pet.id" :name="pet.name" :kind="pet.kind" :gender="pet.gender"
                                     :breed="pet.breed" :birthday="pet.birthdate" :weight="pet.weight_kg"
                                     :allergies="pet.allergies" :neutered="pet.neutered" :photo_url="pet.photo_url"
