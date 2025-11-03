@@ -57,6 +57,9 @@ const imgSize = computed(() => {
 </template>
 <style scoped>
 .recipeCard {
+    width: 100%;
+    max-width: 18rem;
+    min-height: 24rem;
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
     border: none;
 }
@@ -99,63 +102,23 @@ const imgSize = computed(() => {
     font-size: 1.25rem;
 }
 
-/* Tablet and below */
-@media (max-width: 768px) {
-    .recipeCard svg {
-        width: 14rem;
-        height: 7.5rem;
-    }
-
-    .recipeCard h3 {
-        font-size: 1.25rem;
-    }
-
-    .recipeCard p {
-        font-size: 0.9rem;
-    }
-
-    .summary-container h5 {
-        font-size: 1rem;
-    }
+.recipeCard .kindSvg {
+  width: 17rem;
+  height: 9rem;
 }
 
-/* Mobile */
+@media (max-width: 1024px) {
+  .recipeCard .kindSvg {
+    width: 12rem;
+    height: 7rem;
+  }
+}
 @media (max-width: 576px) {
-    .recipeCard svg {
-        width: 11rem;
-        height: 6rem;
-    }
-
-    .recipeCard h3 {
-        font-size: 1.1rem;
-    }
-
-    .recipeCard p {
-        font-size: 0.85rem;
-    }
-
-    .summary-container h5 {
-        font-size: 0.9rem;
-    }
+  .recipeCard .kindSvg {
+    width: 10rem;
+    height: 10rem;
+    margin: auto;
+  }
 }
 
-/* Extra small screens */
-@media (max-width: 480px) {
-    .recipeCard svg {
-        width: 9rem;
-        height: 5rem;
-    }
-
-    .recipeCard h3 {
-        font-size: 1rem;
-    }
-
-    .recipeCard p {
-        font-size: 0.8rem;
-    }
-
-    .summary-container h5 {
-        font-size: 0.8rem;
-    }
-}
 </style>

@@ -11,13 +11,6 @@ const props = defineProps({
 const emit = defineEmits(['update:show', 'uploaded', 'error']);
 const uploading = ref(false);
 
-// // Reset when modal opens/closes
-watch(() => props.show, (newVal) => {
-    if (!newVal) {
-        //resetForm();
-    }
-});
-
 const closeModal = () => {
     if (!uploading.value) {
         emit('update:show', false);

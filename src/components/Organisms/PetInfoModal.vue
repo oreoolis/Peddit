@@ -80,13 +80,6 @@ const handleOpenMealInfo = (payload) => {
 }
 const view = ref(false);
 
-// // Reset when modal opens/closes
-watch(() => props.show, (newVal) => {
-    if (!newVal) {
-        //resetForm();
-    }
-});
-
 const editPet = () => {
     router.push({
         path: '/edit-pet',

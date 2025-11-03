@@ -158,13 +158,13 @@ onMounted(async () => {
                 <div class="col-lg-12 d-flex justify-content-center">
                     <div class="bg-light container bodyFont fw-bold rounded-3 shadow p-3 mt-3">
                         <!--Use v-for to loop through list of grocery items, Max number of cols per row: 3 (col-lg-4) -->
+                        <!-- TODO: Bern -->
                         <div class="row px-3 py-3 justify-evenly">
                             <div v-for="items in shoppingList" class="col-lg-4">
                                 <ItemsChecklist />
                             </div>
                         </div>
                         <div class="text-end px-1 py-1">
-                            <!-- size: none -->
                             <Button label="+ Edit" color="primary" class="button-edit-list fw-bold bodyFont"
                                 @click="openShoppingList">
                             </Button>
