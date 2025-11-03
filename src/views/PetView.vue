@@ -15,6 +15,8 @@ import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
 import { useToastStore } from '@/stores/toastStore';
+import DeletePetModal from '@/components/PetViewComponents/DeletePetModal.vue';
+import DeleteRecipeModal from '@/components/PetViewComponents/DeleteRecipeModal.vue';
 
 const petStore = usePetStore();
 const toastStore = useToastStore();
@@ -34,6 +36,7 @@ const openShoppingList = () => {
     showShoppingList.value = true;
 }
 
+// display pet modal
 const selectedPetData = ref(null);
 const showPetInfo = ref(false);
 const openPetInfo = (petData) => {
@@ -43,6 +46,31 @@ const openPetInfo = (petData) => {
 
 const selectedRecipeId = ref(null);
 const showMealInfo = ref(false);
+
+// emit to delete recipe
+const showRecipeDeleteModal = ref(false);
+const selectedRecipeInfo = ref({ id: '', name: '' });
+const openRecipeDeleteModal = (recipeData) => {
+    console.log('Received delete recipe data:', recipeData); // Debug line
+    if (recipeData && recipeData.id) {
+        selectedRecipeInfo.value = {
+            id: recipeData.id,
+            name: recipeData.name || ''
+        };
+        showRecipeDeleteModal.value = true;
+    } else {
+        console.error('Invalid recipe data received:', recipeData);
+    }
+}
+
+
+// emit to delete pet
+const showDeleteModal = ref(false);
+const selectedItemInfo = ref(null);
+const openDeleteModal = (itemData) => {
+    selectedItemInfo.value = itemData;
+    showDeleteModal.value = true;
+}
 // whether modal should show edit/delete actions when opened from various places
 const modalEditable = ref(true);
 const openMealInfo = (payload) => {
@@ -232,13 +260,16 @@ onMounted(async () => {
 
         <ShoppingListModal v-model:show="showShoppingList" />
         <PetInfoModal v-model:show="showPetInfo" :id="selectedPetData?.id" :name="selectedPetData?.name"
-            :kind="selectedPetData?.kind" :gender="selectedPetData?.gender" :breed="selectedPetData?.breed" :birthday="selectedPetData?.birthday"
-            :weight="selectedPetData?.weight" :allergies="selectedPetData?.allergies"
-            :neutered="selectedPetData?.neutered" :photo_url="selectedPetData?.photo_url"
-            :recipeDetails="selectedPetData?.recipeDetails"
-            @open-meal-info="openMealInfo" />
-    <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId" :editable="modalEditable" />
-
+            :kind="selectedPetData?.kind" :gender="selectedPetData?.gender" :breed="selectedPetData?.breed"
+            :birthday="selectedPetData?.birthday" :weight="selectedPetData?.weight"
+            :allergies="selectedPetData?.allergies" :neutered="selectedPetData?.neutered"
+            :photo_url="selectedPetData?.photo_url" :recipeDetails="selectedPetData?.recipeDetails"
+            @open-meal-info="openMealInfo" @delete-item-modal="openDeleteModal" />
+        <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId" :editable="modalEditable"
+            @delete-recipe-modal="openRecipeDeleteModal" />
+        <DeletePetModal v-model:show="showDeleteModal" :name="selectedItemInfo?.name" :id="selectedItemInfo?.id" />
+        <DeleteRecipeModal v-model:show="showRecipeDeleteModal" :name="selectedRecipeInfo?.name"
+            :id="selectedRecipeInfo?.id" />
     </div>
 </template>
 
