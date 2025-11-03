@@ -143,7 +143,7 @@ watch([user, profile], async ([newUser, newProfile]) => {
     <!-- Profile Content -->
     <div v-else-if="profile" class="profile-content">
       <!-- Profile Header -->
-      <ProfileHeaderSection
+      <ProfileHeaderSection class="d-flex justify-content-center"
         :avatar-url="displayAvatar"
         :username="profileUsername"
         :stats="profileStats"
@@ -178,6 +178,7 @@ watch([user, profile], async ([newUser, newProfile]) => {
         :username="profileUsername"
         :show-add-pet-action="isOwnProfile"
         @tab-change="handleTabChange"
+        class="d-flex justify-content-center "
       >
         <template v-if="isOwnProfile" #addPetAction>
           <BaseButton 

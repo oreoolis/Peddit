@@ -31,6 +31,10 @@ const props = defineProps({
     created_at: {
       type: [String, Date],
       default: () => new Date().toISOString()
+    },
+    hide_author:{
+      type : Boolean,
+      default : false
     }
 })
 
@@ -89,7 +93,7 @@ const relativeCreatedAt = computed(() => {
         <!-- Footer: Author and Stats -->
         <div class="card-footer d-flex align-items-center justify-content-between bg-transparent border-0 pt-1 pb-2">
             <!-- Author Info -->
-            <div class="d-flex align-items-center gap-2">
+            <div v-if="hide_author == false" class="d-flex align-items-center gap-2">
                 <img class="avatar rounded-circle" :src="props.Image" alt="author avatar">
                 <span class="card-subtitle text-body-secondary bodyFont small fw-medium">{{ props.Name }}</span>
             </div>
