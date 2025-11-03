@@ -293,8 +293,6 @@ onMounted(async () => {
             </div>
         </form>
     </div>
-    <!-- <ImageUploadModal v-model:show="showUploadModal" :current-avatar="profile?.avatar_url" @uploaded="handleImageUpload"
-    title="Upload Pet Photo" @error="console.error" /> -->
 </template>
 
 <style>

@@ -219,7 +219,7 @@ onMounted(async () => {
           <form class="bodyFont" @submit.prevent="handleSubmit">
             <div class="pet-selector mt-4 mb-5">
               <div class="row justify-content-center mt-3 mb-3">
-                <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
+                <div class="col-12 col-sm-6 col-md-6 col-lg-12 col-xl-4">
                   <div @click="selectPetKind('dog')" class="dog-breed-card"
                     :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
                     <p class="pet-title brandFont text-light display-1">Dog</p>
