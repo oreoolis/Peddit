@@ -86,7 +86,14 @@ const state = reactive({
 /** copy tick + toast */
 const copiedIndex = ref(-1)
 const toast = reactive({ show: false, text: '' })
-function showToast(t) { toast.text = t; toast.show = true; setTimeout(()=> toast.show=false, 1800) }
+function showToast(t) {
+  toast.text = t;
+  toast.show = true;
+  setTimeout(() => (toast.show = false), 1800);
+}
+const fileInput = ref(/** @type {HTMLInputElement|null} */(null))
+const attached = reactive({ file: /** @type {File|null} */(null), url: '' })
+const dragActive = ref(false)
 
 const editMode = reactive({ active: false, index: -1 })
 function startEdit(i) {
@@ -119,7 +126,9 @@ function loadHistory() {
     return Array.isArray(parsed) && parsed.length ? sanitizeHistory(parsed) : [{ role: 'assistant', content: GREETING }]
   } catch { return [{ role: 'assistant', content: GREETING }] }
 }
-function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.messages)) } catch {} }
+function persist(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.messages)) } catch {}
+}
 function loadBranches() { try { const raw = localStorage.getItem(STORAGE_BRANCH_KEY); const parsed = raw?JSON.parse(raw):null; if (Array.isArray(parsed)) histories.value = parsed } catch {} }
 function persistBranches() { try { localStorage.setItem(STORAGE_BRANCH_KEY, JSON.stringify(histories.value)) } catch {} }
 
@@ -161,7 +170,20 @@ function findAssistantAfter(userIndex){
 function buildPayloadMessages(){
   const recent = state.messages.filter(Boolean).slice(-MAX_CONTEXT_MESSAGES)
   const cleaned = recent.filter(m => !(m.role==='assistant' && m.content===THINKING))
-  return [SYSTEM_MSG, ...cleaned]
+  // Map any user message with image to OpenAI-compatible "content" parts
+  const mapped = [SYSTEM_MSG, ...cleaned].map(m => {
+    if (m.role === 'user' && m.imageUrl) {
+      return {
+        role: 'user',
+        content: [
+          { type: 'text', text: String(m.content || '') },
+          { type: 'image_url', image_url: { url: m.imageUrl } }
+        ]
+      }
+    }
+    return m
+  })
+  return mapped
 }
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6) }
@@ -216,6 +238,48 @@ function prevUserVersion(uIdx){ const u = state.messages[uIdx]; if (!u?.history?
 function nextUserVersion(uIdx){ const u = state.messages[uIdx]; if (!u?.history?.length) return; gotoUserHistory(uIdx, (u.vpos ?? 0) + 1) }
 
 // ---------- Send (new turn at end) ----------
+
+// ---------- Image attach & drag/drop ----------
+function handleFiles(files){
+  const list = Array.from(files || [])
+  const f = list.find(f => f && f.type && f.type.startsWith('image/'))
+  if (!f) return
+  // Read as Data URL so API can consume it. Avoid blob: URLs.
+  const reader = new FileReader()
+  reader.onload = () => {
+    attached.file = f
+    attached.url = typeof reader.result === 'string' ? reader.result : ''
+  }
+  reader.readAsDataURL(f)
+}
+function onDragEnter(e){ dragActive.value = true }
+function onDragOver(e){ e.preventDefault(); dragActive.value = true }
+function onDragLeave(e){ dragActive.value = false }
+function onDrop(e){
+  e.preventDefault()
+  dragActive.value = false
+  const files = e.dataTransfer?.files
+  if (files?.length) handleFiles(files)
+}
+function onFileChange(e){
+  const files = e?.target?.files
+  if (files?.length) handleFiles(files)
+  if (e?.target) e.target.value = ''
+}
+function removeAttachment(){
+  if (attached.url) { try { URL.revokeObjectURL(attached.url) } catch {} }
+  attached.file = null
+  attached.url = ''
+}
+function onPaste(e){
+  const items = e.clipboardData?.items || []
+  for (const it of items){
+    if (it.type && it.type.startsWith('image/')){
+      const f = it.getAsFile?.()
+      if (f){ handleFiles([f]); e.preventDefault?.(); break }
+    }
+  }
+}
 async function onSend() {
   const text = input.value?.trim()
   if (!text || sending.value) return
@@ -225,7 +289,9 @@ async function onSend() {
   autosize()
 
   // push new user + placeholder assistant (end of convo)
-  state.messages.push({ role: 'user', content: text, ts: Date.now() })
+  const __img = attached.url || '';
+  state.messages.push({ role: 'user', content: text, ts: Date.now(), ...( __img ? { imageUrl: __img } : {} ) });
+  removeAttachment()
   state.messages.push({ role: 'assistant', content: THINKING, ts: Date.now(), status: 'streaming' })
   sending.value = true
 
@@ -430,7 +496,7 @@ function clearChat(){
 </script>
 
 <template>
-  <div v-if="CHAT_ENABLED" class="peddit-chat top-right" data-testid="peddit-chat">
+  <div v-if="CHAT_ENABLED" class="peddit-chat top-right" data-testid="peddit-chat" @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
     <!-- Bubble -->
     <button aria-label="Open chat" class="peddit-chat-bubble" @click="toggle" title="Chat with Peddit" :aria-expanded="open ? 'true' : 'false'">
       <span class="bubble-circle"><img class="bubble-img" :src="pawUrl" alt="Open chat" /></span>
@@ -438,8 +504,9 @@ function clearChat(){
     </button>
 
     <!-- Panel -->
+      <!-- drop overlay moved below -->
     <transition name="chat-slide">
-      <div v-show="open" class="peddit-chat-panel card" role="dialog" aria-modal="true" aria-label="Peddit Chat" :aria-busy="sending ? 'true' : 'false'">
+      <div v-if="open" class="peddit-chat-panel card" @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
         <div class="card-header d-flex justify-content-between align-items-center headingFont">
           <strong>Peddit Chat</strong>
           <div class="d-flex gap-2 align-items-center">
@@ -454,6 +521,8 @@ function clearChat(){
           </div>
         </div>
 
+        <div class="drop-overlay" v-if="dragActive">Drop image anywhere to attach</div>
+
         <!-- Body -->
         <div class="card-body p-0 bodyFlex">
           <div class="peddit-chat-list bodyFont" ref="listEl" aria-live="polite">
@@ -464,6 +533,7 @@ function clearChat(){
               </div>
 
               <div class="message-content">
+                <div v-if="m.role === 'user' && m.imageUrl" class="msg-image"><img :src="m.imageUrl" alt="attachment" /></div>
                 <template v-if="m.content === '…thinking'">
                   <span class="typing"><span></span><span></span><span></span></span>
                 </template>
@@ -510,9 +580,22 @@ function clearChat(){
           <!-- Suggestion chips (before first user message) -->
           <div class="suggestions" role="list" v-if="showSuggestions">
             <button v-for="(s, idx) in SUGGESTIONS" :key="idx" type="button" class="chip" role="listitem" @click="useSuggestion(s)">{{ s }}</button>
+          </div><div v-if="attached.url" class="attachment-preview" aria-label="Attached image preview">
+            <img :src="attached.url" alt="attached image" />
+            <div class="d-flex justify-content-end mt-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary" @click="removeAttachment">Remove</button>
+            </div>
           </div>
+          <input type="file" ref="fileInput" accept="image/*" class="d-none" @change="onFileChange" />
+          
 
-          <textarea ref="inputEl" class="form-control mb-2" rows="1" placeholder="Type a message… (Enter to send, Shift+Enter for newline)" v-model="input" @keydown="onKeydown" @input="autosize" :disabled="sending"></textarea>
+                    <!-- Attach pin -->
+          <button type="button" class="pin-btn icon-btn" title="Attach image" aria-label="Attach image" @click="fileInput?.click()">
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14 2l8 8-4 4-2-2-6 6H8v-2l6-6-2-2 4-4zm-2.5 13.5l1-1 3 3-1 1-3-3zM4 20l4-4 2 2-4 4H4v-2z" fill="currentColor"/>
+            </svg>
+          </button>
+          <textarea ref="inputEl" class="form-control mb-2" rows="1" placeholder="Type a message… (Enter to send, Shift+Enter for newline)" v-model="input" @keydown="onKeydown" @paste="onPaste" @input="autosize" :disabled="sending"></textarea>
 
           <div class="d-flex justify-content-end gap-2" v-if="!editMode.active">
             <button class="btn btn-outline-secondary" @click="regenerate" :disabled="sending || !hasUserMessage">Regenerate</button>
@@ -537,6 +620,23 @@ function clearChat(){
 </template>
 
 <style scoped>
+
+/* Drop overlay covering the entire panel for drag & drop */
+.peddit-chat { position: relative; }
+.peddit-chat-panel { position: relative; }
+.drop-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px dashed #999;
+  background: rgba(0,0,0,0.35);
+  color: #fff; font-weight: 600; font-size: 1rem;
+  pointer-events: none;
+  z-index: 10;
+}
+.attachment-preview { margin: 0 12px 8px 12px; border: 1px solid #e5e5e5; border-radius: 8px; padding: 8px; background: #fafafa; }
+.attachment-preview img { max-width: 100%; max-height: 180px; height: auto; display: block; border-radius: 6px; object-fit: contain; }
+.msg-image img { max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 8px; }
+
 :host, .peddit-chat {
   --bubble-size: 56px;
   --navbar-height: 64px;
@@ -560,7 +660,7 @@ function clearChat(){
   width: min(380px, 92vw);
   max-height: calc(100dvh - (var(--navbar-height) + 8px + var(--bubble-size) + 24px));
   display: flex; flex-direction: column; z-index: 1100;
-  border-radius: var(--peddit-radius); overflow: hidden; box-shadow: var(--peddit-shadow);
+  border-radius: var(--peddit-radius); overflow: auto; box-shadow: var(--peddit-shadow);
   background: var(--bs-body-bg, #fff);
 }
 
@@ -619,4 +719,10 @@ function clearChat(){
 .mode-switch .mode-btn { padding:6px 10px; font-size:12px; line-height:1; border:none; background:transparent; cursor:pointer; opacity:.7; }
 .mode-switch .mode-btn.active { background: rgba(0,0,0,.06); opacity:1; font-weight:600; }
 .mode-switch .mode-btn:focus { outline:none; box-shadow:none; }
+
+/* Attach pin button positioned at the left of the prompt bar */
+.card-footer { position: relative; }
+.pin-btn { position:absolute; left:14px; top:14px; width:28px; height:28px; display:inline-grid; place-items:center; z-index:2; }
+.card-footer .form-control { padding-left: 48px; }
+
 </style>
