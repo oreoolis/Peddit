@@ -71,6 +71,7 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
     width: 100%;
     max-width: 18rem;
     min-height: 24rem;
+    position: relative; /* contain absolutely positioned summary/footer inside the card */
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
     border: none;
 }
@@ -88,10 +89,6 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
 
 .recipeCard h3 {
     font-size: 1.5rem;
-}
-
-.recipeCard p {
-    font-size: 1rem;
 }
 
 /* Compact mode overrides */
@@ -112,7 +109,27 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
 .summary-container h5 {
     font-size: 1.25rem;
 }
+.summary-container {
+    cursor: pointer;
+}
 
+.summary-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #3dacd84f;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.4s;
+    z-index: 0;
+}
+.summary-container:hover::before {
+    opacity: 1;
+    transform: scale(1);
+}
 /* Tablet and below */
 @media (max-width: 768px) {
     .recipeCard svg {

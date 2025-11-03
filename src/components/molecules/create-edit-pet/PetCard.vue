@@ -160,7 +160,28 @@ onMounted(async () => {
         font-size: 1rem;
     }
 }
+.summary-container {
+    cursor: pointer;
+}
 
+.summary-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #3dacd84f;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.4s;
+    z-index: 0;
+}
+
+.summary-container:hover::before {
+    opacity: 1;
+    transform: scale(1);
+}
 @media (max-width: 480px) {
     .pet-card h4 {
         font-size: 0.9rem;

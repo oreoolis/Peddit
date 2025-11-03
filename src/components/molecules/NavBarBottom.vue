@@ -80,6 +80,21 @@ onMounted(async () => {
     // initial check
     checkForModal();
 
+    // measure navbar height and expose as CSS variable so parent/container can reserve space
+    const setNavHeightVar = () => {
+        const h = navRef.value?.offsetHeight || 0;
+        try {
+            document.documentElement.style.setProperty('--nav-bottom-height', h ? `${h}px` : '0px');
+        } catch (e) {
+            // ignore in non-browser environments
+        }
+    };
+
+    // initial height set and on resize
+    setNavHeightVar();
+    const onResize = () => { setNavHeightVar(); checkForModal(); };
+    window.addEventListener('resize', onResize);
+
     const observer = new MutationObserver(() => checkForModal());
     try {
         observer.observe(document.body, { childList: true, subtree: true });
@@ -90,6 +105,8 @@ onMounted(async () => {
     onUnmounted(() => {
         try { observer.disconnect(); } catch (e) {}
         try { document.body.classList.remove('has-modal'); } catch (e) {}
+        try { window.removeEventListener('resize', onResize); } catch (e) {}
+        try { document.documentElement.style.removeProperty('--nav-bottom-height'); } catch (e) {}
     });
 });
 
