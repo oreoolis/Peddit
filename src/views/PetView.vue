@@ -88,6 +88,14 @@ const openMealInfo = (payload) => {
 const userStore = useUserStore();
 const { shoppingList } = storeToRefs(userStore);
 
+const handleDel = async (ingredient_id) => {
+    console.log("outer del");
+}
+
+const handleChecked = async ({ ingredient_id, isChecked }) => {
+    console.log("outer checked");
+}
+
 onMounted(async () => {
 
     try {
@@ -194,7 +202,9 @@ onMounted(async () => {
                         <div class="row px-3 py-3 g-2">
                             <div v-for="ingredient in shoppingList" class="col-12 col-sm-6 col-md-4 col-lg-3">
                                 <ItemsChecklist :label="ingredient?.food_ingredients?.name"
-                                    :ingredient_id="ingredient?.ingredient_id" :qty="ingredient?.quantity_g" />
+                                    :ingredient_id="ingredient?.ingredient_id" :qty="ingredient?.quantity_g" 
+                                    @delete="handleDel"
+                                    @checked="handleChecked"/>
                             </div>
                         </div>
                         <!-- <div class="text-end px-1 py-1">

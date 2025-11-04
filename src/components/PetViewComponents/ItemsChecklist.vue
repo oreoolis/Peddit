@@ -7,20 +7,28 @@ const props = defineProps({
     },
     ingredient_id: {
         type: Number,
-        default: ''
+        default: 0
     },
     qty: {
         type: Number,
-        default: ''
+        default: 0
+    },
+    isChecked: {
+        type: Boolean,
+        default: false
     }
 });
 
+const emit = defineEmits(['checked', 'delete']);
+
 const checkedIngredient = () => {
+    emit('checked', {ingredient_id: props.ingredient_id, isChecked: props.isChecked });
     console.log("check ingredient test")
 }
 
 const handleIngredientDelete = () => {
-    console.log("handle ingredient delete test")
+    emit('delete', props.ingredient_id);
+    console.log("delete ingredient test")
 }
 
 </script>
