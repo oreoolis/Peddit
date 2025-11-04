@@ -168,7 +168,7 @@ onMounted(async () => {
               v-for="pet in pets"
               :key="pet.id"
               :pet="pet"
-              :health-threshold="60"
+              :healthThreshold="80"
               @find-vet="handleFindVet"
             />
           </div>
