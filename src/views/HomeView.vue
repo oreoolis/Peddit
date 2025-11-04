@@ -16,6 +16,7 @@ import { useDebounce } from '@vueuse/core';
 import Button from '@/components/atoms/button.vue';
 import { useRouter } from 'vue-router';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
+import RecipeSearch from '@/components/social/RecipeSearch.vue';
 // --- inlined from HomeTemplate (kept here so HomeView is self-contained) ---
 const petStore = usePetStore();
 const { pets } = storeToRefs(petStore);
@@ -58,6 +59,12 @@ const { posts, filteredPosts } = storeToRefs(postStore);
 const profileStore = useProfileStore();
 
 const debFilteredPosts = useDebounce(filteredPosts, 300);
+
+// limit shown posts on HomeView to the latest 5 so we can render a recipe section below
+const latestPosts = computed(() => {
+  const arr = debFilteredPosts?.value || [];
+  return Array.isArray(arr) ? arr.slice(0, 3) : [];
+});
 
 const petNutritionStore = usePetNutritionStore();
 const {  } = storeToRefs(petNutritionStore);
@@ -179,7 +186,7 @@ function goToMeal(){
 
                       <div>
                         <PostSearch
-                          v-for="post in debFilteredPosts"
+                          v-for="post in latestPosts"
                           :key="post?.id ?? post?.link ?? post?.title"
                           :link="post?.id ?? post?.link"
                           :title="post?.title"
@@ -195,6 +202,31 @@ function goToMeal(){
                       </div>
 
                     </section>
+                    <section class="feed mt-3">
+                      <h1 class="brandFont text-center m-3 border-bottom pb-2">Latest Recipes</h1>
+
+                      <div v-if="(posts || []).length === 0" class="text-muted mb-2">No posts to display — check the console (Fetched posts:)</div>
+
+                      <div>
+                        <!-- TODO: LINK UP RECIPE POST -->
+                        <RecipeSearch
+                        
+                          v-for="post in latestPosts"
+                          :key="post?.id ?? post?.link ?? post?.title"
+                          :link="post?.id ?? post?.link"
+                          :title="post?.title"
+                          :Name="post?.profiles?.display_name || post?.profile?.display_name || post?.author_name || 'Unknown'"
+                          :Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
+                          :CommentCount="post?.comment_count"
+                          :VoteScore="post?.vote_score"
+                          :created_at="post?.created_at"
+                        >
+                        <div class="mt-2 ms-1" >{{ truncate(post?.content, 100) }}</div>
+                        </RecipeSearch>
+                        
+                      </div>
+
+                    </section>                    
                   </div>
               </div>
             </div>
