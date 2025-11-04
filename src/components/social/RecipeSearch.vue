@@ -59,7 +59,7 @@ function onCardClick(e) {
 </script>
 
 <template>
-<div class="card shadow-md" >
+<div class="card shadow" >
     <!-- HEADER -->
     <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
         <!-- Left: avatar + user info (flex-shrink so it won't grow) -->

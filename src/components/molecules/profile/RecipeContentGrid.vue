@@ -1,6 +1,6 @@
 <script setup>
 import ProfileContentEmptyState from '@/components/atoms/profile/ProfileContentEmptyState.vue';
-
+import RecipeSearchCompact from '@/components/social/RecipeSearchCompact.vue';
 defineProps({
   recipes: {
     type: Array,
@@ -39,6 +39,7 @@ const formatDate = (dateString) => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 };
+
 </script>
 
 <template>
@@ -57,49 +58,20 @@ const formatDate = (dateString) => {
     
     <!-- Recipe Grid -->
     <div v-else class="recipe-grid">
-      <div 
-        v-for="recipe in recipes"
-        :key="recipe.id"
-        class="recipe-card"
-      >
-        <div class="recipe-header">
-          <h4 class="recipe-name">{{ recipe.recipes?.recipe_name || 'Untitled Recipe' }}</h4>
-          <span class="recipe-date">{{ formatDate(recipe.created_at) }}</span>
-        </div>
-        
-        <div class="recipe-info">
-          <div v-if="recipe.recipes?.total_cost_cents" class="recipe-stat">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="1" x2="12" y2="23"></line>
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-            </svg>
-            ${{ (recipe.recipes.total_cost_cents / 100).toFixed(2) }}
-          </div>
-          
-          <div v-if="recipe.recipes?.calories" class="recipe-stat">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-              <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-              <line x1="6" y1="1" x2="6" y2="4"></line>
-              <line x1="10" y1="1" x2="10" y2="4"></line>
-              <line x1="14" y1="1" x2="14" y2="4"></line>
-            </svg>
-            {{ Math.round(recipe.recipes.calories) }} cal
-          </div>
-        </div>
-        
-        <div class="recipe-footer">
-          <span class="recipe-vote">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-            </svg>
-            {{ recipe.vote_score || 0 }}
-          </span>
-          
-          <span v-if="!recipe.is_public" class="recipe-badge private">Private</span>
-        </div>
+      <div v-for="recipe in recipes" :key="recipe.id">
+        <RecipeSearchCompact
+          :RecipeId="recipe.id"
+          :Recipe_Name="recipe.recipes?.recipe_name || 'Untitled Recipe'"
+          :Recipe_Desc="recipe.recipes?.description || ''"
+          :User_Image="recipe.profiles?.avatar_url"
+          :Username="recipe.profiles?.display_name"
+          :Vote_score="recipe.vote_score || 0"
+          :Comment_count="recipe.comment_count || 0"
+          :Animal_Type="recipe.recipes?.pet_kind"
+        />
       </div>
     </div>
+
   </div>
 </template>
 

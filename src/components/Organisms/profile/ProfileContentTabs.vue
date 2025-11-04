@@ -116,6 +116,7 @@ const handleTabChange = (tabId) => {
   activeTab.value = tabId;
   emit('tab-change', tabId);
 };
+
 </script>
 
 <template>
