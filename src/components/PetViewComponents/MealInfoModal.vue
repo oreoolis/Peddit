@@ -106,12 +106,9 @@ const openDeleteModal = () => {
                         </svg>
                     </div>
                 </div>
-                <Button label="X" color="danger" :outline="true" class="ms-auto px-4" @click="closeModal" />
+                <Button label="X" color="danger" outline="true" class="ms-auto px-4" @click="closeModal" />
             </div>
-            <div v-if="!recipeInfo" class="modal-body">
-                <div class="container-fluid py-5 text-center">Loading…</div>
-            </div>
-            <div v-else class="modal-body">
+            <div class="modal-body">
                 <div class="container-fluid">
                     <h3 class="headingFont fw-bold">Recipe Description</h3>
                     <div class="recipe-description container bodyFont py-3">
@@ -141,10 +138,19 @@ const openDeleteModal = () => {
                 </div>
             </div>
             <div class="modal-footer">
-                <Button v-if="editable" label="Edit" color="secondary" @click="editPet">
-                </Button>
-                <Button v-if="editable" label="Delete Meal" color="danger" @click="deleteMeal">
-                </Button>
+                <Button 
+                    v-if="editable"
+                    label="Edit" 
+                    color="secondary"
+                    class="text-end"
+                    @click="editPet"
+                />
+                <Button 
+                    v-if="editable"
+                    label="Delete Meal" 
+                    color="danger"
+                    @click="openDeleteModal"
+                />
             </div>
         </div>
     </div>
