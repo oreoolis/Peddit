@@ -227,7 +227,6 @@ onMounted(async () => {
   margin: 0 0 24px 0;
 }
 
-/* Avatar settings button overlay */
 .settings-btn {
   width: 36px;
   height: 36px;
@@ -247,18 +246,3 @@ onMounted(async () => {
   height: 20px;
 }
 </style>
-const handleSaveProfile = async (payload, done, fail) => {
-  const { display_name, bio } = payload || {};
-  const res = await userStore.updateProfile({ display_name, bio });
-  if (res.success) {
-    actionMessage.value = 'Profile updated!';
-    actionMessageType.value = 'success';
-    setTimeout(() => (actionMessage.value = ''), 3000);
-    done && done();
-  } else {
-    const err = res.error || 'Failed to update profile';
-    actionMessage.value = err;
-    actionMessageType.value = 'error';
-    fail ? fail(err) : null;
-  }
-};
