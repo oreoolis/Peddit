@@ -262,7 +262,7 @@ onMounted(async () => {
                         <!-- Recipe Cards Grid -->
                         <div v-else class="row g-4">
                             <div v-for="recipe in nutritionStore?.recipes" :key="recipe.id"
-                                class="col-auto d-flex justify-content-center">
+                                class="col-lg-6 col-sm-12 col-md-6 mx-auto d-flex justify-content-center">
                                 <div style="width: 100%; max-width: 340px;">
                                     <MealPlanCard :rec_id="recipe?.id" :name="recipe?.recipe_name"
                                         :desc="recipe?.description" :petKind="recipe?.pet_kind"
