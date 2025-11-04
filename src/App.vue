@@ -20,7 +20,7 @@ onMounted(async () => {
   await authStore.initAuth();
 
   if(authStore.userId) {
-    await userStore.fetchProfile(authStore.userId);
+    await userStore.fetchProfile();
   }
 });
 
@@ -28,27 +28,28 @@ onUnmounted(() => {
   authStore.cleanup();
 });
 
-watch(
-  () => authStore.userId,
-  (userId) => {
-    if(userId){
-      userStore.fetchProfile(userId);
-    } else {
-      userStore.clearProfile();
-    }
+watch(authStore.userId, async (userId) => {
+  if (userId) {
+    await userStore.fetchProfile();
+  } else {
+    userStore.clearProfile();
   }
-);
+}, { immediate: false });
+
 </script>
 
 <template>
   <!-- give the root an app-bg class so styles are scoped to the app container -->
   <NavBar />
-  <div class="app-bg min-vh-100 d-flex flex-column">
-    <NavBarBottom />
-    <div class="router-view flex-grow-1 pb-4 pb-sm-5">
-      <RouterView />
+  <div class="app-bg min-vh-100 d-flex flex-column ">
+    <div class="router-view flex-grow-1 pb-4 pb-sm-5 mb-5">
+      <RouterView  />
+      
     </div>
+     <NavBarBottom/>
     <ChatbotWidget v-if="SHOW_CHATBOT" />
+    <!-- keep NavBarBottom after the main content in DOM order inside the app container; its height is exposed via --nav-bottom-height -->
+   
   </div>
 </template>
 
@@ -58,6 +59,8 @@ watch(
   position: relative;
   overflow: hidden;
   z-index: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* large slow-pulsing center paw */
@@ -86,24 +89,59 @@ watch(
   background-image: url('/src/assets/Main_Logo.png');
   background-repeat: repeat;
   background-size: 220px;
-  opacity: 0.06; /* subtle */
-  transform: translate3d(0,0,0);
+  opacity: 0.06;
+  /* subtle */
+  transform: translate3d(0, 0, 0);
   animation: driftDiag 28s linear infinite;
   pointer-events: none;
   z-index: -99;
 }
 
+@media (max-width: 768px) {
+  .router-view {
+    padding-bottom: 5rem !important; /* Adjust based on NavBarBottom height */
+  }
+}
+
 /* animations */
 @keyframes pulseScale {
-  0%   { transform: translateX(-50%) scale(0.98); opacity: 0.06; }
-  50%  { transform: translateX(-50%) scale(1.04); opacity: 0.09; }
-  100% { transform: translateX(-50%) scale(0.98); opacity: 0.06; }
+  0% {
+    transform: translateX(-50%) scale(0.98);
+    opacity: 0.06;
+  }
+
+  50% {
+    transform: translateX(-50%) scale(1.04);
+    opacity: 0.09;
+  }
+
+  100% {
+    transform: translateX(-50%) scale(0.98);
+    opacity: 0.06;
+  }
 }
 
 /* diagonal drift: moves background-position from top-left to bottom-right */
 @keyframes driftDiag {
-  0%   { background-position: 0   0; }
-  50%  { background-position: 600px 400px; } /* mid-way diagonal offset */
-  100% { background-position: 1200px 800px; } /* full diagonal travel */
+  0% {
+    background-position: 0 0;
+  }
+
+  50% {
+    background-position: 600px 400px;
+  }
+
+  /* mid-way diagonal offset */
+  100% {
+    background-position: 1200px 800px;
+  }
+
+  /* full diagonal travel */
+}
+
+/* reserve space at the bottom of the main router area so fixed bottom navbar doesn't overlap content
+   Uses the --nav-bottom-height variable set by NavBarBottom (falls back to 56px) */
+.router-view {
+  padding-bottom: calc(var(--nav-bottom-height, 56px) + 0.5rem);
 }
 </style>

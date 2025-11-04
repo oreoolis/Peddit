@@ -53,7 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
             if (!authSubscription) {
                 const { data: { subscription } } = supabase.auth.onAuthStateChange(
                     async (event, newSession) => {
-                        console.log('Auth event:', event);
+                        
 
                         const previousUserId = user.value?.id;
 
@@ -79,7 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
                                 break;
 
                             default:
-                                console.log('Unhandled');
+                                
                                 break;
                         }
 
@@ -212,12 +212,17 @@ export const useAuthStore = defineStore('auth', () => {
     // };
 
     // Cleanup subscription when store is disposed
-    // const cleanup = () => {
-    //     if (authSubscription) {
-    //         authSubscription.unsubscribe();
-    //         authSubscription = null;
-    //     }
-    // };
+    const cleanup = () => {
+        if (authSubscription) {
+            authSubscription.unsubscribe();
+            authSubscription = null;
+        }
+    };
+
+    const clearProfile = () => { 
+        profile.value = null; 
+        error.value = null; 
+    };
 
     return {
         // State
@@ -237,5 +242,7 @@ export const useAuthStore = defineStore('auth', () => {
         signInWithEmail,
         signInWithOAuth,
         signOut,
+        clearProfile,
+        cleanup
     };
 });

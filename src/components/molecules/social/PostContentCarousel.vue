@@ -15,7 +15,7 @@ const containerId = computed(() => `carousel-${Math.random().toString(36).slice(
 
 <template>
   <!-- wrap carousel in a bootstrap card for feed appearance -->
-  <div v-if="props.data && props.data.length" class="mx-auto my-2 pt-4 rounded-3 px-5">
+  <div v-if="props.data && props.data.length" class="mx-auto my-2 pt-4 rounded-3 px-0 px-md-5">
     <div class="card rounded-3 shadow-sm mx-auto "  >
       <div class="card-body p-0">
         <!-- existing carousel root (unchanged) -->
@@ -82,7 +82,7 @@ const containerId = computed(() => `carousel-${Math.random().toString(36).slice(
 
 <style scoped>
 
-/* make the carousel area black so any letterbox is filled */
+/* carousel wrapper: dark background to hide letterboxing */
 .carousel-inner,
 .ratio.ratio-4x3 {
   background: var(--bs-black);
@@ -91,27 +91,33 @@ const containerId = computed(() => `carousel-${Math.random().toString(36).slice(
   aspect-ratio: 4 / 3;
 }
 
-/* image uses contain so it's not cropped; center it and limit size */
+/* images: fill the container but preserve aspect by default; we'll switch to cover on mobile */
 .post-carousel-img {
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   object-position: center;
   display: block;
 }
 
-/* keep controls subtle */
+/* controls: subtle round buttons */
 .carousel-control-prev,
 .carousel-control-next {
-  width: 80px;
-  height: 80px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.22);
+  background: rgba(77, 75, 75, 0.58);
   display: flex;
   align-items: center;
   justify-content: center;
   top: 50%;
   transform: translateY(-50%);
+}
+
+/* icon sizing */
+.carousel-control-prev .carousel-control-prev-icon,
+.carousel-control-next .carousel-control-next-icon {
+  background-size: 18px 18px;
 }
 
 /* indicators sizing */
@@ -121,30 +127,30 @@ const containerId = computed(() => `carousel-${Math.random().toString(36).slice(
   border-radius: 999px;
 }
 
-/* responsive caps */
+/* mobile-specific: use a wider aspect ratio, larger max-height and cover so images feel bigger */
 @media (max-width: 576px) {
-  .ratio.ratio-4x3 { max-height: 48vh; }
+  .ratio.ratio-4x3 {
+    max-height: 75vh;
+    aspect-ratio: 16 / 9; /* wider on mobile so image looks bigger and less letterboxed */
+    border-radius: 0.5rem;
+  }
+  .post-carousel-img { object-fit: cover; }
+
+  /* larger touch targets on mobile */
+  .carousel-control-prev,
+  .carousel-control-next {
+    width: 48px;
+    height: 48px;
+    background: rgba(77, 75, 75, 0.58);
+  }
+  .carousel-control-prev .carousel-control-prev-icon,
+  .carousel-control-next .carousel-control-next-icon {
+    background-size: 22px 22px;
+  }
 }
+
 @media (min-width: 1400px) {
   .ratio.ratio-4x3 { max-height: min(520px, 65vh); }
 }
 
-
-
-
-.ratio.ratio-4x3 {
-  aspect-ratio: 16 / 9;   /* slightly wider for typical photos in feeds */
-  max-height: 44vh;
-  background: #000;
-  overflow: hidden;
-}
-
-/* keep contained image but make it fill more horizontally */
-.post-carousel-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-  display: block;
-}
 </style>

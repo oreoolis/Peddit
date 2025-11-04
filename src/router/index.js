@@ -11,13 +11,13 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
-	  meta: { requiresAuth: false } 
+	  meta: { requiresAuth: true } 
     },
     {
       path: '/home',
       name: 'home',
       component: HomeView,
-	  meta: { requiresAuth: false } 
+	  meta: { requiresAuth: true } 
     },
     {
       path: '/about',
@@ -147,7 +147,7 @@ import { useAuthStore } from '@/stores/authStore';
 router.beforeEach(async (to, from, next) => {
 	const authStore = useAuthStore();
 
-  if(!authStore.initialized){
+  if(!authStore.initialised){
     await authStore.initAuth();
   }
 

@@ -1,3 +1,4 @@
+
 <template>
   <div class="post-content-container">
     <!-- Empty State -->
@@ -14,7 +15,7 @@
     
     <!-- Post List -->
     <div v-else class="post-list">
-      <div 
+      <!-- <div 
         v-for="post in posts"
         :key="post.id"
         class="post-item"
@@ -34,13 +35,25 @@
           <span v-if="post.nsfw" class="post-badge nsfw">NSFW</span>
           <span v-if="!post.is_public" class="post-badge private">Private</span>
         </div>
-      </div>
+      </div> -->
+      <PostSearch
+      v-for="post in posts"
+      :key="post.id"
+      :link="post?.id ?? post?.link"
+      :title="truncateContent(post.title)"
+      :created_at="post.created_at"
+      :VoteScore="post.vote_score"
+      :CommentCount="post.comment_count"
+      :name="post.display_name"
+      hide_author
+      >{{ truncateContent(post.content) }}</PostSearch>
     </div>
   </div>
 </template>
 
 <script setup>
 import ProfileContentEmptyState from '@/components/atoms/profile/ProfileContentEmptyState.vue';
+import PostSearch from '../social/PostSearch.vue';
 
 defineProps({
   posts: {
@@ -85,6 +98,7 @@ const truncateContent = (content) => {
   if (!content) return '';
   return content.length > 150 ? content.substring(0, 150) + '...' : content;
 };
+
 </script>
 
 <style scoped>

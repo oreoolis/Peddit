@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink,useRoute } from 'vue-router';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { useAuthStore } from '@/stores/authStore';
 import { storeToRefs } from 'pinia';
@@ -22,19 +22,26 @@ const { profile, avatarUrl } = storeToRefs(userStore);
 const isLoggedIn = computed(() => !!user.value);
 
 const navItems = computed(()=>{
-    const items = [
-        { name: 'pet', route: '/pet', icon: 'Paw.png', label: 'Pet' },
-        { name: 'home', route: '/home', icon: 'Home.png', label: 'Home' },
+    let items = [
+        { name: 'about', route: '/about', icon: 'Home.png', label: 'About' },
         { name: 'social', route: '/social', icon: 'Social.png', label: 'Social' },
         { name: 'meal', route: '/meal', icon: 'Burger.png', label: 'Meals' },
+        { name: 'login', route: '/login', icon: 'Heart.png', label: 'Log In' },
     ];
-    if (isLoggedIn) {
+    if (isLoggedIn.value) {
+        items = [
+        { name: 'pet', route: '/pet', icon: 'Paw.png', label: 'Pet' },
+        { name: 'social', route: '/social', icon: 'Social.png', label: 'Social' },
+        { name: 'home', route: '/home', icon: 'Home.png', label: 'Home' }, 
+        { name: 'meal', route: '/meal', icon: 'Burger.png', label: 'Meals' },
+        ]
         items.push({
             name: 'profile',
             route: '/profile',
             avatar: displayAvatar.value, // Pass avatar as a unique prop
             label: 'Profile',
         });
+ 
     }
     return items;
 })
@@ -46,12 +53,60 @@ const displayAvatar = computed(() => avatarUrl.value || defaultAvatar);
 
 
 
+const navRef = ref(null);
+
 onMounted(async () => {
     if (!profile.value && user.value) {
         await userStore.fetchProfile();
     }
 
+    // If any modal/backdrop exists in the DOM, slide the bottom nav away so it doesn't overlay.
+    // Some custom modals don't add `body.modal-open`, so observe DOM mutations and react.
+    const checkForModal = () => {
+        try {
+            // look for common modal/backdrop markers
+            const hasBackdrop = !!document.querySelector('.modal-backdrop, .modal, [role="dialog"]');
+            if (hasBackdrop) {
+                document.body.classList.add('has-modal');
+            } else {
+                document.body.classList.remove('has-modal');
+            }
+        } catch (e) {
+            // ignore when not in browser
+        }
+    };
 
+    // initial check
+    checkForModal();
+
+    // measure navbar height and expose as CSS variable so parent/container can reserve space
+    const setNavHeightVar = () => {
+        const h = navRef.value?.offsetHeight || 0;
+        try {
+            document.documentElement.style.setProperty('--nav-bottom-height', h ? `${h}px` : '0px');
+        } catch (e) {
+            // ignore in non-browser environments
+        }
+    };
+
+    // initial height set and on resize
+    setNavHeightVar();
+    const onResize = () => { setNavHeightVar(); checkForModal(); };
+    window.addEventListener('resize', onResize);
+
+    const observer = new MutationObserver(() => checkForModal());
+    try {
+        observer.observe(document.body, { childList: true, subtree: true });
+    } catch (e) {
+        // ignore in non-browser environments
+    }
+
+    onUnmounted(() => {
+        try { observer.disconnect(); } catch (e) {}
+        try { document.body.classList.remove('has-modal'); } catch (e) {}
+        try { window.removeEventListener('resize', onResize); } catch (e) {}
+        try { document.documentElement.style.removeProperty('--nav-bottom-height'); } catch (e) {}
+    });
 });
 
 </script>
@@ -76,8 +131,11 @@ onMounted(async () => {
 </template>
 <style scoped>
 .navbar-bottom {
-    padding: 0.45rem 0.6rem;
+    padding: calc(env(safe-area-inset-bottom, 0px) + 0.45rem) 0.6rem 0.25rem;
     box-shadow: 0 8px 24px rgba(16,24,40,0.18), 0 2px 6px rgba(0,0,0,0.08);
+    z-index: 400; /* keep below typical modal z-index (Bootstrap modal ~1050) */
+    transform: translateY(0);
+    transition: transform .18s ease;
 }
 
 
@@ -87,5 +145,16 @@ onMounted(async () => {
 /* icon sizing used by NavItem */
 .icon { width: 20px; height: 20px; }
 
+
+/* when a modal is open (Bootstrap adds .modal-open to body), slide the bottom nav out of view
+     so modals/popups won't be visually obstructed by the navbar */
+body.modal-open .navbar-bottom {
+    transform: translateY(110%);
+}
+
+/* also respond to our generic has-modal class (set via MutationObserver) for custom modals */
+body.has-modal .navbar-bottom {
+    transform: translateY(110%);
+}
 
 </style>

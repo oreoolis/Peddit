@@ -35,7 +35,7 @@ onMounted(async () =>{
     if (props.postId) {
         await postStore.fetchPostById(props.postId);
         await commmentStore.fetchCommentsByPostID(props.postId);
-        console.log(currentPost.value);
+        
     } else {
         router.push('/');
     }

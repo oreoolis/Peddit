@@ -30,7 +30,7 @@ const normalizedPlans = computed(() => {
 
 <template>
      <section class="mx-auto">
-        <h1 class="text-center headingFont bg-primary text-white py-2 ">Recommended</h1>
+        <h1 class="text-center headingFont bg-primary text-white py-2 ">What Others Are Feeding</h1>
        <div class=" py-4 row recommend-grid row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 d-flex justify-content-center">
          <div v-for="r in normalizedPlans" :key="r.id" class=" col">
            <div class="card-wrapper w-100 justify-content-center">

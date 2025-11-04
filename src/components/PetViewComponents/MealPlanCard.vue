@@ -2,7 +2,15 @@
 import { ref, computed } from 'vue';
 import animatedImage from '../atoms/animated/animatedImage.vue';
 
-const props = defineProps(["rec_id", "name", "desc", "petKind", "compact","editable"])
+const props = defineProps({
+    rec_id: { type: [String, Number], required: true },
+    name: { type: String, required: true },
+    desc: { type: String, required: false },
+    petKind: { type: String, required: false },
+    compact: { type: Boolean, default: false },
+    editable: { type: Boolean, default: true },
+    actionLabel: { type: String, default: 'View Info' }
+})
 const emit = defineEmits(['open-meal-info']);
 
 const compact = computed(() => props.compact === true);
@@ -16,15 +24,18 @@ const handleOpenMealInfo = () => {
 }
 
 const cardStyle = computed(() => ({
-    width: compact.value ? '12rem' : '18rem',
+    width: compact.value ? '10rem' : '18rem',
     height: compact.value ? '16rem' : '27rem'
 }));
 
 // Image sizing adjusts for compact mode to avoid overflowing the card
 const imgSize = computed(() => {
     if (compact.value) return { width: 140, height: 140, frameWidth: 48, frameHeight: 48, frames: 6, fps: 8 };
-    return { width: 256, height: 256, frameWidth: 48, frameHeight: 48, frames: 6, fps: 8 };
+    return { width: 200, height: 200, frameWidth: 48, frameHeight: 48, frames: 6, fps: 8 };
 });
+
+// label for the summary/action area (allows consumer to show "Select Plan" in modals)
+const actionLabel = computed(() => props.actionLabel || 'View Info');
 
 </script>
 <template>
@@ -47,9 +58,9 @@ const imgSize = computed(() => {
                 class="summary-container container-fluid position-absolute bottom-0 start-0 end-0 px-3 py-3 bg-primary">
                 <div class="summary-container container-fluid position-absolute bottom-0 start-0 end-0 px-5 py-3 bg-white"
                     @click="handleOpenMealInfo">
-                    <div class="text-center black fw-bold h5 bodyFont">
-                        View Info
-                    </div>
+                        <div class="text-center black fw-bold h5 bodyFont">
+                            {{ actionLabel }}
+                        </div>
                 </div>
             </div>
         </div>
@@ -57,6 +68,10 @@ const imgSize = computed(() => {
 </template>
 <style scoped>
 .recipeCard {
+    width: 100%;
+    max-width: 18rem;
+    min-height: 24rem;
+    position: relative; /* contain absolutely positioned summary/footer inside the card */
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
     border: none;
 }
@@ -74,10 +89,6 @@ const imgSize = computed(() => {
 
 .recipeCard h3 {
     font-size: 1.5rem;
-}
-
-.recipeCard p {
-    font-size: 1rem;
 }
 
 /* Compact mode overrides */
@@ -98,11 +109,31 @@ const imgSize = computed(() => {
 .summary-container h5 {
     font-size: 1.25rem;
 }
+.summary-container {
+    cursor: pointer;
+}
 
+.summary-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #3dacd84f;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.4s;
+    z-index: 0;
+}
+.summary-container:hover::before {
+    opacity: 1;
+    transform: scale(1);
+}
 /* Tablet and below */
 @media (max-width: 768px) {
     .recipeCard svg {
-        width: 14rem;
+        width: 2rem;
         height: 7.5rem;
     }
 
@@ -118,44 +149,12 @@ const imgSize = computed(() => {
         font-size: 1rem;
     }
 }
-
-/* Mobile */
 @media (max-width: 576px) {
-    .recipeCard svg {
-        width: 11rem;
-        height: 6rem;
-    }
-
-    .recipeCard h3 {
-        font-size: 1.1rem;
-    }
-
-    .recipeCard p {
-        font-size: 0.85rem;
-    }
-
-    .summary-container h5 {
-        font-size: 0.9rem;
-    }
+  .recipeCard .kindSvg {
+    width: 10rem;
+    height: 10rem;
+    margin: auto;
+  }
 }
 
-/* Extra small screens */
-@media (max-width: 480px) {
-    .recipeCard svg {
-        width: 9rem;
-        height: 5rem;
-    }
-
-    .recipeCard h3 {
-        font-size: 1rem;
-    }
-
-    .recipeCard p {
-        font-size: 0.8rem;
-    }
-
-    .summary-container h5 {
-        font-size: 0.8rem;
-    }
-}
 </style>

@@ -24,7 +24,7 @@ const handlePetImageUpload = async (petId, event) => {
 
     const result = await petStore.uploadPetImage(petId, file);
     if (result.success) {
-        console.log('Pet image updated');
+       
     } else {
         alert('Failed to upload image: ' + result.error);
     }

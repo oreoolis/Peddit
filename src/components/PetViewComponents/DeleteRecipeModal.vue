@@ -1,19 +1,44 @@
 <script setup>
 import { ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
+
+const nutritionStore = usePetNutritionStore();
+const emit = defineEmits(['update:show'])
+const router = useRouter();
 
 const props = defineProps({
     show: {
         type: Boolean,
         default: false
+    },
+    name: {
+        type: String,
+        default: ''
+    },
+    id: {
+        type: String,
+        default: ''
     }
 })
 
-const emit = defineEmits(['update:show', 'uploaded', 'error']);
-const uploading = ref(false);
-
+const view = ref(false);
 const closeModal = () => {
-    if (!uploading.value) {
+    if (!view.value) {
         emit('update:show', false);
+    }
+};
+
+const deleteItem = async () => {
+    try {
+        const res = await nutritionStore.deleteRecipe(props.id);
+        if (!res.success) {
+            throw new Error(res.error);
+        }
+        router.push('/pet');
+        closeModal();
+    } catch (error) {
+        alert("Error deleting " + props.name + ". Please try again.")
     }
 }
 
@@ -22,22 +47,20 @@ const closeModal = () => {
     <div v-if="show" class="modal-backdrop" @click="closeModal">
         <div class="modal-content bg-white" @click.stop>
             <div class="modal-header d-flex">
-                <h5 class="modal-title primary">Add an item to your shopping list</h5>
+                <h2 class="modal-title danger headingFont">Warning!</h2>
                 <button type="button" class="btn-close ms-auto" @click="closeModal"></button>
             </div>
             <form>
-                <div class="modal-body">
-                    <!-- File Input -->
-                    <div class="input-group mb-3">
-                        <label class="input-group-text headingText" for="inputGroupSelect01">Food Item</label>
-                        <input type="text" name="" id="" class="form-control bodyFont" placeholder="Frosty"
-                            aria-describedby="helpId" />
+                <div class="modal-body ">
+                    <div class="headingFont fw-semibold text-center">
+                        <h4>You will be deleting <b>{{ props.name }}</b>.</h4>
+                        <h4>Are you sure?</h4>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" @click="closeModal">
-                        Submit
+                    <button type="button" class="btn btn-danger bodyFont fw-bold" @click="deleteItem">
+                        Proceed
                     </button>
                 </div>
             </form>

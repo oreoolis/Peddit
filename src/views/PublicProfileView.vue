@@ -6,6 +6,7 @@ import personImage from '../assets/person.jpg';
 import ProfileHeaderSection from '@/components/Organisms/profile/ProfileHeaderSection.vue';
 import ProfileContentTabs from '@/components/Organisms/profile/ProfileContentTabs.vue';
 import BaseButton from '@/components/atomic/BaseButton.vue';
+import ProfileBio from '@/components/atoms/profile/ProfileBio.vue';
 
 // Stores
 import { storeToRefs } from 'pinia';
@@ -97,7 +98,7 @@ const handleFollow = async () => {
 };
 
 const handleTabChange = (tabId) => {
-  console.log('Tab changed to:', tabId);
+  
   // Optionally fetch data for that tab if not already loaded
 };
 
@@ -113,8 +114,7 @@ onMounted(async () => {
         petNutritionStore.fetchRecipes(profile.value.id)
       ]);
 
-      console.log("HERE");
-      console.log(recipes.value);
+
     }
   } else {
     router.push('/');
@@ -143,13 +143,16 @@ watch([user, profile], async ([newUser, newProfile]) => {
     <!-- Profile Content -->
     <div v-else-if="profile" class="profile-content">
       <!-- Profile Header -->
-      <ProfileHeaderSection
+      <ProfileHeaderSection class="d-flex justify-content-center"
         :avatar-url="displayAvatar"
         :username="profileUsername"
         :stats="profileStats"
         :message="actionMessage"
         :message-type="actionMessageType"
       >
+        <template #bio>
+          <ProfileBio :bio="profile?.bio" />
+        </template>
         <template #actions>
           <BaseButton 
             v-if="showFollowButton" 
@@ -178,6 +181,7 @@ watch([user, profile], async ([newUser, newProfile]) => {
         :username="profileUsername"
         :show-add-pet-action="isOwnProfile"
         @tab-change="handleTabChange"
+        class="d-flex justify-content-center "
       >
         <template v-if="isOwnProfile" #addPetAction>
           <BaseButton 

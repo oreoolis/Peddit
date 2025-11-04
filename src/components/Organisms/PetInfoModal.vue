@@ -6,66 +6,76 @@ import PetInfoCard from '../molecules/PetInfoCard.vue';
 import buttonTogglable from '../atoms/buttonTogglable.vue';
 import { usePetStore } from '@/stores/petStore';
 import { useRouter } from 'vue-router';
-import { usePetNutritionStore } from '@/stores/petNutritionStore';
 
 const petStore = usePetStore();
-// const nutritionStore = usePetNutritionStore();
 const router = useRouter();
 
-const recipeInfo = ref({});
 
 const props = defineProps({
     id: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     name: {
         type: String,
-        required: true
+        required: true,
+        default: ''
+        
     },
     kind: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     gender: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     breed: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     birthday: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     weight: {
-        type: Number,
-        required: true
+        type: [Number, String],
+        required: true,
+        default: ''
     },
     allergies: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     neutered: {
-        type: String,
-        required: true
+        type: Boolean,
+        required: true,
+        default: true
     },
     photo_url: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     recipeDetails: {
-        type: Object,
-        required: false
+        type: [Object, String],
+        required: false,
+        default: ''
     },
     show: {
         type: Boolean,
-        default: false
+        default: false,
+        default: ''
     }
 });
 
-const emit = defineEmits(['update:show', 'uploaded', 'error', 'click', 'open-meal-info']);
+const emit = defineEmits(['update:show', 'click', 'open-meal-info', 'delete-item-modal']);
 const handleOpenMealInfo = (payload) => {
     // If child MealPlanCard forwards a payload, re-emit it so parents can respect editable flags.
     if (payload && typeof payload === 'object') {
@@ -78,14 +88,6 @@ const handleOpenMealInfo = (payload) => {
         rec_id: props.recipeDetails?.id
     });
 }
-const view = ref(false);
-
-// // Reset when modal opens/closes
-watch(() => props.show, (newVal) => {
-    if (!newVal) {
-        //resetForm();
-    }
-});
 
 const editPet = () => {
     router.push({
@@ -95,21 +97,15 @@ const editPet = () => {
 }
 
 
-const deletePet = async () => {
-    if (confirm("You are going to delete " + props.name + ". Are you sure?")) {
-        try {
-            const res = await petStore.deletePet(props.id);
-            if (!res.success) {
-                throw new Error(res.error);
-            }
-            alert(props.name + " has been successfully deleted.") // change to parent toast - QoL
-            router.push('/pet');
-        } catch (error) {
-            alert("Error deleting " + props.name + ". Please try again.");
-        }
-    }
+const openDeleteModal = () => {
+    emit('delete-item-modal', {
+        id: props.id, 
+        name: props.name
+    });
+    closeModal();
 }
 
+const view = ref(false);
 const closeModal = () => {
     if (!view.value) {
         emit('update:show', false);
@@ -122,24 +118,31 @@ const closeModal = () => {
         <div class="modal-content bg-white" @click.stop>
             <div class="modal-header d-flex shadow sticky-top">
                 <h5 class="modal-title primary headingFont h3 ">Summary : <i>{{ name }}</i></h5>
-                <Button label="X" color="danger" outline="true" class="ms-auto px-4" @click="closeModal"></Button>
+                <Button label="X" color="danger" outline class="ms-auto px-4" @click="closeModal"></Button>
             </div>
             <form>
                 <div class="modal-body">
-                    <div class="row">
-                        <img :src="photo_url" class=" col-8 img-fluid container-fluid p-0 rounded-start-5 shadow "
-                            alt="...">
-                        <PetInfoCard class="col-4 p-0 rounded-end-5" :name="name" :gender="gender" :birthday="birthday"
-                            :breed="breed" :weight="weight" :allergies="allergies" :neutered="neutered"/>
+                    <div class="row g-3 align-items-start">
+                        <!-- Image (full width on small, left on md+) -->
+                        <div class="col-12 col-md-8">
+                            <img :src="photo_url" class="img-fluid w-100 rounded-3 shadow" alt="...">
+                        </div>
+
+                        <!-- Pet info (stacked under image on small screens) -->
+                        <div class="col-12 col-md-4">
+                            <PetInfoCard class="w-100 h-100" :name="name" :gender="gender" :birthday="birthday"
+                                :breed="breed" :weight="weight" :allergies="allergies" :neutered="neutered"/>
+                        </div>
                     </div>
-                    <div class="preferred-meal-container container py-5 px-5 mt-4 rounded-5 bg-light shadow">
+
+                    <div class="preferred-meal-container container-fluid py-3 py-md-5 px-3 px-md-5 mt-4 rounded-5 bg-light shadow">
                         <h2 class="headingFont fw-semibold">Preferred Meal</h2>
                         <div class="row d-flex justify-content-center">
-                            <div v-if="props.recipeDetails" class="col-lg-5 mt-5">
-                                <MealPlanCard :rec_id="props.recipeDetails.id" 
-                                :name="props.recipeDetails.recipe_name" 
-                                :desc="props.recipeDetails.description"
-                                :petKind="props.recipeDetails.pet_kind ?? props.kind"
+                            <div v-if="props.recipeDetails" class="col-12 col-lg-6 mt-3 mt-md-5">
+                                <MealPlanCard :rec_id="props.recipeDetails?.id" 
+                                :name="props.recipeDetails?.recipe_name" 
+                                :desc="props.recipeDetails?.description"
+                                :petKind="props.recipeDetails?.pet_kind ?? props.kind"
                                 @open-meal-info="handleOpenMealInfo"
                                 :editable="false"/>
                             </div>
@@ -151,7 +154,7 @@ const closeModal = () => {
                     <buttonTogglable class="px-4 mx-1" iconLinkON="bi-pen-fill" labelON="Editing..." colorON="primary"
                         iconLinkOFF="bi-pen" labelOFF="Edit" colorOFF="primary" @click="editPet"></buttonTogglable>
 
-                    <Button label="Delete" class="px-4" color="danger" type="button" @click="deletePet">
+                    <Button label="Delete" class="px-4" color="danger" type="button" @click="openDeleteModal">
                         <i class="bi bi-trash3 mx-1"></i>
                     </Button>
                 </div>
@@ -175,11 +178,14 @@ const closeModal = () => {
 
 .modal-content {
     border-radius: 8px;
-    width: 90%;
-    max-width: 100vh;
-    max-height: 90%;
+    width: 95%;
+    max-width: 920px; /* keep desktop width similar to original but constrained */
+    max-height: 95vh;
     overflow-y: auto;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    /* ensure footer and actions are reachable above any fixed bottom UI (navbar)
+       reserve extra scroll padding using the CSS variable set by NavBarBottom */
+    padding-bottom: calc(var(--nav-bottom-height, 56px) + 1rem);
 }
 
 .modal-header {
@@ -210,6 +216,34 @@ const closeModal = () => {
 
 .img-fluid {
     object-fit: cover;
+}
+
+/* Mobile tweaks: ensure modal uses most of the viewport and content stacks cleanly */
+@media (max-width: 767.98px) {
+    .modal-content {
+        width: 98%;
+        max-width: 98%;
+        border-radius: 0.5rem;
+        margin: 0.5rem;
+    }
+    .modal-header {
+        padding: 0.75rem 1rem;
+    }
+    .modal-body {
+        padding: 1rem;
+    }
+    .preferred-meal-container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}
+
+@media (min-width: 768px) {
+    /* keep larger desktop spacing where the original design shines */
+    .modal-content {
+        width: 90%;
+        max-width: 1000px;
+    }
 }
 
 p {

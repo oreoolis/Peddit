@@ -15,6 +15,8 @@ import PostSearch from '@/components/molecules/social/PostSearch.vue';
 import { useDebounce } from '@vueuse/core';
 import Button from '@/components/atoms/button.vue';
 import { useRouter } from 'vue-router';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
+import RecipeSearch from '@/components/social/RecipeSearch.vue';
 // --- inlined from HomeTemplate (kept here so HomeView is self-contained) ---
 const petStore = usePetStore();
 const { pets } = storeToRefs(petStore);
@@ -58,10 +60,20 @@ const profileStore = useProfileStore();
 
 const debFilteredPosts = useDebounce(filteredPosts, 300);
 
+// limit shown posts on HomeView to the latest 5 so we can render a recipe section below
+const latestPosts = computed(() => {
+  const arr = debFilteredPosts?.value || [];
+  return Array.isArray(arr) ? arr.slice(0, 3) : [];
+});
+
+const petNutritionStore = usePetNutritionStore();
+const { recipePosts } = storeToRefs(petNutritionStore);
+
 onMounted(async () => {
   try {
     await profileStore.fetchAllProfiles();
     await postStore.fetchPosts();
+    await petNutritionStore.fetchAllRecipePost();
     // fetch pets so stats update when HomeView is shown
     try {
       // if we have a userId, fetch for that user; otherwise fetch default
@@ -104,12 +116,49 @@ const handleCreatePost = async (postData) => {
   await postStore.createPost(authStore.user.id, postData);
   showCreatePostModal.value = false;
 };
+
+const handleShareRecipe = async (postData) => {
+  if (!authStore.user) {
+    alert('You must be logged in to share a recipe.');
+    return;
+  }
+  
+  await petNutritionStore.createRecipePost(authStore.user.id, { 
+    recipeId: postData.recipeId,
+    title: postData.title ?? "Heelo, check out this SICK recipe!",
+    content: postData.content
+  });
+  showCreatePostModal.value = false;
+}
+
 function goToHealthDashboard(){
   router.push({ path: '/health'});
 }
 
 function goToMeal(){
   router.push({ path: '/meal'});
+}
+
+function aggregateNutritionFromRecipe(recipe) {
+  if (!recipe?.recipe_ingredients) return {};
+  const totals = {};
+  recipe.recipe_ingredients.forEach(ri => {
+    const qty = Number(ri.quantity_g || 0);
+    const factor = qty / 100; // nutrition values are per-100g
+    const nut = ri.food_ingredients?.nutrition || {};
+    Object.entries(nut).forEach(([key, info]) => {
+      if (!info) return;
+      const v = (Number(info.value) || 0) * factor;
+      const unit = info.unit || '';
+      if (!totals[key]) totals[key] = { value: 0, unit };
+      totals[key].value += v;
+    });
+  });
+  // round results
+  Object.keys(totals).forEach(k => {
+    totals[k].value = Math.round((totals[k].value + Number.EPSILON) * 100) / 100;
+  });
+  return totals; // shape: { fat: {unit:'g', value: 1.23}, iron: {unit:'mg', value: 0.7}, ... }
 }
 
 
@@ -146,6 +195,7 @@ function goToMeal(){
                               <ShareRecipePostModal
                                 :show="showShareRecipePostModal"
                                 @update:show="showShareRecipePostModal = $event"
+                                @create-post="handleShareRecipe"
                               />
                           <Button outline label="Explore Meals" color="secondary"  @click.prevent="goToMeal()" ></Button>
                         </div>
@@ -159,7 +209,7 @@ function goToMeal(){
 
                       <div>
                         <PostSearch
-                          v-for="post in debFilteredPosts"
+                          v-for="post in latestPosts"
                           :key="post?.id ?? post?.link ?? post?.title"
                           :link="post?.id ?? post?.link"
                           :title="post?.title"
@@ -168,6 +218,7 @@ function goToMeal(){
                           :CommentCount="post?.comment_count"
                           :VoteScore="post?.vote_score"
                           :created_at="post?.created_at"
+                          
                         >
                         <div class="mt-2 ms-1" >{{ truncate(post?.content, 100) }}</div>
                       </PostSearch>
@@ -175,6 +226,35 @@ function goToMeal(){
                       </div>
 
                     </section>
+                    <section class="feed mt-3">
+                      <h1 class="brandFont text-center m-3 border-bottom pb-2">Latest Recipes</h1>
+
+                      <div v-if="(posts || []).length === 0" class="text-muted mb-2">No posts to display — check the console (Fetched posts:)</div>
+
+                      <div>
+                        <!-- TODO: LINK UP RECIPE POST -->
+                        <RecipeSearch
+                          class="my-3"
+                        
+                          v-for="post in recipePosts"
+                          :key="post?.id ?? post?.link ?? post?.title"
+                          :RecipeId="post?.id ?? post?.link"
+                          :Username="post?.profiles?.display_name || post?.profile?.display_name || post?.author_name || 'Unknown'"
+                          :User_Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
+                          :Recipe_Name="post.recipes.recipe_name"
+                          :Recipe_Desc="post.recipes.description"
+                          :Comment_count="post?.comment_count"
+                          :Vote_score="post?.vote_score"
+                          :Animal_Type="post.recipes.pet_kind"
+                          :Cost_Per_Week="post.recipes.price_per_week"
+                          :Recipe_Nutrition_Stats="aggregateNutritionFromRecipe(post.recipes)"
+                        >
+                        <div class="mt-2 ms-1" >{{ truncate(post?.content, 100) }}</div>
+                        </RecipeSearch>
+                        
+                      </div>
+
+                    </section>                    
                   </div>
               </div>
             </div>

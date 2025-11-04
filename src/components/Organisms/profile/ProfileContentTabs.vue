@@ -2,9 +2,10 @@
   <div class="content-section">
     <div class="container">
       <div class="row justify-content-center">
-        <div class="col-12 col-md-10 col-lg-8">
+        <div class="col-12 col-md-10 col-lg-8 ">
           <!-- Tab Navigation -->
           <ProfileTabNavigation
+          
             :tabs="tabs"
             :active-tab="activeTab"
             @tab-change="handleTabChange"
@@ -14,6 +15,7 @@
           <div class="content-grid">
             <!-- Pets Tab -->
             <PetContentGrid
+              class="mt-3"
               v-if="activeTab === 'pets'"
               :pets="pets"
               empty-state-icon="grid"
@@ -27,6 +29,7 @@
             
             <!-- Posts Tab -->
             <PostContentGrid
+            class="mt-3"
               v-if="activeTab === 'posts'"
               :posts="posts"
               empty-state-icon="empty"
@@ -36,6 +39,7 @@
             
             <!-- Recipes Tab -->
             <RecipeContentGrid
+              class="mt-3"
               v-if="activeTab === 'recipes'"
               :recipes="recipes"
               empty-state-icon="empty"
