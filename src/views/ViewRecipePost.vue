@@ -242,7 +242,31 @@ const nutritionArray = computed(() => {
 const defaultAvatar = props.User_Image || 'https://picsum.photos/seed/defaultpet/120/120';
 const combinedShareText = computed(() => `${props.Recipe_Name} — ${props.Recipe_Desc}\n\nCheck this recipe on Peddit!`);
 function formatCurrency(v){ return typeof v === 'number' ? `$ ${v.toFixed(2)}` : v; }
-function formatDate(d){ return d ? new Date(d).toLocaleDateString() : ''; }
+function formatDate(d){
+  if (!d) return '';
+  const date = new Date(d);
+  // human friendly: relative short (e.g. "2h ago") when recent, otherwise medium date + short time
+  try {
+    const now = Date.now();
+    const diffMs = now - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+
+    const formatted = date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+
+    if (diffSec < 5) return `just now · ${formatted}`;
+    if (diffSec < 60) return `${diffSec}s ago · ${formatted}`;
+    if (diffMin < 60) return `${diffMin}m ago · ${formatted}`;
+    if (diffHour < 24) return `${diffHour}h ago · ${formatted}`;
+    if (diffDay < 7) return `${diffDay}d ago · ${formatted}`;
+
+    return formatted;
+  } catch (err) {
+    return new Date(d).toLocaleString();
+  }
+}
 </script>
 
 <template>

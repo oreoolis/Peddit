@@ -10,7 +10,8 @@ defineProps({
         required: true
     },
     nutrition: {
-        type: String,
+        // nutrition is an object (JSON) coming from the ingredient's nutrition JSONB
+        type: Object,
         required: true
     },
     image: {
@@ -18,7 +19,8 @@ defineProps({
         default: '/src/assets/Sprite/Food/Set3-Meat/13.png'
     },
     amount: {
-        type: String,
+        // amount may be a number (grams) or a string; accept both
+        type: [String, Number],
         required: true
     }
 });

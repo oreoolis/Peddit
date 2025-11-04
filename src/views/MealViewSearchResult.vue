@@ -19,7 +19,7 @@ const initialQuery = route.query.q || '';
 
 
 const petNutritionStore = usePetNutritionStore();
-const { recipePostQuery, filteredRecipePosts: foundPosts } = storeToRefs(petNutritionStore);
+const { recipePostQuery, filteredRecipePosts: foundPosts, loading } = storeToRefs(petNutritionStore);
 
 const visibleItems = ref([]);
 

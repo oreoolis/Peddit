@@ -162,6 +162,31 @@ const combinedMessage = computed(() => {
   return `Check out this link from Peddit!\n\n${url}`;
 });
 
+function formatDate(d){
+    if (!d) return '';
+    const date = new Date(d);
+    try {
+        const now = Date.now();
+        const diffMs = now - date.getTime();
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHour = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHour / 24);
+
+        const formatted = date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+
+        if (diffSec < 5) return `just now · ${formatted}`;
+        if (diffSec < 60) return `${diffSec}s ago · ${formatted}`;
+        if (diffMin < 60) return `${diffMin}m ago · ${formatted}`;
+        if (diffHour < 24) return `${diffHour}h ago · ${formatted}`;
+        if (diffDay < 7) return `${diffDay}d ago · ${formatted}`;
+
+        return formatted;
+    } catch (err) {
+        return new Date(d).toLocaleString();
+    }
+}
+
 </script>
 
 <template>
@@ -172,7 +197,10 @@ const combinedMessage = computed(() => {
                 <div class="card-body">
                     <div class="post-meta d-flex align-items-center gap-2 small mb-3">
                         <img class="avatar rounded-circle" :src="currentPost.profiles.avatar_url" alt="">
-                        <span class="fw-bold text-body">{{ currentPost.profiles.display_name }}</span>
+                                                <span class="fw-bold text-body">{{ currentPost.profiles.display_name }}</span>
+                                                <div class="ms-auto text-end">
+                                                    <div class="small text-muted">{{ formatDate(currentPost.created_at) }}</div>
+                                                </div>
                     </div>
                     <h1 class="post-title h2 headingFont fw-bold mb-4">{{ currentPost.title }}</h1>
                     <!-- Render content as plain text and preserve newlines via CSS -->

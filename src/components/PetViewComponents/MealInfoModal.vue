@@ -52,6 +52,11 @@ const closeModal = () => {
 };
 
 const deleteMeal = async () => {
+    if (!recipeInfo.value) {
+        alert('Recipe not loaded yet.');
+        return;
+    }
+
     if (confirm("You are going to delete " + recipeInfo.value.recipe_name + ". Are you sure?")) {
         try {
             const res = await nutritionStore.deleteRecipe(props.rec_id);
@@ -68,7 +73,7 @@ const deleteMeal = async () => {
 
 </script>
 <template>
-    <div v-if="show" class="modal-backdrop" @click="closeModal">
+    <div v-if="show" class="modal-backdrop " @click="closeModal">
         <div class="modal-content bg-white" @click.stop>
             <div class="modal-header d-flex align-items-center">
                 <div class="d-flex align-items-center gap-2">
@@ -86,9 +91,12 @@ const deleteMeal = async () => {
                         </svg>
                     </div>
                 </div>
-                <Button label="X" color="danger" outline="true" class="ms-auto px-4" @click="closeModal"></Button>
+                <Button label="X" color="danger" :outline="true" class="ms-auto px-4" @click="closeModal"></Button>
             </div>
-            <div class="modal-body">
+            <div v-if="!recipeInfo" class="modal-body">
+                <div class="container-fluid py-5 text-center">Loading…</div>
+            </div>
+            <div v-else class="modal-body">
                 <div class="container-fluid">
                     <h3 class="headingFont fw-bold">Recipe Description</h3>
                     <div class="recipe-description container bodyFont py-3">
@@ -111,15 +119,10 @@ const deleteMeal = async () => {
 
             </div>
             <div class="modal-footer">
-                <button v-if="editable" type="button" class="btn btn-secondary bodyFont text-end" @click="editPet">
-                    Edit
-                </button>
-                <button type="button" v-if="editable" class="btn btn-danger bodyFont" @click="deleteMeal">
-                    Delete Meal
-                </button>
-                <button type="button" class="btn btn-primary bodyFont" @click="closeModal">
-                    Close
-                </button>
+                <Button v-if="editable" label="Edit" color="secondary" @click="editPet">
+                </Button>
+                <Button v-if="editable" label="Delete Meal" color="danger" @click="deleteMeal">
+                </Button>
             </div>
 
         </div>

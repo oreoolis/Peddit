@@ -91,11 +91,15 @@ onMounted(async () => {
             <div class="carousel-content mx-auto d-flex flex-column flex-md-row align-items-center justify-content-center" :style="{ maxWidth: contentMaxWidth }">
               <!-- LEFT: feature panel -->
               <div class="feature-panel p-5 mb-3  text-center text-md-start">
-                <StatCard :label="f.recipe_name ?? ''" :value="f.likes ?? 0" :unit="f.notes ?? ''" size="sm" highlight />
+                <StatCard 
+                :label="f.recipe_name ?? ''" 
+                value="" 
+                :unit="f.notes ?? ''" 
+                size="sm" highlight />
                 <div class="mt-3">
-          <InfoDetail label="Pet Type and Breed" :value="(f.pet_kind || '') + (f.pet_breed ? ' - ' + f.pet_breed : '')"/>
-          <InfoDetail label="Price Per Week" :value="typeof f.price_per_week === 'number' ? ('$' + f.price_per_week) : '—'"/>
-          <InfoDetail label="Likes" :value="f.likes ?? 0"/>
+                  <InfoDetail label="Pet Type and Breed" :value="(f.pet_kind || '') + (f.pet_breed ? ' - ' + f.pet_breed : '')"/>
+                  <InfoDetail label="Price Per Week" :value="typeof f.price_per_week === 'number' ? ('$' + f.price_per_week) : '—'"/>
+                  <InfoDetail label="Likes" :value="f.likes ?? 0"/>
                 </div>
                 <p class="text-muted mt-2 fs-5">Created by @{{ f.profiles.display_name }}
                     <base-avatar
@@ -103,15 +107,18 @@ onMounted(async () => {
                     </base-avatar>
                 </p>
 
-                <div class="d-flex gap-2 justify-content-center justify-content-md-start mt-2">
-                  <Button label="View Plan" />
-                  <Button outline color="primary" label="Save" />
-                </div>
+
               </div>
 
               <!-- RIGHT: card -->
               <div class="carousel-card d-flex" style="max-width:420px;">
-                <MealPlanCard :editable="false" :name="f.recipe_name" :rec_id="f.id" :desc="f.desc" :petKind="f.pet_kind" @open-meal-info="openMealInfo" />
+                <MealPlanCard 
+                :editable="false" 
+                :name="f.recipe_name"
+                :rec_id="f.id" 
+                :desc="f.description" 
+                :petKind="f.pet_kind" 
+                @open-meal-info="openMealInfo" />
               </div>
             </div>
           </div>
