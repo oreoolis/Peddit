@@ -24,7 +24,7 @@ const handleOpenMealInfo = () => {
 }
 
 const cardStyle = computed(() => ({
-    width: compact.value ? '10rem' : '18rem',
+    width: compact.value ? '10rem' : '16rem',
     height: compact.value ? '16rem' : '27rem'
 }));
 
@@ -77,8 +77,36 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
 }
 
 .recipeCard:hover {
-    transform: scale(1.03);
-    box-shadow: 0 8px 16px rgba(75, 75, 75, 0.2);
+    transform: translateY(-6px) scale(1.04);
+    box-shadow: 0 14px 30px rgba(25, 25, 25, 0.18), 0 6px 12px rgba(0,0,0,0.08);
+}
+
+
+
+
+@keyframes meal-pulse {
+  0% { transform: scale(0.95); opacity: 0.9 }
+  60% { transform: scale(1.12); opacity: 0.36 }
+  100% { transform: scale(1.22); opacity: 0 }
+}
+
+/* shine animation when the card becomes selected; runs once on class toggle */
+.recipeCard.selected-plan::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0) 100%);
+    transform: translateX(-150%) skewX(-20deg);
+    z-index: 50;
+    filter: blur(6px);
+    animation: shine 900ms cubic-bezier(.2,.9,.2,1) 1;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-150%) skewX(-20deg); opacity: 0; }
+    40% { opacity: 1; }
+    100% { transform: translateX(150%) skewX(-20deg); opacity: 0; }
 }
 
 /* Responsive SVG sizes */
