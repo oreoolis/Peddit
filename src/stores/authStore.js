@@ -212,12 +212,17 @@ export const useAuthStore = defineStore('auth', () => {
     // };
 
     // Cleanup subscription when store is disposed
-    // const cleanup = () => {
-    //     if (authSubscription) {
-    //         authSubscription.unsubscribe();
-    //         authSubscription = null;
-    //     }
-    // };
+    const cleanup = () => {
+        if (authSubscription) {
+            authSubscription.unsubscribe();
+            authSubscription = null;
+        }
+    };
+
+    const clearProfile = () => { 
+        profile.value = null; 
+        error.value = null; 
+    };
 
     return {
         // State
@@ -237,5 +242,7 @@ export const useAuthStore = defineStore('auth', () => {
         signInWithEmail,
         signInWithOAuth,
         signOut,
+        clearProfile,
+        cleanup
     };
 });

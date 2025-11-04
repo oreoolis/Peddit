@@ -20,7 +20,7 @@ onMounted(async () => {
   await authStore.initAuth();
 
   if(authStore.userId) {
-    await userStore.fetchProfile(authStore.userId);
+    await userStore.fetchProfile();
   }
 });
 
@@ -28,16 +28,14 @@ onUnmounted(() => {
   authStore.cleanup();
 });
 
-watch(
-  () => authStore.userId,
-  (userId) => {
-    if(userId){
-      userStore.fetchProfile(userId);
-    } else {
-      userStore.clearProfile();
-    }
+watch(authStore.userId, async (userId) => {
+  if (userId) {
+    await userStore.fetchProfile();
+  } else {
+    userStore.clearProfile();
   }
-);
+}, { immediate: false });
+
 </script>
 
 <template>

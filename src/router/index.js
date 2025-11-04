@@ -147,7 +147,7 @@ import { useAuthStore } from '@/stores/authStore';
 router.beforeEach(async (to, from, next) => {
 	const authStore = useAuthStore();
 
-  if(!authStore.initialized){
+  if(!authStore.initialised){
     await authStore.initAuth();
   }
 
