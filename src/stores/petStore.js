@@ -340,30 +340,37 @@ export const usePetStore = defineStore('pets', () => {
      * }>>}
      */
     const fetchPetsWithProfiles = async (ownerId = null) => {
-        const { data, error } = await supabase.rpc('get_pets_with_profile', {
-            p_owner_id: ownerId ?? null
-        });
+        try {
+            loading.value = true;
+            error.value = null;
 
-        if (error) {
-            console.error('get_pets_with_profile error:', error);
-            throw error;
+            const { data, error: supabaseError } = await supabase.rpc('get_pets_with_profile', {
+                p_owner_id: ownerId ?? null
+            });
+
+            if (supabaseError) throw supabaseError;
+
+            pets.value = (data ?? []).map(row => ({
+                pet_id: row.pet_id,
+                owner_id: row.owner_id,
+                name: row.name,
+                kind: row.kind,
+                birthdate: row.birthdate,
+                computed_life_stage: row.computed_life_stage,
+                profile: row.profile_id
+                    ? {
+                        id: row.profile_id,
+                        nutrition: row.nutrition,
+                        source_document: row.source_document
+                    }
+                    : { id: null, nutrition: null, source_document: null }
+            }));
+        } catch (err) {
+            error.value = err.message;
+            console.error('Error fetching pets with profiles:', err);
+        } finally {
+            loading.value = false;
         }
-
-        return (data ?? []).map(row => ({
-            pet_id: row.pet_id,
-            owner_id: row.owner_id,
-            name: row.name,
-            kind: row.kind,
-            birthdate: row.birthdate,
-            computed_life_stage: row.computed_life_stage,
-            profile: row.profile_id
-            ? {
-                id: row.profile_id,
-                nutrition: row.nutrition,
-                source_document: row.source_document
-                }
-            : { id: null, nutrition: null, source_document: null }
-        }));
     }
     
     return {
