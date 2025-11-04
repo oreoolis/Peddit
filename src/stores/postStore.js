@@ -71,6 +71,7 @@ export const usePostStore = defineStore('posts', () => {
                     ),
                     post_media (*)
                 `)
+                .is('recipe_id', null)
                 .order('created_at', { ascending: false })
                 .range(page.value * PAGE_SIZE, (page.value + 1) * PAGE_SIZE - 1);
 
