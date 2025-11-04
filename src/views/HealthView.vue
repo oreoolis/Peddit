@@ -83,9 +83,8 @@ const toggleBreedSelector = () => {
 };
 
 const handleFindVet = (payload) => {
+  // Push using query params?
   router.push('/map');
-  
-
 };
 
 const handleBreedClick = (breedName) => {
@@ -94,7 +93,8 @@ const handleBreedClick = (breedName) => {
 
 onMounted(async () => {
   if (userId.value) {
-    await petStore.fetchPets(userId.value);
+    await petStore.fetchPetsWithProfiles(userId.value);
+    console.log(pets);
   }
 });
 

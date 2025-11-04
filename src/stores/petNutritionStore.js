@@ -79,8 +79,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
    * Get nutrition profile for specific pet
    * Life stages: 'adult_maintenance', 'growth_and_reproduction'
    */
-  const getNutritionProfile = async (kind, lifeStage) => {
-
+  const getNutritionProfile = async (kind) => {
     loading.value = true;
     error.value = null;
     try {
@@ -88,7 +87,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
         .from('pet_nutrition_profiles')
         .select('*')
         .eq('kind', kind)
-        .eq('life_stage', lifeStage)
+        .eq('life_stage', 'adult_maintenance')
         .single();
 
       if (fetchError) throw fetchError;
@@ -419,8 +418,6 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
             pet_kind,
             pet_breed,
             created_at,
-            total_cost_cents,
-            calories,
             recipe_ingredients (
               id,
               quantity_g,
@@ -484,9 +481,9 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
         .select(`
           *,
           profiles:author_id (
-                        username,
-                        display_name,
-                        avatar_url
+            username,
+            display_name,
+            avatar_url
           ),
           recipe_ingredients (
             id,

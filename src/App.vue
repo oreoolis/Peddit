@@ -28,7 +28,7 @@ onUnmounted(() => {
   authStore.cleanup();
 });
 
-watch(authStore.userId, async (userId) => {
+watch(() => authStore.userId, async (userId) => {
   if (userId) {
     await userStore.fetchProfile();
   } else {

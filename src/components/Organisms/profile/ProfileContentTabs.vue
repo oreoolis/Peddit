@@ -1,58 +1,3 @@
-<template>
-  <div class="content-section">
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-12 col-md-10 col-lg-8 ">
-          <!-- Tab Navigation -->
-          <ProfileTabNavigation
-          
-            :tabs="tabs"
-            :active-tab="activeTab"
-            @tab-change="handleTabChange"
-          />
-          
-          <!-- Content Grid -->
-          <div class="content-grid">
-            <!-- Pets Tab -->
-            <PetContentGrid
-              class="mt-3"
-              v-if="activeTab === 'pets'"
-              :pets="pets"
-              empty-state-icon="grid"
-              :empty-state-title="petsEmptyTitle"
-              :empty-state-description="petsEmptyDescription"
-            >
-              <template v-if="showAddPetAction" #emptyAction>
-                <slot name="addPetAction"></slot>
-              </template>
-            </PetContentGrid>
-            
-            <!-- Posts Tab -->
-            <PostContentGrid
-            class="mt-3"
-              v-if="activeTab === 'posts'"
-              :posts="posts"
-              empty-state-icon="empty"
-              :empty-state-title="postsEmptyTitle"
-              :empty-state-description="postsEmptyDescription"
-            />
-            
-            <!-- Recipes Tab -->
-            <RecipeContentGrid
-              class="mt-3"
-              v-if="activeTab === 'recipes'"
-              :recipes="recipes"
-              empty-state-icon="empty"
-              :empty-state-title="recipesEmptyTitle"
-              :empty-state-description="recipesEmptyDescription"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref, computed, h } from 'vue';
 import ProfileTabNavigation from '@/components/molecules/profile/ProfileTabNavigation.vue';
@@ -172,6 +117,61 @@ const handleTabChange = (tabId) => {
   emit('tab-change', tabId);
 };
 </script>
+
+<template>
+  <div class="content-section">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8 ">
+          <!-- Tab Navigation -->
+          <ProfileTabNavigation
+          
+            :tabs="tabs"
+            :active-tab="activeTab"
+            @tab-change="handleTabChange"
+          />
+          
+          <!-- Content Grid -->
+          <div class="content-grid">
+            <!-- Pets Tab -->
+            <PetContentGrid
+              class="mt-3"
+              v-if="activeTab === 'pets'"
+              :pets="pets"
+              empty-state-icon="grid"
+              :empty-state-title="petsEmptyTitle"
+              :empty-state-description="petsEmptyDescription"
+            >
+              <template v-if="showAddPetAction" #emptyAction>
+                <slot name="addPetAction"></slot>
+              </template>
+            </PetContentGrid>
+            
+            <!-- Posts Tab -->
+            <PostContentGrid
+            class="mt-3"
+              v-if="activeTab === 'posts'"
+              :posts="posts"
+              empty-state-icon="empty"
+              :empty-state-title="postsEmptyTitle"
+              :empty-state-description="postsEmptyDescription"
+            />
+            
+            <!-- Recipes Tab -->
+            <RecipeContentGrid
+              class="mt-3"
+              v-if="activeTab === 'recipes'"
+              :recipes="recipes"
+              empty-state-icon="empty"
+              :empty-state-title="recipesEmptyTitle"
+              :empty-state-description="recipesEmptyDescription"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .content-section {
