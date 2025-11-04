@@ -7,6 +7,7 @@ import BaseStatNumber from '@/components/atomic/BaseStatNumber.vue';
 import ShareButton from '@/components/Organisms/social/ShareButton.vue';
 import UpvoteControl from '@/components/molecules/social/VoteControl.vue';
 import Button from '@/components/atoms/button.vue';
+import MealInfoModal from '@/components/PetViewComponents/MealInfoModal.vue';
 import Comment from '@/components/atoms/social/Comment.vue';
 import TextInput from '@/components/atoms/TextInput.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
@@ -98,6 +99,7 @@ const { profile: authorProfile } = storeToRefs(userStore);
 
 const isLiked = ref(false);
 const serverVote = ref(0); // -1 | 0 | 1
+const showMealInfoModal = ref(false);
 
 // --- 2. START: "Show More" Logic ---
 const INITIAL_COMMENT_COUNT = 3; // Number of comments to show initially
@@ -312,6 +314,7 @@ function formatDate(d){
           <!-- END: encapsulated recipe block -->
               <!-- actions (kept inside banner for clarity) -->
               <div class="d-flex align-items-center gap-3">
+                <Button label="View Full Recipe" class="btn-primary" @click="showMealInfoModal = true" />
                 <div class="ms-auto d-flex align-items-center gap-3">
                   <ShareButton :initialText="combinedShareText" :title="currentPost.recipes.recipe_name" button-label="Share" />
                   <UpvoteControl 
@@ -320,7 +323,7 @@ function formatDate(d){
                   :disabled="!user || !user.id"
                   @vote="onVote"
                   @auth-required="handleAuthRequired"
-                   />
+                  />
                 </div>
               </div>
 
@@ -373,6 +376,13 @@ function formatDate(d){
         
     </div>
   </main>
+  <!-- Meal Info Modal -->
+  <MealInfoModal
+    :rec_id="currentPost?.recipe_id ?? currentPost?.recipes?.id ?? ''"
+    :show="showMealInfoModal"
+    @update:show="val => showMealInfoModal = val"
+    :editable="false"
+  />
 </template>
 
 <style scoped>
