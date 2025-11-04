@@ -32,7 +32,7 @@ const { user } = storeToRefs(authStore);
 const { profile, loading: profileLoading, username: profileUsername, follows, followers, avatarUrl } = storeToRefs(userStore);
 const { pets } = storeToRefs(petStore);
 const { posts } = storeToRefs(postStore);
-const { recipes } = storeToRefs(petNutritionStore);
+const { userRecipePosts } = storeToRefs(petNutritionStore);
 
 // Local state
 const actionMessage = ref('');
@@ -97,7 +97,7 @@ onMounted(async () => {
     await Promise.all([
       petStore.fetchPets(profile.value.id),
       postStore.fetchPosts({ userId: profile.value.id, publicOnly: false }),
-      petNutritionStore.fetchRecipes(profile.value.id)
+      petNutritionStore.fetchRecipePosts({ userId: profile.value.id })
     ]);
   }
 });
@@ -150,7 +150,7 @@ onMounted(async () => {
       <ProfileContentTabs
         :pets="pets"
         :posts="posts"
-        :recipes="recipes"
+        :recipes="userRecipePosts"
         :username="profileUsername"
         :show-add-pet-action="true"
         class="d-flex justify-content-center"
