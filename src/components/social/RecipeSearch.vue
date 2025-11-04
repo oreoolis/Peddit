@@ -16,7 +16,6 @@ const props = defineProps({
   Vote_score: { type: Number, default: 99 },
   Comment_count: { type: Number, default: 12 },
   Animal_Type: { type: String, default: 'dog' }, // 'dog' or 'cat', if its unknown there will be a shrug
-  Animal_Breed: { type: String, default: 'Golden Retriever' },
   Cost_Per_Week: { type: Number, default: 25.5 },
   Recipe_Nutrition_Stats: {
     type: Array,
@@ -74,8 +73,7 @@ function onCardClick(e) {
         <div class="header-user">
             <h2 v-if="props.Animal_Type == 'dog'" class="headingFont fw-bolder">Type: 🐶</h2>
             <h2 v-else-if="props.Animal_Type == 'cat'" class="headingFont fw-bolder">Type: 🐱</h2>
-            <h2 v-else class="headingFont fw-bolder">Type: 🤷 </h2>     
-            <div class="h5 mb-0">{{props.Animal_Breed}}</div>       
+            <h2 v-else class="headingFont fw-bolder">Type: 🤷 </h2>           
         </div>
         </div>
 

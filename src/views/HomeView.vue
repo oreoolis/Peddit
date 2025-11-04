@@ -138,7 +138,7 @@ function goToMeal(){
   router.push({ path: '/meal'});
 }
 
-
+console.log(latestPosts);
 </script>
 
 <template>
@@ -194,7 +194,7 @@ function goToMeal(){
                           :Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
                           :CommentCount="post?.comment_count"
                           :VoteScore="post?.vote_score"
-                          :created_at="post?.created_at"
+                          
                         >
                         <div class="mt-2 ms-1" >{{ truncate(post?.content, 100) }}</div>
                       </PostSearch>
@@ -213,13 +213,16 @@ function goToMeal(){
                         
                           v-for="post in latestPosts"
                           :key="post?.id ?? post?.link ?? post?.title"
-                          :link="post?.id ?? post?.link"
-                          :title="post?.title"
-                          :Name="post?.profiles?.display_name || post?.profile?.display_name || post?.author_name || 'Unknown'"
-                          :Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
-                          :CommentCount="post?.comment_count"
-                          :VoteScore="post?.vote_score"
-                          :created_at="post?.created_at"
+                          :RecipeId="post?.id ?? post?.link"
+                          :Username="post?.profiles?.display_name || post?.profile?.display_name || post?.author_name || 'Unknown'"
+                          :User_Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
+                          Recipe_Name="toadd"
+                          Recipe_Desc="toadd"
+                          :Comment_count="post?.comment_count"
+                          :Vote_score="post?.vote_score"
+                          Animal_Type="toadd"
+                          Cost_Per_Week="toadd"
+                          :Recipe_Nutrition_Stats="[{ 'LabelName': 'ToAdd', 'value': 'ToAdd', 'unit': 'ToAdd' }]"
                         >
                         <div class="mt-2 ms-1" >{{ truncate(post?.content, 100) }}</div>
                         </RecipeSearch>
