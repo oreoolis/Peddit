@@ -135,9 +135,9 @@ const handleSubmit = () => {
                     <!-- Meal Plan -->
                     <div class="mb-3">
                         <label  class="form-label headingFont fw-bold h5 mb-3">Select a Meal Plan</label>
-                        <div class="d-flex px-2 gap-3 row">
+                        <div class="d-flex gap-3 row">
                         <div v-if="userMealPlans.length === 0" class="text-muted">No meal plans found</div>
-                        <MealPlanCard class="me-2"
+                        <MealPlanCard class="col-auto mx-auto"
                         v-for="Meal in userMealPlans"
                         :key="Meal.rec_id"
                         :rec_id="Meal.rec_id"

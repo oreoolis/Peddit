@@ -113,7 +113,7 @@ const resetForm = () => {
         gender: 'unknown',
         birthdate: '',
         weight_kg: null,
-        neutered: null,
+        neutered: true,
         allergies: ''
     }
     if (imagePreview.value) {

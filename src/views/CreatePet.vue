@@ -42,7 +42,7 @@ const form = ref({
   gender: 'unknown',
   birthdate: '',
   weight_kg: null,
-  neutered: '',
+  neutered: true,
   allergies: '',
   preferred_recipe: null
 });
@@ -109,7 +109,7 @@ const resetForm = () => {
     gender: 'unknown',
     birthdate: '',
     weight_kg: null,
-    neutered: null,
+    neutered: true,
     allergies: '',
     preferred_recipe: null
   };

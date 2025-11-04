@@ -217,6 +217,7 @@ function aggregateNutritionFromRecipe(recipe) {
                           :Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
                           :CommentCount="post?.comment_count"
                           :VoteScore="post?.vote_score"
+                          :created_at="post?.created_at"
                           
                         >
                         <div class="mt-2 ms-1" >{{ truncate(post?.content, 100) }}</div>
