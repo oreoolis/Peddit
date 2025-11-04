@@ -1,4 +1,3 @@
-
 <template>
   <div class="container-fluid map-page">
     <h1 class="mt-3 mb-3">Pet Stores & Clinics Near You</h1>
@@ -200,7 +199,6 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import Button from './atoms/button.vue'
-import searchBar from './atoms/searchBar.vue'
 import ButtonTogglable from './atoms/buttonTogglable.vue'
 const searchInput = ref(null)
 const searchLocation = ref('')
@@ -234,6 +232,7 @@ let map = null
 let service = null
 let infowindow = null
 let currentCircle = null
+let currentLocationMarker = null;
 let markers = []
 let currentLocation = { lat: 1.3521, lng: 103.8198 }
 let markerIcons = {}
@@ -306,6 +305,7 @@ function initializeMap() {
         : place.formatted_address
       searchLocation.value = displayText
       map.setCenter(currentLocation)
+      updateCurrentLocationMarker() // ← Add this line
       searchPlaces()
     }
   })
@@ -321,7 +321,7 @@ function getCurrentLocation() {
           lng: position.coords.longitude
         }
         map.setCenter(currentLocation)
-        
+          updateCurrentLocationMarker()
         const geocoder = new google.maps.Geocoder()
         geocoder.geocode({ location: currentLocation }, (results, status) => {
           if (status === 'OK' && results[0]) {
@@ -341,6 +341,31 @@ function getCurrentLocation() {
   } else {
     searchPlaces()
   }
+}
+
+function updateCurrentLocationMarker() {
+  if (currentLocationMarker) {
+    currentLocationMarker.setMap(null);
+  }
+
+  const currentLocationIcon = {
+    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="48" viewBox="0 0 32 48">
+        <path fill="#EA4335" stroke="white" stroke-width="2" d="M16 0C7.2 0 0 7.2 0 16c0 8.8 16 32 16 32s16-23.2 16-32C32 7.2 24.8 0 16 0z"/>
+        <circle cx="16" cy="16" r="6" fill="white"/>
+      </svg>
+    `),
+    scaledSize: new google.maps.Size(32, 48),
+    anchor: new google.maps.Point(16, 48) // Bottom point of pin
+  };
+
+  currentLocationMarker = new google.maps.Marker({
+    map: map,
+    position: currentLocation,
+    title: 'Your Location',
+    icon: currentLocationIcon,
+    zIndex: 9999
+  });
 }
 
 function updateRadius() {
