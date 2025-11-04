@@ -20,6 +20,17 @@ export const usePetStore = defineStore('pets', () => {
     // Getters
     const petCount = computed(() => pets.value.length);
     const petsByKind = computed(() => (kind) => pets.value.filter(pet => pet.kind === kind));
+    const healthyPetsCount = computed(() => pets.value.filter(pet => {
+        const scale = pet.body_condition_scale;
+        if (scale == null) return false;
+        return scale >= 4 && scale <= 6;
+    }).length);
+    const needsAttentionCount = computed(() => pets.value.filter(pet => {
+        const scale = pet.body_condition_scale;
+        if (scale == null) return true;
+        return scale < 4 || scale > 6;
+    }).length);
+    const neuteredCount = computed(() => pets.value.filter(pet => !!pet.neutered).length);
 
     // Primary Actions
     /**
@@ -46,6 +57,83 @@ export const usePetStore = defineStore('pets', () => {
         } finally {
             loading.value = false;
         }
+    }
+
+    /**
+     * Estimate RER (Resting Energy Requirement) using 70 * BW^0.75.
+     * @param {number} weightKg
+     * @returns {number|null}
+     */
+    const computeRER = (weightKg) => {
+        if (!weightKg || weightKg <= 0) return null;
+        return 70 * Math.pow(weightKg, 0.75);
+    }
+
+    /**
+     * Estimate MER (kcal/day) using species, life stage, neuter status and age where available.
+     * Factors are typical FEDIAF/WSAVA-style multipliers of RER.
+     * @param {object} pet
+     * @returns {{ mer: number|null, rer: number|null, factor: number|null }}
+     */
+    const getEstimatedMER = (pet) => {
+        const rer = computeRER(pet?.weight_kg ?? null);
+        if (rer == null) return { mer: null, rer: null, factor: null };
+
+        const kind = (pet?.kind || '').toLowerCase();
+        const lifeStage = pet?.computed_life_stage || 'adult_maintenance';
+        const neutered = !!pet?.neutered;
+        const ageDays = typeof pet?.age_days === 'number' ? pet.age_days : null;
+
+        let factor;
+
+        if (kind === 'dog') {
+            if (lifeStage === 'growth_and_reproduction') {
+                if (ageDays != null && ageDays <= 120) {
+                    factor = 3.0; // puppies up to ~4 months
+                } else {
+                    factor = 2.0; // older puppies
+                }
+            } else {
+                factor = neutered ? 1.6 : 1.8; // adult
+            }
+        } else if (kind === 'cat') {
+            if (lifeStage === 'growth_and_reproduction') {
+                factor = 2.5; // kittens
+            } else {
+                factor = neutered ? 1.2 : 1.4; // adult
+            }
+        } else {
+            factor = 1.6; // default conservative adult multiplier
+        }
+
+        return { mer: rer * factor, rer, factor };
+    }
+
+    /**
+     * Scale FEDIAF 1000-kcal profile to daily requirement based on estimated MER.
+     * @param {object} pet - Pet object containing profile.nutrition or nutrition per 1000 kcal
+     * @returns {{ energy_kcal: number|null, factor: number|null, rer_kcal: number|null, nutrients: Record<string, {unit:string, value:number}> } | null}
+     */
+    const getDailyNutritionTargets = (pet) => {
+        if (!pet) return null;
+        const { mer, rer, factor } = getEstimatedMER(pet);
+        if (mer == null) return { energy_kcal: null, rer_kcal: null, factor: null, nutrients: {} };
+
+        const base = pet?.profile?.nutrition || pet?.nutrition || null;
+        if (!base) return { energy_kcal: mer, rer_kcal: rer, factor, nutrients: {} };
+
+        const scale = mer / 1000.0;
+        const nutrients = {};
+        for (const key of Object.keys(base)) {
+            const entry = base[key];
+            if (!entry || typeof entry.value !== 'number') continue;
+            nutrients[key] = {
+                unit: entry.unit,
+                value: entry.value * scale
+            };
+        }
+
+        return { energy_kcal: mer, rer_kcal: rer, factor, nutrients };
     }
     
     /**
@@ -351,12 +439,8 @@ export const usePetStore = defineStore('pets', () => {
             if (supabaseError) throw supabaseError;
 
             pets.value = (data ?? []).map(row => ({
-                pet_id: row.pet_id,
-                owner_id: row.owner_id,
-                name: row.name,
-                kind: row.kind,
-                birthdate: row.birthdate,
-                computed_life_stage: row.computed_life_stage,
+                ...row,
+                id: row.id ?? row.pet_id,
                 profile: row.profile_id
                     ? {
                         id: row.profile_id,
@@ -383,6 +467,9 @@ export const usePetStore = defineStore('pets', () => {
         // Getters
         petCount,
         petsByKind,
+        healthyPetsCount,
+        needsAttentionCount,
+        neuteredCount,
         
         // Actions
         fetchPets,
@@ -398,5 +485,9 @@ export const usePetStore = defineStore('pets', () => {
         deletePetImage,
         downloadPetImage,
         fetchPetsWithProfiles
+        ,
+        // Nutrition helpers
+        getEstimatedMER,
+        getDailyNutritionTargets
     }
 })

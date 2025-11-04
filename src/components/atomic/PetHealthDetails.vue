@@ -3,8 +3,8 @@ import { computed } from 'vue';
 import { useDateFormat } from '@vueuse/core';
 import StatCard from './StatCard.vue';
 import InfoDetail from './InfoDetail.vue';
-import HealthProgressBar from './HealthProgressBar.vue';
 import BaseButton from './BaseButton.vue';
+import NutritionTargets from './NutritionTargets.vue';
 
 const props = defineProps({
   pet: {
@@ -29,34 +29,11 @@ const formattedUpdatedAt = computed(() => {
   return useDateFormat(props.pet.updated_at, 'MMM D, YYYY').value;
 });
 
-const healthPercentage = computed(() => {
-  if (!props.pet.body_condition_scale) return Math.random() * 100;
-  
-  const scale = props.pet.body_condition_scale;
-  
-  // if (scale <= 2) return 30;
-  // if (scale === 3) return 50;
-  // if (scale === 4) return 80;
-  // if (scale === 5) return 100;
-  // if (scale === 6) return 75;
-  // if (scale === 7) return 50;
-  // if (scale >= 8) return 30;
-  
-  return 75;
-});
-
-const healthDescription = computed(() => {
-  const percentage = healthPercentage.value;
-  
-  if (percentage >= 80) return 'Excellent body condition! Your pet is at an ideal weight.';
-  if (percentage >= 60) return 'Good body condition with minor concerns that should be monitored.';
-  if (percentage >= 40) return 'Some body condition issues detected. Consider adjusting diet and exercise.';
-  return 'Significant body condition concerns. Please consult with your veterinarian.';
-});
-
-const showVetButton = computed(() => {
-  return healthPercentage.value < props.healthThreshold;
-});
+// Capitalize helper for kind & breed
+const cap = (s) => {
+  if (!s || typeof s !== 'string') return s || '';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
 const handleFindVet = () => {
   emit('find-vet', {
@@ -87,21 +64,21 @@ const handleFindVet = () => {
             variant="primary"
           />
         </div>
-        <div class="col-6 col-md-3">
-          <StatCard
-            label="Body Score"
-            :value="pet.body_condition_scale || 'N/A'"
-            unit="/9"
-            size="sm"
-            variant="success"
-          />
-        </div>
+        
         <div class="col-6 col-md-3">
           <StatCard
             label="Neutered"
             :value="pet.neutered ? 'Yes' : 'No'"
             size="sm"
             :variant="pet.neutered ? 'success' : 'secondary'"
+          />
+        </div>
+        <div class="col-6 col-md-3">
+          <StatCard
+            label="Kind & Breed"
+            :value="`${cap(pet.kind || 'pet')} • ${cap(pet.breed || 'mixed breed')}`"
+            size="sm"
+            variant="secondary"
           />
         </div>
       </div>
@@ -125,26 +102,21 @@ const handleFindVet = () => {
       </div>
     </div>
 
-    <!-- Health Status Section -->
-    <div class="health-section">
-      <HealthProgressBar
-        label="Overall Health Status"
-        :percentage="healthPercentage"
-        :description="healthDescription"
+    <!-- Nutrition Targets -->
+    <div class="mb-4">
+      <NutritionTargets :pet="pet" />
+    </div>
+
+    <!-- CTA Only -->
+    <div class="mt-3">
+      <BaseButton
+        variant="danger"
         size="md"
-      />
-      
-      <!-- Call to Action -->
-      <div v-if="showVetButton" class="mt-3">
-        <BaseButton
-          variant="danger"
-          size="md"
-          icon="geo-alt-fill"
-          @click="handleFindVet"
-        >
-          Find Nearest Vet
-        </BaseButton>
-      </div>
+        icon="geo-alt-fill"
+        @click="handleFindVet"
+      >
+        Find Nearest Vet
+      </BaseButton>
     </div>
   </div>
 </template>

@@ -4,6 +4,7 @@
       :value="healthPercentage"
       :size="ringSize"
       :stroke-width="strokeWidth"
+      :color="ringColor"
     >
       <BaseAvatar
         :src="src"
@@ -46,6 +47,10 @@ const props = defineProps({
     type: Boolean,
     default: true
   },
+  gender: {
+    type: String,
+    default: null
+  },
   fallback: {
     type: String,
     default: 'https://picsum.photos/seed/defaultpet/200/200.jpg'
@@ -77,6 +82,13 @@ const strokeWidth = computed(() => {
     lg: 10
   };
   return widths[props.size] || 8;
+});
+
+const ringColor = computed(() => {
+  const g = (props.gender || '').toLowerCase();
+  if (g === 'female') return '#ff5c8a';
+  if (g === 'male') return 'var(--bs-primary)';
+  return '#6c757d';
 });
 </script>
 

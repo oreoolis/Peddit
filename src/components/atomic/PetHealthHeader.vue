@@ -7,8 +7,10 @@
     <HealthAvatar
       :src="pet.photo_url || defaultImage"
       :alt="pet.name"
-      :health-percentage="healthPercentage"
+      :health-percentage="100"
       :size="avatarSize"
+      :show-percentage="false"
+      :gender="pet.gender"
       class="me-3"
     />
     

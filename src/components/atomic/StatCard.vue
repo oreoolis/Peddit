@@ -76,7 +76,7 @@ const valueSize = computed(() => {
 <style scoped>
 .stat-card {
   background-color: #f8f9fa;
-  padding: 1rem;
+  padding: 1.5rem 1.25rem; /* increased top/bottom padding */
   border-radius: 12px;
   text-align: center;
   transition: all 0.3s ease;
