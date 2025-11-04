@@ -264,12 +264,12 @@ onMounted(async () => {
                             <label for="" class="form-label headingFont fw-bold h5">Neutered:</label>
                             <div class="neutered-radio radio-inputs bodyFont mt-2">
                                 <label class="radio">
-                                    <input name="neutered" type="radio" value="Yes" id="n_yes"
+                                    <input name="neutered" type="radio" :value="true" id="n_yes"
                                         v-model="form.neutered" />
                                     <span class="name">Yes</span>
                                 </label>
                                 <label class="radio">
-                                    <input name="neutered" type="radio" value="No" id="n_no" v-model="form.neutered" />
+                                    <input name="neutered" type="radio" :value="false" id="n_no" v-model="form.neutered" />
                                     <span class="name">No</span>
                                 </label>
                             </div>

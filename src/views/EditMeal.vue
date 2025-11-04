@@ -273,7 +273,7 @@ onMounted(async () => {
           </div>
         </div>
         <!-- Cards side-by-side on all viewports -->
-        <div class="row justify-content-center mt-3 mb-3 g-3">
+        <div class="row container justify-content-center mt-3 mb-3 g-3">
           <div class="col-12 col-sm-6 col-md-6 col-lg-6">
             <div @click="selectPetKind('dog')" class="dog-breed-card"
               :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
