@@ -97,6 +97,14 @@ const handleFindVet = () => {
             :variant="pet.neutered ? 'success' : 'secondary'"
           />
         </div>
+        <div class="col-6 col-md-3">
+          <StatCard
+            label="Kind & Breed"
+            :value="`${pet.kind || 'Pet'} • ${pet.breed || 'Mixed breed'}`"
+            size="sm"
+            variant="secondary"
+          />
+        </div>
       </div>
     </div>
 

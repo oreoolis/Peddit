@@ -50,16 +50,24 @@ const formatValue = (v) => {
 </script>
 
 <template>
-  <div class="nutrition-targets">
+  <div class="nutrition-targets py-3">
     <div class="d-flex align-items-center justify-content-between mb-2">
       <BaseLabel size="sm" weight="bold">Daily Nutrition Targets</BaseLabel>
       <BaseLabel size="xs" variant="muted">Based on estimated MER</BaseLabel>
     </div>
 
     <!-- Energy Row -->
-    <div class="row g-3 mb-2">
+    <div class="row g-3 mb-3">
       <div class="col-12 col-sm-6 col-md-4">
-        <StatCard label="Energy" :value="formattedEnergy" unit="kcal/day" size="sm" highlight />
+        <div class="energy-card">
+          <div class="d-flex flex-column">
+            <BaseLabel size="xs" class="text-white-50 mb-1">Energy</BaseLabel>
+            <div class="d-flex align-items-baseline">
+              <span class="energy-value">{{ formattedEnergy }}</span>
+              <span class="energy-unit ms-2">kcal/day</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -78,5 +86,23 @@ const formatValue = (v) => {
   background-color: #ffffff;
   border-radius: 12px;
 }
-</style>
 
+.energy-card {
+  background: var(--bs-primary);
+  color: #fff;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.energy-value {
+  font-weight: 800;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.energy-unit {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+</style>
