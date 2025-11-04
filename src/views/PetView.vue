@@ -171,7 +171,7 @@ onMounted(async () => {
                     <div class="col-12 col-lg-10 px-5">
                         <div class="row g-4 pb-1 d-flex justify-content-center">
                             <div v-for="pet in petStore.pets" :key="pet.id"
-                                class="col-12 col-sm-12 col-md-4 col-lg-4 g-5 mb-5">
+                                class="col-xl-5 col-sm-12 col-md-6 g-5 mb-5">
                                 <PetCards :id="pet?.id" :name="pet?.name" :kind="pet?.kind" :gender="pet?.gender"
                                     :breed="pet?.breed" :birthday="pet?.birthdate" :weight="pet?.weight_kg"
                                     :allergies="pet?.allergies" :neutered="pet?.neutered" :photo_url="pet?.photo_url"
@@ -262,7 +262,7 @@ onMounted(async () => {
                         <!-- Recipe Cards Grid -->
                         <div v-else class="row g-4">
                             <div v-for="recipe in nutritionStore?.recipes" :key="recipe.id"
-                                class="col-12 col-sm-12 col-md-4 col-lg-4 mx-auto d-flex justify-content-center">
+                                class="col-6 col-lg-6 col-sm-12 col-md-6 mx-auto d-flex justify-content-center">
                                 <div style="width: 100%; max-width: 340px;">
                                     <MealPlanCard :rec_id="recipe?.id" :name="recipe?.recipe_name"
                                         :desc="recipe?.description" :petKind="recipe?.pet_kind"

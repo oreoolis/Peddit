@@ -158,20 +158,20 @@ const handleSubmit = async () => {
     );
   }
 
-    // Add ALL ingredients to shopping list at once as an ARRAY
+  // Add ALL ingredients to shopping list at once as an ARRAY
   if (selectedIngredients.value.length > 0) {
     const formattedIngredients = selectedIngredients.value.map(selIng => ({
       food_ingredients: selIng.ingredient,
       quantity_g: selIng.amount
     }));
-    
+
     await userStore.addUnformattedToShoppingList(formattedIngredients);
   }
 
 
   showSuccess.value = true;
   resetForm();
-  
+
   toastStore.showToast("Meal has been created!");
   router.push({
     path: '/pet'
@@ -196,7 +196,7 @@ const selectPetKind = async (kind) => {
 
   if (result.success) {
     petNutritionProfile.value = result.data;
-    
+
   } else {
     console.error('Failed to load nutrition profile:', result.error);
   }
@@ -233,19 +233,16 @@ onMounted(async () => {
             <h1 class="headingFont display-3 text-start fw-semibold">Create Meal Plan</h1>
           </div>
         </div>
-        <!-- Cards side-by-side on all viewports -->
         <div class="row justify-content-center mt-3 mb-3 g-3">
-          <div class="col-12 col-sm-6 col-md-6 col-lg-6">
+          <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
             <div @click="selectPetKind('dog')" class="dog-breed-card"
-              :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" 
-              id="dog-breed-card">
+              :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
               <p class="pet-title brandFont text-light display-1">Dog</p>
             </div>
           </div>
-          <div class="col-12 col-sm-6 col-md-6 col-lg-6">
+          <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
             <div @click="selectPetKind('cat')" class="cat-breed-card"
-              :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" 
-              id="cat-breed-card">
+              :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
               <p class="pet-title brandFont text-light display-1">Cat</p>
             </div>
           </div>
@@ -267,21 +264,16 @@ onMounted(async () => {
             </div>
             <div class="mb-4">
               <label for="notes" class="form-label headingFont fw-bold h5">Notes</label>
-              <searchBar class="mt-3" id="notes" v-model="notes" type="textarea"
-                placeholder="Add any notes here..."></searchBar>
+              <searchBar class="mt-3" id="notes" v-model="notes" type="textarea" placeholder="Add any notes here...">
+              </searchBar>
             </div>
 
             <!-- Ingredients Section -->
             <div class="mb-4">
               <h5 class="headingFont fw-bold mb-3">Ingredients</h5>
               <div class="ingredient-grid">
-                <IngredientCard 
-                  v-for="item in selectedIngredients" 
-                  :key="item.id" 
-                  :name="item.ingredient.name"
-                  :amount="item.amount" 
-                  @click="removeIngredient(item.id)" 
-                />
+                <IngredientCard v-for="item in selectedIngredients" :key="item.id" :name="item.ingredient.name"
+                  :amount="item.amount" @click="removeIngredient(item.id)" />
 
                 <button class="icon-btn add-btn shadow my-auto mx-auto" @click.prevent="openIngredientModal"
                   type="button">
@@ -319,7 +311,6 @@ onMounted(async () => {
 .dog-breed-card {
   box-sizing: border-box;
   width: 100%;
-  max-width: 600px;
   height: 300px;
   background-image: url("../assets/Pixel Art/dog (1).png");
   background-position: center;
@@ -337,13 +328,11 @@ onMounted(async () => {
   user-select: none;
   font-weight: bolder;
   color: black;
-  margin: 0 auto;
 }
 
 .cat-breed-card {
   box-sizing: border-box;
   width: 100%;
-  max-width: 600px;
   height: 300px;
   background-image: url("../assets/Pixel Art/cat (5).png");
   background-position: center;
@@ -361,7 +350,6 @@ onMounted(async () => {
   user-select: none;
   font-weight: bolder;
   color: black;
-  margin: 0 auto;
 }
 
 /* Responsive heights using Bootstrap breakpoints */
