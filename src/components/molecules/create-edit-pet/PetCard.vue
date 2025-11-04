@@ -28,6 +28,7 @@ const handleOpenPetInfo = () => {
 
 
 onMounted(async () => {
+    if(!props.recipe_id) return; //Stops the bug
     const res = await nutritionStore.getRecipe(props.recipe_id);
     if (res.success){
         recipeDetails.value = res.data;

@@ -484,9 +484,9 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
         .select(`
           *,
           profiles:author_id (
-                        username,
-                        display_name,
-                        avatar_url
+            username,
+            display_name,
+            avatar_url
           ),
           recipe_ingredients (
             id,
