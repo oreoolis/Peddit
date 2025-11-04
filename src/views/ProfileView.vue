@@ -32,7 +32,7 @@ const { user } = storeToRefs(authStore);
 const { profile, loading: profileLoading, username: profileUsername, follows, followers, avatarUrl } = storeToRefs(userStore);
 const { pets } = storeToRefs(petStore);
 const { posts } = storeToRefs(postStore);
-const { userRecipePosts } = storeToRefs(petNutritionStore);
+const { recipes } = storeToRefs(petNutritionStore);
 
 // Local state
 const actionMessage = ref('');
@@ -87,10 +87,7 @@ const handleSaveProfile = async (profile, done, fail) => {
 
 // Lifecycle
 onMounted(async () => {
-  // Ensure auth is initialised and profile loaded
-  if (!authStore.initialised) {
-    await authStore.initAuth();
-  }
+  // Ensure profile loaded
   if (!profile.value && user.value) {
     await userStore.fetchProfile();
   }
@@ -153,7 +150,7 @@ onMounted(async () => {
       <ProfileContentTabs
         :pets="pets"
         :posts="posts"
-        :recipes="userRecipePosts"
+        :recipes="recipes"
         :username="profileUsername"
         :show-add-pet-action="true"
         class="d-flex justify-content-center"
