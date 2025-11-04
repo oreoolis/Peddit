@@ -17,26 +17,31 @@ import { useUserStore } from '@/stores/userStore';
 // Dummy static Data in 
 const props = defineProps({
   Content : {type: String, default: 'This is the new Recipe that I made. Check it out!'},
-  postId: {type: String, required: true}
-  // RecipeId: { type: String, default: '123e' },
-  // Username: { type: String, default: 'JohnDoe' },
-  // User_Image: { type: String, default: '/src/assets/person.jpg' },
-  // Recipe_Name: { type: String, default: 'Beef Boost' },
-  // Recipe_Desc: { type: String, default: 'A Yummy Treat for golden Retrievers' },
-  // Vote_score: { type: Number, default: 99 },
-  // Comment_count: { type: Number, default: 12 },
-  // Animal_Type: { type: String, default: 'dog' },
-  // Animal_Breed: { type: String, default: 'Golden Retriever' },
-  // Cost_Per_Week: { type: Number, default: 25.5 },
-  // Recipe_Nutrition_Stats: {
-  //   type: Array,
-  //   default: () => ( [
-  //     { LabelName: 'Iron', value: '69', unit: 'mg' },
-  //     { LabelName: 'Calcium', value: '120', unit: 'mg' },
-  //     { LabelName: 'Vitamin A', value: '69', unit: 'mg' },
-  //     { LabelName: 'Fibre', value: '4', unit: 'g' }
-  //   ])
-  // }
+  postId: {type: String, required: true},
+  RecipeId: { type: String, default: '123e' },
+  Username: { type: String, default: 'JohnDoe' },
+  User_Image: { type: String, default: '/src/assets/person.jpg' },
+  Recipe_Name: { type: String, default: 'Beef Boost' },
+  Recipe_Desc: { type: String, default: 'A Yummy Treat for golden Retrievers' },
+  Vote_score: { type: Number, default: 99 },
+  Comment_count: { type: Number, default: 12 },
+  Animal_Type: { type: String, default: 'dog' },
+  Animal_Breed: { type: String, default: 'Golden Retriever' },
+  Cost_Per_Week: { type: Number, default: 25.5 },
+  Recipe_Nutrition_Stats: {
+    // Accept nutrition as an object keyed by nutrient name, e.g.
+    // { fat: { unit: 'g', value: 1.2 }, iron: { unit: 'mg', value: 0.7 } }
+    type: Object,
+    default: () => ({
+      'fat': {
+        unit: "g",
+        value: 1.2},
+      "iron": {
+        unit: "mg",
+        value: 0.7
+        }
+        })
+  }
 });
 
 // --- Dummy static comments loaded into the comment section ---
@@ -113,6 +118,8 @@ onMounted(async () => {
       await petNutriStore.fetchRecipePostById(props.postId);
       await commentStore.fetchCommentsByPostID(props.postId);
       console.log(currentPost.value);
+      console.log('currentPost', currentPost.value);
+      console.log('recipe ingredients', currentPost.value?.recipes?.recipe_ingredients[0].food_ingredients.nutrition);
       // optionally: fetch user's vote here and set serverVote
   } else {
       router.push('/');
@@ -160,44 +167,18 @@ const combinedMessage = computed(() => {
   return `Check out this link from Peddit!\n\n${url}`;
 });
 
-// client-side UI helpers for comment list
-// const showAllComments = ref(false);
-// const submitting = ref(false);
+// derive an array from the object-shaped nutrition prop so the template can render it
+const nutritionArray = computed(() => {
+  const obj = currentPost.value?.recipes?.recipe_ingredients[0].food_ingredients.nutrition || {};
+  // if it's already an array (back-compat), return it
+  if (Array.isArray(obj)) return obj;
 
-// const displayedComments = computed(() => {
-//   return showAllComments.value ? comments.value : comments.value.slice(0, 3);
-// });
-// const hasMoreComments = computed(() => comments.value.length > displayedComments.value.length);
-
-// // simple comment submit handler (adds new comment to top)
-// async function handleCommentSubmit(text) {
-//   if (!text || !text.trim()) return;
-//   submitting.value = true;
-//   try {
-//     const now = new Date().toISOString();
-//     const newComment = {
-//       id: `c${Date.now()}`,
-//       profiles: { display_name: props.Username || 'You', avatar_url: props.User_Image || 'https://picsum.photos/seed/default/80/80' },
-//       content: text.trim(),
-//       created_at: now
-//     };
-//     comments.value.unshift(newComment);
-//     // optionally expand to show the new comment
-//     showAllComments.value = true;
-//   } finally {
-//     submitting.value = false;
-//   }
-// }
-
-// // add reactive vote state and handler (mirror ViewPost pattern)
-// const serverVote = ref(0); // -1 | 0 | 1
-
-// function onVote(v) {
-//   const num = Number(v) || 0;
-//   const normalized = [-1, 0, 1].includes(num) ? num : 0;
-//   serverVote.value = normalized;
-//   console.log('[VOTE]', serverVote.value);
-// }
+  return Object.keys(obj).map(key => ({
+    LabelName: key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+    value: obj[key]?.value ?? 0,
+    unit: obj[key]?.unit || ''
+  }));
+});
 
 // --- helpers used elsewhere in template ---
 const defaultAvatar = props.User_Image || 'https://picsum.photos/seed/defaultpet/120/120';
@@ -238,8 +219,8 @@ function formatDate(d){ return d ? new Date(d).toLocaleDateString() : ''; }
               <section class="nutrition-section mb-3">
                 <h6 class="mb-2">Nutrition</h6>
                 <div class="nutr-grid">
-                  <div class="nutr-item" v-for="(n, idx) in currentPost.recipes.nutrition" :key="n.label_name + '-' + idx">
-                    <BaseLabel size="sm" variant="dark">{{ n.label_name }}</BaseLabel>
+                  <div class="nutr-item" v-for="(n, idx) in nutritionArray" :key="n.LabelName + '-' + idx">
+                    <BaseLabel size="sm" variant="dark">{{ n.LabelName }}</BaseLabel>
                     <BaseStatNumber :value="n.value" :unit="n.unit" />
                   </div>
                 </div>

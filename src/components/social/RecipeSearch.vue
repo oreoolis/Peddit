@@ -4,7 +4,7 @@ import BaseLabel from '@/components/atomic/BaseLabel.vue';
 import BaseStatNumber from '@/components/atomic/BaseStatNumber.vue';
 import Button from '@/components/atoms/button.vue';
 import ShareButton from '@/components/Organisms/social/ShareButton.vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 const props = defineProps({
@@ -18,18 +18,36 @@ const props = defineProps({
   Animal_Type: { type: String, default: 'dog' }, // 'dog' or 'cat', if its unknown there will be a shrug
   Cost_Per_Week: { type: Number, default: 25.5 },
   Recipe_Nutrition_Stats: {
-    type: Array,
-    default: () => ([
-      { LabelName: 'Iron', value: '69', unit: 'mg' },
-      { LabelName: 'Calcium', value: '120', unit: 'mg' },
-      { LabelName: 'Vitamin A', value: '69', unit: 'mg' },
-      { LabelName: 'Fibre', value: '4', unit: 'g' }
-    ])
+    // Accept nutrition as an object keyed by nutrient name, e.g.
+    // { fat: { unit: 'g', value: 1.2 }, iron: { unit: 'mg', value: 0.7 } }
+    type: Object,
+    default: () => ({
+    'fat': {
+    unit: "g",
+    value: 1.2},
+  "iron": {
+    unit: "mg",
+    value: 0.7
+    }
+    })
   }
 });
 
 const expanded = ref(false);
 const router = useRouter();
+
+// derive an array from the object-shaped nutrition prop so the template can render it
+const nutritionArray = computed(() => {
+  const obj = props.Recipe_Nutrition_Stats || {};
+  // if it's already an array (back-compat), return it
+  if (Array.isArray(obj)) return obj;
+
+  return Object.keys(obj).map(key => ({
+    LabelName: key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+    value: obj[key]?.value ?? 0,
+    unit: obj[key]?.unit || ''
+  }));
+});
 
 function onCardClick(e) {
   // ignore clicks on explicit controls (buttons, links, inputs) OR elements marked .no-nav
@@ -91,7 +109,7 @@ function onCardClick(e) {
       </button>
       <div class="nutr-collapse" :class="{ open: expanded }">
        <div class="nutr-grid">
-         <div class="nutr-item" v-for="(data, idx) in props.Recipe_Nutrition_Stats" :key="data.LabelName + '-' + idx">
+         <div class="nutr-item" v-for="(data, idx) in nutritionArray" :key="data.LabelName + '-' + idx">
            <BaseLabel size="lg" variant="dark" weight="bold">{{ data.LabelName }}</BaseLabel>
            <BaseStatNumber :value="data.value" :unit="data.unit" />
          </div>
@@ -189,6 +207,28 @@ opacity: 0;
   box-shadow: 0 15px 50px rgba(32, 122, 185, 0.26);
 }
 .card:hover::before { opacity: 1; transform: translateY(0); }
+
+/* Responsive header adjustments so title and stats don't overflow on small screens */
+.header-center { flex: 1 1 auto; min-width: 0; }
+.header-center .h5 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.header-right { flex: 0 0 auto; }
+
+@media (max-width: 576px) {
+  /* allow header to wrap: avatar, title, stats stack neatly */
+  .card > .card-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .header-user { order: 1; }
+  .header-center { order: 2; width: 100%; padding-top: 0.25rem; }
+  .header-center .h5 { white-space: normal; font-size: 1rem; }
+  .header-center small { display:block; color: rgba(255,255,255,0.85); }
+  .header-right { order: 3; width: 100%; display: flex; justify-content: flex-start; gap: 0.75rem; font-size: 0.95rem; }
+  .header-right .fw-bold { font-size: 0.95rem; }
+  /* slightly shrink avatar on small screens */
+  base-avatar { width: 36px; height: 36px; }
+}
 
 .card-footer {
   position: relative;

@@ -139,6 +139,28 @@ function goToMeal(){
   router.push({ path: '/meal'});
 }
 
+function aggregateNutritionFromRecipe(recipe) {
+  if (!recipe?.recipe_ingredients) return {};
+  const totals = {};
+  recipe.recipe_ingredients.forEach(ri => {
+    const qty = Number(ri.quantity_g || 0);
+    const factor = qty / 100; // nutrition values are per-100g
+    const nut = ri.food_ingredients?.nutrition || {};
+    Object.entries(nut).forEach(([key, info]) => {
+      if (!info) return;
+      const v = (Number(info.value) || 0) * factor;
+      const unit = info.unit || '';
+      if (!totals[key]) totals[key] = { value: 0, unit };
+      totals[key].value += v;
+    });
+  });
+  // round results
+  Object.keys(totals).forEach(k => {
+    totals[k].value = Math.round((totals[k].value + Number.EPSILON) * 100) / 100;
+  });
+  return totals; // shape: { fat: {unit:'g', value: 1.23}, iron: {unit:'mg', value: 0.7}, ... }
+}
+
 console.log(latestPosts);
 </script>
 
@@ -211,19 +233,20 @@ console.log(latestPosts);
                       <div>
                         <!-- TODO: LINK UP RECIPE POST -->
                         <RecipeSearch
+                          class="my-3"
                         
                           v-for="post in recipePosts"
                           :key="post?.id ?? post?.link ?? post?.title"
                           :RecipeId="post?.id ?? post?.link"
                           :Username="post?.profiles?.display_name || post?.profile?.display_name || post?.author_name || 'Unknown'"
                           :User_Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
-                          Recipe_Name="toadd"
-                          Recipe_Desc="toadd"
+                          :Recipe_Name="post.recipes.recipe_name"
+                          :Recipe_Desc="post.recipes.description"
                           :Comment_count="post?.comment_count"
                           :Vote_score="post?.vote_score"
-                          Animal_Type="toadd"
-                          Cost_Per_Week="toadd"
-                          :Recipe_Nutrition_Stats="[{ 'LabelName': 'ToAdd', 'value': 'ToAdd', 'unit': 'ToAdd' }]"
+                          :Animal_Type="post.recipes.pet_kind"
+                          :Cost_Per_Week="post.recipes.price_per_week"
+                          :Recipe_Nutrition_Stats="aggregateNutritionFromRecipe(post.recipes)"
                         >
                         <div class="mt-2 ms-1" >{{ truncate(post?.content, 100) }}</div>
                         </RecipeSearch>

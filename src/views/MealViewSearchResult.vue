@@ -18,113 +18,6 @@ const router = useRouter();
 const initialQuery = route.query.q || '';
 
 
-// use the composable (local or remote search)
-//const { query, results, loading, searchNow, setItems } = useMealSearch({ debounceMs: 250 });
-
-// TO WORK ON
-// const props = defineProps({
-//   FoundPosts: {
-//     type: Array,
-//     default: () => ([
-//       {
-//         RecipeId: "123",
-//         Username: "JohnDoe",
-//         User_Image: "https://picsum.photos/seed/john/120/120",
-//         Recipe_Name: "Beef Boost",
-//         Recipe_Desc: "A Yummy Treat for golden Retrievers",
-//         vote_score: 99,
-//         comment_count: 12,
-//         Animal_Type: "dog",
-//         Animal_Breed: "Golden Retriever",
-//         Cost_Per_Week: 25.5,
-//         createdAt: "2024-08-12T10:00:00Z",
-//         Recipe_Nutrition_Stats: [
-//           { LabelName: 'Iron', value: '69', unit: 'mg' },
-//           { LabelName: 'Calcium', value: '120', unit: 'mg' },
-//           { LabelName: 'Vitamin A', value: '69', unit: 'mg' },
-//           { LabelName: 'Fibre', value: '4', unit: 'g' }
-//         ]
-//       },
-//       {
-//         RecipeId: "124",
-//         Username: "SallyP",
-//         User_Image: "https://picsum.photos/seed/sally/120/120",
-//         Recipe_Name: "Salmon Special",
-//         Recipe_Desc: "Omega-rich plan for shiny coats",
-//         vote_score: 142,
-//         comment_count: 34,
-//         Animal_Type: "cat",
-//         Animal_Breed: "Siamese",
-//         Cost_Per_Week: 28,
-//         createdAt: "2025-02-02T08:30:00Z",
-//         Recipe_Nutrition_Stats: [
-//           { LabelName: 'Protein', value: '30', unit: 'g' },
-//           { LabelName: 'Omega-3', value: '2.4', unit: 'g' },
-//           { LabelName: 'Vitamin D', value: '12', unit: 'IU' },
-//           { LabelName: 'Iron', value: '3.2', unit: 'mg' },
-//           { LabelName: 'Iron', value: '3.2', unit: 'mg' }
-//         ]
-//       },
-//       {
-//         RecipeId: "125",
-//         Username: "PetChef",
-//         User_Image: "https://picsum.photos/seed/chef/120/120",
-//         Recipe_Name: "Chicken Feast",
-//         Recipe_Desc: "High-protein plan for active adults",
-//         vote_score: 87,
-//         comment_count: 9,
-//         Animal_Type: "dog",
-//         Animal_Breed: "Mixed",
-//         Cost_Per_Week: 22,
-//         createdAt: "2025-05-10T14:20:00Z",
-//         Recipe_Nutrition_Stats: [
-//           { LabelName: 'Protein', value: '26', unit: 'g' },
-//           { LabelName: 'Calories', value: '420', unit: 'kcal' },
-//           { LabelName: 'Fiber', value: '3', unit: 'g' },
-//           { LabelName: 'Calcium', value: '90', unit: 'mg' }
-//         ]
-//       },
-//       {
-//         RecipeId: "126",
-//         Username: "GreenBites",
-//         User_Image: "https://picsum.photos/seed/green/120/120",
-//         Recipe_Name: "Veg Mix",
-//         Recipe_Desc: "Gentle option for sensitive stomachs",
-//         vote_score: 44,
-//         comment_count: 5,
-//         Animal_Type: "dog",
-//         Animal_Breed: "Small Breed",
-//         Cost_Per_Week: 18,
-//         createdAt: "2024-11-01T09:00:00Z",
-//         Recipe_Nutrition_Stats: [
-//           { LabelName: 'Fiber', value: '6', unit: 'g' },
-//           { LabelName: 'Vitamin A', value: '80', unit: 'IU' },
-//           { LabelName: 'Iron', value: '2', unit: 'mg' },
-//           { LabelName: 'Protein', value: '8', unit: 'g' }
-//         ]
-//       },
-//       {
-//         RecipeId: "127",
-//         Username: "AllergyCare",
-//         User_Image: "https://picsum.photos/seed/allergy/120/120",
-//         Recipe_Name: "Turkey Comfort",
-//         Recipe_Desc: "Limited-ingredient plan for sensitivities",
-//         vote_score: 150,
-//         comment_count: 21,
-//         Animal_Type: "dog",
-//         Animal_Breed: "Labrador",
-//         Cost_Per_Week: 30,
-//         createdAt: "2025-01-18T12:00:00Z",
-//         Recipe_Nutrition_Stats: [
-//           { LabelName: 'Protein', value: '28', unit: 'g' },
-//           { LabelName: 'Omega-6', value: '1.8', unit: 'g' },
-//           { LabelName: 'Vitamin E', value: '6', unit: 'mg' },
-//           { LabelName: 'Calcium', value: '110', unit: 'mg' }
-//         ]
-//       }
-//     ])
-//   }
-// });
 const petNutritionStore = usePetNutritionStore();
 const { recipePostQuery, filteredRecipePosts: foundPosts } = storeToRefs(petNutritionStore);
 
@@ -221,10 +114,10 @@ function goToSearchResults(submittedValue) {
     <div v-if="loading" class="skeleton-list">
       <div class="skeleton-card" v-for="n in 4" :key="n"></div>
     </div>
-
+<!-- 
     <div class="results-grid bg-primary" v-else>
       <RecipeSearch v-for="post in visibleItems" :key="post.RecipeId" v-bind="post" />
-    </div>
+    </div> -->
 
 
   </main>
