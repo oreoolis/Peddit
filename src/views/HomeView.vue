@@ -67,12 +67,13 @@ const latestPosts = computed(() => {
 });
 
 const petNutritionStore = usePetNutritionStore();
-const {  } = storeToRefs(petNutritionStore);
+const { recipePosts } = storeToRefs(petNutritionStore);
 
 onMounted(async () => {
   try {
     await profileStore.fetchAllProfiles();
     await postStore.fetchPosts();
+    await petNutritionStore.fetchAllRecipePost();
     // fetch pets so stats update when HomeView is shown
     try {
       // if we have a userId, fetch for that user; otherwise fetch default
@@ -211,7 +212,7 @@ function goToMeal(){
                         <!-- TODO: LINK UP RECIPE POST -->
                         <RecipeSearch
                         
-                          v-for="post in latestPosts"
+                          v-for="post in recipePosts"
                           :key="post?.id ?? post?.link ?? post?.title"
                           :link="post?.id ?? post?.link"
                           :title="post?.title"
