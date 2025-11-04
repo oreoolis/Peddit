@@ -15,6 +15,7 @@ import PostSearch from '@/components/molecules/social/PostSearch.vue';
 import { useDebounce } from '@vueuse/core';
 import Button from '@/components/atoms/button.vue';
 import { useRouter } from 'vue-router';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
 // --- inlined from HomeTemplate (kept here so HomeView is self-contained) ---
 const petStore = usePetStore();
 const { pets } = storeToRefs(petStore);
@@ -57,6 +58,9 @@ const { posts, filteredPosts } = storeToRefs(postStore);
 const profileStore = useProfileStore();
 
 const debFilteredPosts = useDebounce(filteredPosts, 300);
+
+const petNutritionStore = usePetNutritionStore();
+const {  } = storeToRefs(petNutritionStore);
 
 onMounted(async () => {
   try {
@@ -104,6 +108,21 @@ const handleCreatePost = async (postData) => {
   await postStore.createPost(authStore.user.id, postData);
   showCreatePostModal.value = false;
 };
+
+const handleShareRecipe = async (postData) => {
+  if (!authStore.user) {
+    alert('You must be logged in to share a recipe.');
+    return;
+  }
+  
+  await petNutritionStore.createRecipePost(authStore.user.id, { 
+    recipeId: postData.recipeId,
+    title: postData.title ?? "Heelo, check out this SICK recipe!",
+    content: postData.content
+  });
+  showCreatePostModal.value = false;
+}
+
 function goToHealthDashboard(){
   router.push({ path: '/health'});
 }
@@ -146,6 +165,7 @@ function goToMeal(){
                               <ShareRecipePostModal
                                 :show="showShareRecipePostModal"
                                 @update:show="showShareRecipePostModal = $event"
+                                @create-post="handleShareRecipe"
                               />
                           <Button outline label="Explore Meals" color="secondary"  @click.prevent="goToMeal()" ></Button>
                         </div>
