@@ -1,4 +1,4 @@
-# Peddit
+# Peddit (G6T2)
 
 Peddit is a full-stack web application developed for IS216 Web Application Development II AY25/26.
 
