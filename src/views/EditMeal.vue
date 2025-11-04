@@ -32,6 +32,8 @@ const recipeDescription = ref('');
 const notes = ref('');
 const selectedIngredients = ref([]);
 const showSuccess = ref(false);
+const petNutritionProfile = ref(null);
+
 
 // total nutrients
 
@@ -50,7 +52,7 @@ const nutrients = computed(() => {
   // Calculate totals from selected ingredients
   selectedIngredients.value.forEach(item => {
     const nutrition = item.food_ingredients.nutrition;
-    const multiplier = item.quantity_g / 100; // Convert per 100g to actual amount
+    const multiplier = item.quantity_g / 100;
 
     if (nutrition.protein?.value) totals.protein += nutrition.protein.value * multiplier;
     if (nutrition.fat?.value) totals.fat += nutrition.fat.value * multiplier;
@@ -59,15 +61,44 @@ const nutrients = computed(() => {
     if (nutrition.calcium?.value) totals.calcium += nutrition.calcium.value * multiplier;
   });
 
-  // Return in the format your component expects
+  // Add comparison with requirements if profile is loaded
+  const comparisonData = petNutritionProfile.value ? {
+    proteinRequired: petNutritionProfile.value.min_protein_g,
+    fatRequired: petNutritionProfile.value.min_fat_g,
+    ironRequired: petNutritionProfile.value.min_iron_mg,
+    zincRequired: petNutritionProfile.value.min_zinc_mg,
+    calciumRequired: petNutritionProfile.value.min_calcium_g
+  } : null;
+
   return {
-    protein: { name: "Protein", value: totals.protein.toFixed(2) },
-    fat: { name: "Fat", value: totals.fat.toFixed(2) },
-    iron: { name: "Iron", value: totals.iron.toFixed(2) },
-    zinc: { name: "Zinc", value: totals.zinc.toFixed(2) },
-    calcium: { name: "Calcium", value: totals.calcium.toFixed(2) }
+    protein: {
+      name: "Protein",
+      value: totals.protein.toFixed(2),
+      required: comparisonData?.proteinRequired
+    },
+    fat: {
+      name: "Fat",
+      value: totals.fat.toFixed(2),
+      required: comparisonData?.fatRequired
+    },
+    iron: {
+      name: "Iron",
+      value: totals.iron.toFixed(2),
+      required: comparisonData?.ironRequired
+    },
+    zinc: {
+      name: "Zinc",
+      value: totals.zinc.toFixed(2),
+      required: comparisonData?.zincRequired
+    },
+    calcium: {
+      name: "Calcium",
+      value: totals.calcium.toFixed(2),
+      required: comparisonData?.calciumRequired
+    }
   };
 });
+
 
 
 const showIngredientModal = ref(false);
@@ -93,8 +124,10 @@ const resetForm = () => {
   recipeDescription.value = '';
   notes.value = '';
   selectedIngredients.value = [];
-  nutritionStore.resetStore();
   showSuccess.value = false;
+  petNutritionProfile.value = null;
+  nutritionStore.resetStore();
+
 }
 
 const handleSubmit = async () => {
@@ -148,10 +181,52 @@ const handleSubmit = async () => {
 
 }
 
-const selectPetKind = (kind) => {
+// existing pet Kind
+const computeExistingInformation = async () => {
+  const res = await nutritionStore.getNutritionProfile(
+    petKind.value,
+    'adult_maintenance'
+  )
+  if (res.success) {
+    petNutritionProfile.value = res.data;
+
+  } else {
+    console.error('Failed to load nutrition profile:', res.error);
+  }
+};
+
+
+// changing petKind
+const selectPetKind = async (kind) => {
   petKind.value = kind;
-  form.value.kind = kind;
+  // Fetch nutrition profile immediately after selection
+  const result = await nutritionStore.getNutritionProfile(
+    kind,
+    //set adult as default
+    'adult_maintenance'
+  );
+
+  if (result.success) {
+    petNutritionProfile.value = result.data;
+
+  } else {
+    console.error('Failed to load nutrition profile:', result.error);
+  }
 }
+
+const nutrientMaxValues = computed(() => {
+  if (!petNutritionProfile.value) {
+    return null;
+  }
+
+  return {
+    'Protein': petNutritionProfile.value.nutrition.protein,
+    'Fat': petNutritionProfile.value.nutrition.fat,
+    'Iron': petNutritionProfile.value.nutrition.iron,
+    'Zinc': petNutritionProfile.value.nutrition.zinc,
+    'Calcium': petNutritionProfile.value.nutrition.calcium
+  };
+});
 
 onMounted(async () => {
   await nutritionStore.fetchIngredients();
@@ -168,6 +243,8 @@ onMounted(async () => {
     notes.value = result.data.notes || '';
     selectedIngredients.value = result.data.recipe_ingredients || [];
   }
+
+  await computeExistingInformation();
 })
 
 </script>
@@ -176,18 +253,18 @@ onMounted(async () => {
   <div class="add-meal-plan d-flex justify-content-center align-items-center min-vh-100">
     <div class="meal-form container py-5">
       <div class="row justify-content-center">
-        <div class="col-lg-10 col-xl-9">
+        <div class="col-12 col-lg-10 col-xl-9">
           <h1 class="headingFont display-4 fw-semibold mb-5 text-start">Edit Meal Plan</h1>
           <form class="bodyFont" @submit.prevent="handleSubmit">
             <div class="pet-selector mt-4 mb-5">
-              <div class="row justify-content-center mt-3 mb-3">
-                <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
+              <div class="row justify-content-center mt-3 mb-3 g-3">
+                <div class="col-12 col-sm-10 col-md-8 col-lg-6">
                   <div @click="selectPetKind('dog')" class="dog-breed-card"
                     :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
                     <p class="pet-title brandFont text-light display-1">Dog</p>
                   </div>
                 </div>
-                <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
+                <div class="col-12 col-sm-10 col-md-8 col-lg-6">
                   <div @click="selectPetKind('cat')" class="cat-breed-card"
                     :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
                     <p class="pet-title brandFont text-light display-1">Cat</p>
@@ -228,9 +305,9 @@ onMounted(async () => {
 
             <!-- Nutritional Output Card -->
             <!-- protein, carbs, fat, vitamin c, iron -->
-            <NutritionalOutputCard :nutrients="nutrients"></NutritionalOutputCard>
-            <!-- Submit Button -->
-            <Button class="w-100 justify-content-center py-3" label="Save Meal Plan"></Button>
+            <NutritionalOutputCard :nutrients="nutrients" :nutrientMaxValues="nutrientMaxValues">
+            </NutritionalOutputCard> <!-- Submit Button -->
+            <Button class="w-100 justify-content-center py-3 mt-5" label="Save Meal Plan"></Button>
           </form>
         </div>
       </div>

@@ -214,46 +214,56 @@ onMounted(async () => {
   <div class="add-meal-plan d-flex justify-content-center align-items-center min-vh-100">
     <div class="meal-form container py-5">
       <div class="row justify-content-center">
-        <div class="col-lg-10 col-xl-9">
+        <div class="col-12 col-lg-10 col-xl-9">
           <h1 class="headingFont display-4 fw-semibold mb-5 text-start">Create Meal Plan</h1>
           <form class="bodyFont" @submit.prevent="handleSubmit">
+            <!-- Pet Selector -->
             <div class="pet-selector mt-4 mb-5">
-              <div class="row justify-content-center mt-3 mb-3">
-                <div class="col-12 col-sm-6 col-md-6 col-lg-12 col-xl-4">
+              <div class="row justify-content-center mt-3 mb-3 g-3">
+                <div class="col-12 col-sm-10 col-md-8 col-lg-6">
                   <div @click="selectPetKind('dog')" class="dog-breed-card"
-                    :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
+                    :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" 
+                    id="dog-breed-card">
                     <p class="pet-title brandFont text-light display-1">Dog</p>
                   </div>
                 </div>
-                <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
+                <div class="col-12 col-sm-10 col-md-8 col-lg-6">
                   <div @click="selectPetKind('cat')" class="cat-breed-card"
-                    :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
+                    :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" 
+                    id="cat-breed-card">
                     <p class="pet-title brandFont text-light display-1">Cat</p>
                   </div>
                 </div>
               </div>
             </div>
+
+            <!-- Form Fields -->
             <div class="mb-4">
               <label for="mealName" class="form-label headingFont fw-bold h5">Meal Name</label>
               <searchBar id="mealName" type="text" v-model="recipeName" placeholder="Salmon Delight"></searchBar>
             </div>
             <div class="mb-4">
               <label for="mealDescription" class="form-label headingFont fw-bold h5">Meal Description</label>
-              <searchBar class="mt-3 " id="mealDescription" v-model="recipeDescription" type="textarea"
+              <searchBar class="mt-3" id="mealDescription" v-model="recipeDescription" type="textarea"
                 placeholder="A delicious and healthy meal..."></searchBar>
             </div>
             <div class="mb-4">
-              <label for="mealDescription" class="form-label headingFont fw-bold h5">Notes</label>
-              <searchBar class="mt-3 " id="mealDescription" v-model="notes" type="textarea"
-                placeholder="A delicious and healthy meal..."></searchBar>
+              <label for="notes" class="form-label headingFont fw-bold h5">Notes</label>
+              <searchBar class="mt-3" id="notes" v-model="notes" type="textarea"
+                placeholder="Add any notes here..."></searchBar>
             </div>
 
             <!-- Ingredients Section -->
             <div class="mb-4">
               <h5 class="headingFont fw-bold mb-3">Ingredients</h5>
               <div class="ingredient-grid">
-                <IngredientCard v-for="item in selectedIngredients" :key="item.id" :name="item.ingredient.name"
-                  :amount="item.amount" @click="removeIngredient(item.id)" />
+                <IngredientCard 
+                  v-for="item in selectedIngredients" 
+                  :key="item.id" 
+                  :name="item.ingredient.name"
+                  :amount="item.amount" 
+                  @click="removeIngredient(item.id)" 
+                />
 
                 <button class="icon-btn add-btn shadow my-auto mx-auto" @click.prevent="openIngredientModal"
                   type="button">
@@ -264,21 +274,23 @@ onMounted(async () => {
             </div>
 
             <!-- Nutritional Output Card -->
-            <!-- protein, carbs, fat, vitamin c, iron -->
             <NutritionalOutputCard :nutrients="nutrients" :nutrientMaxValues="nutrientMaxValues">
             </NutritionalOutputCard>
+
             <!-- Submit Button -->
-            <Button class="w-100 justify-content-center py-3" label="Create Meal Plan"></Button>
+            <Button class="w-100 justify-content-center py-3 mt-5" label="Create Meal Plan"></Button>
           </form>
         </div>
       </div>
     </div>
+    
     <Teleport to="body">
       <AddIngredientModal class="mb-5" v-model:show="showIngredientModal" @error="console.error"
         :ingredients="ingredients" @addIngredient="addIngredient" />
     </Teleport>
   </div>
 </template>
+
 
 <style scoped>
 .dog-breed-card {

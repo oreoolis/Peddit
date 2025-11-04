@@ -119,12 +119,12 @@ const openDeleteModal = () => {
                         <p>{{ recipeInfo?.notes }}</p>
                     </div>
                     <h3 class="headingFont fw-bold">Ingredients</h3>
-                    <div class="row d-flex justify-content-center">
+                    <div class="row d-flex justify-content-center g-2">
                         <div 
                             v-if="recipeInfo?.recipe_ingredients?.length > 0"
                             v-for="(ingredients, idx) in recipeInfo.recipe_ingredients" 
                             :key="`ingredient-${props.rec_id}-${idx}`"
-                            class="col-12 col-sm-12 col-md-4 col-lg-2 d-flex justify-content-center"
+                            class="col-6 col-sm-4 col-md-3 col-lg-2 d-flex justify-content-center"
                         >
                             <IngredientCard 
                                 v-if="ingredients?.food_ingredients"
@@ -160,6 +160,7 @@ const openDeleteModal = () => {
         </div>
     </div>
 </template>
+
 
 <style scoped>
 .modal-backdrop {
