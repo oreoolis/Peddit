@@ -109,21 +109,21 @@
       <label class="filter-label"><strong>Sort by:</strong></label>
       <div class="btn-group" role="group">
         <Button
-          :class="sortMode === 'rating' ? 'btn-primary' : 'btn-outline-primary'"
-          @click="setSortMode('rating')"
-          label="⭐ Top Rated"
-        />
+              :class="sortMode === 'rating' ? 'btn-primary sort-active' : 'btn-outline-primary'"
+              @click="setSortMode('rating')"
+              label="⭐ Top Rated"
+            />
         <Button
-          class="ms-1"
-          :class="sortMode === 'distance' ? 'btn-primary' : 'btn-outline-primary'"
-          @click="setSortMode('distance')"
-          label="📍 Nearest"
-        />
+              class="ms-1"
+              :class="sortMode === 'distance' ? 'btn-primary sort-active' : 'btn-outline-primary'"
+              @click="setSortMode('distance')"
+              label="📍 Nearest"
+            />
         <Button
-          class="ms-1"
-          :class="sortMode === 'open' ? 'btn-primary' : 'btn-outline-primary'"
-          @click="setSortMode('open')"
-          label="🟢 Open Now"
+              class="ms-1"
+              :class="sortMode === 'open' ? 'btn-primary sort-active' : 'btn-outline-primary'"
+              @click="setSortMode('open')"
+              label="🟢 Open Now"
         />
       </div>
     </div>
