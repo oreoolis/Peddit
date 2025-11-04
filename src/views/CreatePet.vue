@@ -246,10 +246,6 @@ onMounted( async () => {
                   <input name="neutered" type="radio" value="false" id="n_no" v-model="form.neutered" />
                   <span class="name">No</span>
                 </label>
-                <label class="radio">
-                  <input name="neutered" type="radio" value="null" id="n_unknown" v-model="form.neutered" />
-                  <span class="name">Unknown</span>
-                </label>
               </div>
             </div>
 

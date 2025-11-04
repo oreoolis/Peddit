@@ -24,7 +24,7 @@ const handleOpenMealInfo = () => {
 }
 
 const cardStyle = computed(() => ({
-    width: compact.value ? '12rem' : '18rem',
+    width: compact.value ? '10rem' : '18rem',
     height: compact.value ? '16rem' : '27rem'
 }));
 
