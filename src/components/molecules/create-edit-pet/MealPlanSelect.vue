@@ -6,7 +6,7 @@ import searchBar from '@/components/atoms/searchBar.vue';
 const props = defineProps({
   mealOptions: {
     type: Object,
-    default: ''
+    required: true
   },
   defaultLabel: {
     type: String,

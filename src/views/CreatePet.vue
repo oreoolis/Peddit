@@ -42,7 +42,7 @@ const form = ref({
   gender: 'unknown',
   birthdate: '',
   weight_kg: null,
-  neutered: '',
+  neutered: null,
   allergies: '',
   preferred_recipe: null
 });
@@ -239,12 +239,16 @@ onMounted( async () => {
               <label for="" class="form-label headingFont fw-bold h5">Neutered:</label>
               <div class="radio-inputs bodyFont mt-2">
                 <label class="radio">
-                  <input checked name="neutered" type="radio" :value="true" id="n_yes" v-model="form.neutered" />
+                  <input checked name="neutered" type="radio" value="true" id="n_yes" v-model="form.neutered" />
                   <span class="name">Yes</span>
                 </label>
                 <label class="radio">
-                  <input name="neutered" type="radio" :value="false" id="n_no" v-model="form.neutered" />
+                  <input name="neutered" type="radio" value="false" id="n_no" v-model="form.neutered" />
                   <span class="name">No</span>
+                </label>
+                <label class="radio">
+                  <input name="neutered" type="radio" value="null" id="n_unknown" v-model="form.neutered" />
+                  <span class="name">Unknown</span>
                 </label>
               </div>
             </div>

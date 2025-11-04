@@ -14,6 +14,8 @@ import BaseButton from '@/components/atomic/BaseButton.vue';
 import BreedSelectorPanel from '@/components/molecules/health/BreedSelectorPanel.vue';
 import QuickStatsGrid from '@/components/molecules/health/QuickStatsGrid.vue';
 import PetHealthAccordionItem from '@/components/atomic/PetHealthAccordionItem.vue';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
+import { useUserStore } from '@/stores/userStore';
 
 const router = useRouter();
 const petStore = usePetStore();
@@ -83,32 +85,57 @@ const toggleBreedSelector = () => {
 };
 
 const handleFindVet = (payload) => {
-  router.push('/map');
   
-
 };
 
 const handleBreedClick = (breedName) => {
   
 };
 
+const petNutritionStore = usePetNutritionStore();
+const { recipes } = storeToRefs(petNutritionStore);
+
+const userStore = useUserStore();
+const { shoppingList } = storeToRefs(userStore);
+
+// Lifecycle
 onMounted(async () => {
   if (userId.value) {
     await petStore.fetchPets(userId.value);
+    await petNutritionStore.fetchRecipes();
+    await userStore.fetchShoppingList();
   }
 });
 
+// DEMO ADD RECIPE
+const addRecipeToShopList = async () => {
+  const result = await userStore.addUnformattedToShoppingList(recipes.value[0].recipe_ingredients);
 
+  if (result.success) {
+      
+      // The shoppingList.value ref will be updated by the fetchShoppingList call inside the function
+  } else {
+      
+  }
+};
 </script>
 
 <template>
   <div class="health-dashboard">
   <div>
+    <!-- <button @click="addRecipeToShopList">ADD</button>
+    <h1 v-if="shoppingList.length === 0">NOOO</h1>
+    <div v-else>
+      <div v-for="sl in shoppingList">
+        <h1>{{ sl.food_ingredients?.name }}</h1>
+        <h2>{{ sl.quantity_g }}</h2>
+      </div>
+    </div> -->
   </div>
     <div class="container py-4 mx-auto">
       <!-- Header -->
       <BasePageHeader 
-        title="Pet Health Dashboard" 
+        title="Health Dashboard" 
         subtitle="Monitor and manage your pets' health and wellbeing"
         icon="heart-pulse-fill"
         icon-variant="danger"
@@ -186,6 +213,11 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.health-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding-bottom: 2rem;
+}
 
 .pets-accordion {
   display: flex;

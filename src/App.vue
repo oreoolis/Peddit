@@ -57,8 +57,6 @@ watch(authStore.userId, async (userId) => {
   position: relative;
   overflow: hidden;
   z-index: 0;
-  display: flex;
-  flex-direction: column;
 }
 
 /* large slow-pulsing center paw */
@@ -87,54 +85,25 @@ watch(authStore.userId, async (userId) => {
   background-image: url('/src/assets/Main_Logo.png');
   background-repeat: repeat;
   background-size: 220px;
-  opacity: 0.06;
-  /* subtle */
-  transform: translate3d(0, 0, 0);
+  opacity: 0.06; /* subtle */
+  transform: translate3d(0,0,0);
   animation: driftDiag 28s linear infinite;
   pointer-events: none;
   z-index: -99;
 }
 
-@media (max-width: 768px) {
-  .router-view {
-    padding-bottom: 5rem !important; /* Adjust based on NavBarBottom height */
-  }
-}
-
 /* animations */
 @keyframes pulseScale {
-  0% {
-    transform: translateX(-50%) scale(0.98);
-    opacity: 0.06;
-  }
-
-  50% {
-    transform: translateX(-50%) scale(1.04);
-    opacity: 0.09;
-  }
-
-  100% {
-    transform: translateX(-50%) scale(0.98);
-    opacity: 0.06;
-  }
+  0%   { transform: translateX(-50%) scale(0.98); opacity: 0.06; }
+  50%  { transform: translateX(-50%) scale(1.04); opacity: 0.09; }
+  100% { transform: translateX(-50%) scale(0.98); opacity: 0.06; }
 }
 
 /* diagonal drift: moves background-position from top-left to bottom-right */
 @keyframes driftDiag {
-  0% {
-    background-position: 0 0;
-  }
-
-  50% {
-    background-position: 600px 400px;
-  }
-
-  /* mid-way diagonal offset */
-  100% {
-    background-position: 1200px 800px;
-  }
-
-  /* full diagonal travel */
+  0%   { background-position: 0   0; }
+  50%  { background-position: 600px 400px; } /* mid-way diagonal offset */
+  100% { background-position: 1200px 800px; } /* full diagonal travel */
 }
 
 /* reserve space at the bottom of the main router area so fixed bottom navbar doesn't overlap content

@@ -28,7 +28,7 @@ const props = defineProps({
     default: null,
   },
   neutered: {
-    type: [String, Boolean],
+    type: String,
     default: null
   }
 })
