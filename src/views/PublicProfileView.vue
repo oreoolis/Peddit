@@ -97,7 +97,7 @@ const handleFollow = async () => {
 };
 
 const handleTabChange = (tabId) => {
-  console.log('Tab changed to:', tabId);
+  
   // Optionally fetch data for that tab if not already loaded
 };
 
@@ -113,8 +113,7 @@ onMounted(async () => {
         petNutritionStore.fetchRecipes(profile.value.id)
       ]);
 
-      console.log("HERE");
-      console.log(recipes.value);
+
     }
   } else {
     router.push('/');

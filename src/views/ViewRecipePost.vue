@@ -124,14 +124,11 @@ const commentLabel = computed(() => {
 // --- END: "Show More" Logic ---
 
 onMounted(async () => {
-  console.log(props.postId);
+
   if (props.postId) {
-      console.log("sds");
+
       await petNutriStore.fetchRecipePostById(props.postId);
       await commentStore.fetchCommentsByPostID(props.postId);
-      console.log(currentPost.value);
-      console.log('currentPost', currentPost.value);
-      console.log('recipe ingredients', currentPost.value?.recipes?.recipe_ingredients[0].food_ingredients.nutrition);
       // Attempt to determine current user's persisted vote for UI (same logic as ViewPost)
       try {
         const post = currentPost.value;
@@ -198,7 +195,6 @@ const onVote = async (v) => {
   const num = Number(v) || 0;
   const normalized = [-1, 0, 1].includes(num) ? num : 0;
   serverVote.value = normalized;
-  console.log('[VOTE]', serverVote.value); // prints -1, 0 or 1
 
   // Perform vote via postStore (centralized) then refresh recipe post so the UI shows updated score
   await postStore.voteOnPost(currentPost.value.id, user.value.id, serverVote.value);

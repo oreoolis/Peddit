@@ -18,9 +18,11 @@ import MealInfoModal from '@/components/PetViewComponents/MealInfoModal.vue';
 // TODO: Bern code
 const petNutritionStore = usePetNutritionStore();
 const { recipeQuery, recipes } = storeToRefs(petNutritionStore);
+// provide a local `query` binding used by the template's v-model
+const query = recipeQuery;
 
 const featured = computed(() => recipes.value);
-console.log(recipes)
+
 
 // modal state for viewing meal info
 const selectedRecipeId = ref(null);
@@ -49,16 +51,7 @@ const openMealInfo = (payload) => {
 }
 
 function goToSearchResults(submittedValue) {
-  // const term = (typeof submittedValue === 'string' && submittedValue.trim().length)
-  //   ? submittedValue.trim()
-  //   : (query.value ?? '').toString().trim();
 
-  // if (!term) return;
-  // console.log("Clicked");
-  // // keep the composable's query in sync
-  // query.value = term;
-
-  // // run immediate search (populate results)
   // if (typeof searchNow === 'function') searchNow(term);
   recipeQuery.value = submittedValue;
 
@@ -73,9 +66,8 @@ onMounted(async () => {
   try {
     await petNutritionStore.fetchRecipes();
     // debug - shows what the store returned
-    console.log("Fetched recipes:", recipes.value);
   } catch (err) {
-    console.error("Error fetching recipes:", err);
+
   }
 });
 
@@ -99,11 +91,11 @@ onMounted(async () => {
             <div class="carousel-content mx-auto d-flex flex-column flex-md-row align-items-center justify-content-center" :style="{ maxWidth: contentMaxWidth }">
               <!-- LEFT: feature panel -->
               <div class="feature-panel p-5 mb-3  text-center text-md-start">
-                <StatCard :label="f.recipe_name" :unit="f.notes" size="sm" highlight />
+                <StatCard :label="f.recipe_name ?? ''" :value="f.likes ?? 0" :unit="f.notes ?? ''" size="sm" highlight />
                 <div class="mt-3">
-                    <InfoDetail label="Pet Type and Breed" :value="f.pet_kind + ' - ' + f.pet_breed"/>
-                    <InfoDetail label="Price Per Week" :value="'$' + f.price_per_week "/>
-                    <InfoDetail label="Likes" :value="f.likes"/>
+          <InfoDetail label="Pet Type and Breed" :value="(f.pet_kind || '') + (f.pet_breed ? ' - ' + f.pet_breed : '')"/>
+          <InfoDetail label="Price Per Week" :value="typeof f.price_per_week === 'number' ? ('$' + f.price_per_week) : '—'"/>
+          <InfoDetail label="Likes" :value="f.likes ?? 0"/>
                 </div>
                 <p class="text-muted mt-2 fs-5">Created by @{{ f.profiles.display_name }}
                     <base-avatar
@@ -142,7 +134,7 @@ onMounted(async () => {
       ></RecommendedMeals>
       
     <!-- Meal info modal -->
-    <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId" :editable="modalEditable" />
+    <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId ?? '' " :editable="modalEditable" />
    </main>
  </template>
  

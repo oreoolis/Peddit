@@ -91,8 +91,6 @@ const selectPlan = (payload) => {
     // payload might be an object emitted by MealPlanCard or a primitive id
     if (!payload) return;
     const id = (typeof payload === 'object') ? (payload.rec_id ?? payload.id) : payload;
-    // log selection for debugging and verify emitted payloads
-    console.log('[ShareRecipePostModal] meal plan select payload:', payload, 'resolved id:', id, 'previous selected:', selectedPlanId.value);
     selectedPlanId.value = id;
 };
 

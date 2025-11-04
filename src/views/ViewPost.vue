@@ -138,8 +138,7 @@ const onVote = async (v) => {
 
     const num = Number(v) || 0;
     const normalized = [-1, 0, 1].includes(num) ? num : 0;
-    serverVote.value = normalized;
-    console.log('[VOTE]', serverVote.value); // prints -1, 0 or 1
+    serverVote.value = normalized; // prints -1, 0 or 1
 
     await postStore.voteOnPost(currentPost.value.id, user.value.id, serverVote.value);
 };
@@ -162,7 +161,7 @@ const combinedMessage = computed(() => {
   const url = window.location.href;
   return `Check out this link from Peddit!\n\n${url}`;
 });
-console.log(currentPost)
+
 </script>
 
 <template>

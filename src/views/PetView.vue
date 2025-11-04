@@ -65,11 +65,6 @@ onMounted(async () => {
     try {
         // Fetch shopping list
         await userStore.fetchShoppingList();
-        // debug - shows what the store returned
-
-        // TODO: Bern - fully implement shoppingListStore
-        console.log("Fetched shopping list:", shoppingList.value);
-        console.log(recipes.value);
         //await userStore.addMultipleToShoppingList();
     } catch (err) {
         console.error("Error fetching shopping list:", err);
@@ -231,12 +226,21 @@ onMounted(async () => {
         </div>
 
         <ShoppingListModal v-model:show="showShoppingList" />
-        <PetInfoModal v-model:show="showPetInfo" :id="selectedPetData?.id" :name="selectedPetData?.name"
-            :kind="selectedPetData?.kind" :gender="selectedPetData?.gender" :breed="selectedPetData?.breed" :birthday="selectedPetData?.birthday"
-            :weight="selectedPetData?.weight" :allergies="selectedPetData?.allergies"
-            :neutered="selectedPetData?.neutered" :photo_url="selectedPetData?.photo_url"
-            :recipeDetails="selectedPetData?.recipeDetails"
-            @open-meal-info="openMealInfo" />
+        <PetInfoModal
+        v-if="selectedPetData"
+        v-model:show="showPetInfo"
+        :id="selectedPetData?.id " 
+        :name="selectedPetData?.name"
+        :kind="selectedPetData?.kind" 
+        :gender="selectedPetData?.gender" 
+        :breed="selectedPetData?.breed" 
+        :birthday="selectedPetData?.birthday"
+        :weight="selectedPetData?.weight" 
+        :allergies="selectedPetData?.allergies"
+        :neutered="selectedPetData?.neutered" 
+        :photo_url="selectedPetData?.photo_url"
+        :recipeDetails="selectedPetData?.recipeDetails"
+        @open-meal-info="openMealInfo" />
     <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId" :editable="modalEditable" />
 
     </div>

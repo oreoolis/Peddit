@@ -20,7 +20,6 @@ const { user } = storeToRefs(authStore);
 const { profile, avatarUrl } = storeToRefs(userStore);
 
 const isLoggedIn = computed(() => !!user.value);
-console.log(isLoggedIn.value);
 
 const navItems = computed(()=>{
     let items = [

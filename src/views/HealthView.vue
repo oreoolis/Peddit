@@ -85,11 +85,11 @@ const toggleBreedSelector = () => {
 };
 
 const handleFindVet = (payload) => {
-  console.log('Finding vet for:', payload);
+  
 };
 
 const handleBreedClick = (breedName) => {
-  console.log('Breed clicked:', breedName);
+  
 };
 
 const petNutritionStore = usePetNutritionStore();
@@ -112,10 +112,10 @@ const addRecipeToShopList = async () => {
   const result = await userStore.addUnformattedToShoppingList(recipes.value[0].recipe_ingredients);
 
   if (result.success) {
-      console.log('Ingredients added successfully!');
+      
       // The shoppingList.value ref will be updated by the fetchShoppingList call inside the function
   } else {
-      console.error('Failed to add ingredients:', result.error);
+      
   }
 };
 </script>

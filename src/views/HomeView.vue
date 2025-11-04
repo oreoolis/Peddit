@@ -161,7 +161,7 @@ function aggregateNutritionFromRecipe(recipe) {
   return totals; // shape: { fat: {unit:'g', value: 1.23}, iron: {unit:'mg', value: 0.7}, ... }
 }
 
-console.log(latestPosts);
+
 </script>
 
 <template>

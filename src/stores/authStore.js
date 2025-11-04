@@ -53,7 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
             if (!authSubscription) {
                 const { data: { subscription } } = supabase.auth.onAuthStateChange(
                     async (event, newSession) => {
-                        console.log('Auth event:', event);
+                        
 
                         const previousUserId = user.value?.id;
 
@@ -79,7 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
                                 break;
 
                             default:
-                                console.log('Unhandled');
+                                
                                 break;
                         }
 

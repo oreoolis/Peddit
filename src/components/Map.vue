@@ -544,7 +544,7 @@ function toggleFavorite(place) {
   localStorage.setItem('petStoreFavorites', JSON.stringify(favorites.value))
   
   // TODO: Later you can also save to backend/user profile
-  console.log('Favorites:', favorites.value)
+
 }
 
 // Watch for changes in filtered places and update markers
