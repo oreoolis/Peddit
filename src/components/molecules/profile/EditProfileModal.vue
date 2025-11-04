@@ -12,6 +12,7 @@ const emit = defineEmits(['update:show', 'save']);
 const form = reactive({ display_name: '', bio: '' });
 const saving = ref(false);
 const error = ref('');
+let saveTimer = null;
 
 watch(() => props.show, (v) => {
   if (v) {
@@ -30,7 +31,16 @@ const save = async () => {
   try {
     error.value = '';
     saving.value = true;
-    // emit values up; parent will call store and handle errors
+    
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      if (saving.value) {
+        error.value = 'Saving is taking longer than expected. Please try again.';
+        saving.value = false;
+      }
+    }, 10000);
+
+    // emit values up; parent will call store and handle via callbacks
     emit('save', { display_name: form.display_name?.trim() || null, bio: form.bio?.trim() || null }, done, fail);
   } catch (e) {
     error.value = e?.message || 'Failed to save';
@@ -40,10 +50,12 @@ const save = async () => {
 
 // parent callbacks to conclude modal state
 const done = () => {
+  clearTimeout(saveTimer);
   saving.value = false;
   emit('update:show', false);
 };
 const fail = (msg) => {
+  clearTimeout(saveTimer);
   saving.value = false;
   error.value = msg || 'Failed to save';
 };
@@ -128,4 +140,3 @@ const fail = (msg) => {
   border-top: 1px solid #f2f2f3;
 }
 </style>
-

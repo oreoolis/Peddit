@@ -33,13 +33,14 @@ const displayText = computed(() => {
 <style scoped>
 .profile-bio {
   margin: 8px 0 4px;
+  padding: 10px 0 14px; 
 }
 
 .bio-text {
   margin: 0;
   color: #3f3f46;
   font-size: 0.95rem;
-  line-height: 1.5;
+  line-height: 1.6; 
 }
 
 .empty .bio-text {
@@ -47,4 +48,3 @@ const displayText = computed(() => {
   font-style: italic;
 }
 </style>
-

@@ -75,9 +75,14 @@ const handleImageUpload = async (file) => {
   }
 };
 
-const handleSaveProfile = async (profile) => {
-  const { success, data } = await userStore.updateProfile({ ...profile });
+const handleSaveProfile = async (profile, done, fail) => {
+  const { success, data, error } = await userStore.updateProfile({ ...profile });
+  if(error){
+    fail(error.message);
+    return;
+  }
   console.log(success + ": " + data);
+  done();
 };
 
 // Lifecycle
