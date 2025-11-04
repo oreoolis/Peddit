@@ -4,12 +4,17 @@
       <div class="row justify-content-center">
         <div class="col-12 col-md-10 col-lg-8">
           <div class="profile-top">
-            <ProfileAvatar :avatar-url="avatarUrl" :alt="`${username}'s avatar`" size="lg" />
+            <div class="avatar-wrapper">
+              <ProfileAvatar :avatar-url="avatarUrl" :alt="`${username}'s avatar`" size="lg" />
+              <div class="avatar-action"><slot name="avatarAction"></slot></div>
+            </div>
             
             <div class="profile-info">
               <h1 class="profile-username">@{{ username }}</h1>
               
               <ProfileStatsRow :stats="stats" />
+
+              <div class="profile-bio-slot"><slot name="bio"></slot></div>
               
               <div class="action-buttons">
                 <slot name="actions"></slot>
@@ -68,6 +73,9 @@ defineProps({
   align-items: center;
   gap: 20px;
 }
+
+.avatar-wrapper { position: relative; }
+.avatar-action { position: absolute; bottom: 0; right: 0; transform: translate(10%, 10%); }
 
 .profile-info {
   text-align: center;

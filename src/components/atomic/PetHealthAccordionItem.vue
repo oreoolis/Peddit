@@ -1,24 +1,3 @@
-<template>
-  <div class="pet-health-accordion-item mb-3">
-    <div class="accordion-card">
-      <PetHealthHeader
-        :pet="pet"
-        :is-expanded="isExpanded"
-        :avatar-size="responsiveAvatarSize"
-        @toggle="toggleExpanded"
-      />
-      
-      <Transition name="accordion">
-        <PetHealthDetails
-          v-if="isExpanded"
-          :pet="pet"
-          :health-threshold="healthThreshold"
-          @find-vet="handleFindVet"
-        />
-      </Transition>
-    </div>
-  </div>
-</template>
 
 <script setup>
 import { ref, computed } from 'vue';
@@ -33,7 +12,7 @@ const props = defineProps({
   },
   healthThreshold: {
     type: Number,
-    default: 60
+    default: 80
   }
 });
 
@@ -56,6 +35,28 @@ const handleFindVet = (payload) => {
   emit('find-vet', payload);
 };
 </script>
+
+<template>
+  <div class="pet-health-accordion-item mb-3">
+    <div class="accordion-card">
+      <PetHealthHeader
+        :pet="pet"
+        :is-expanded="isExpanded"
+        :avatar-size="responsiveAvatarSize"
+        @toggle="toggleExpanded"
+      />
+      
+      <Transition name="accordion">
+        <PetHealthDetails
+          v-if="isExpanded"
+          :pet="pet"
+          :health-threshold="healthThreshold"
+          @find-vet="handleFindVet"
+        />
+      </Transition>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .pet-health-accordion-item {
