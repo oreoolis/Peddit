@@ -102,6 +102,9 @@ onMounted(async () => {
     try {
         // Fetch shopping list
         await userStore.fetchShoppingList();
+
+        console.log("Fetched shopping list:", shoppingList.value);
+        console.log("Recipes: ", recipes.value);
         //await userStore.addMultipleToShoppingList();
     } catch (err) {
         console.error("Error fetching shopping list:", err);
@@ -259,7 +262,7 @@ onMounted(async () => {
                         <!-- Recipe Cards Grid -->
                         <div v-else class="row g-4">
                             <div v-for="recipe in nutritionStore?.recipes" :key="recipe.id"
-                                class="col-6 col-lg-6 col-sm-12 col-md-6 mx-auto d-flex justify-content-center">
+                                class="col-auto d-flex justify-content-center">
                                 <div style="width: 100%; max-width: 340px;">
                                     <MealPlanCard :rec_id="recipe?.id" :name="recipe?.recipe_name"
                                         :desc="recipe?.description" :petKind="recipe?.pet_kind"
@@ -272,28 +275,18 @@ onMounted(async () => {
             </div>
         </div>
 
-        <ShoppingListModal v-model:show="showShoppingList" />
-        <PetInfoModal
-        v-if="selectedPetData"
-        v-model:show="showPetInfo"
-        :id="selectedPetData?.id " 
-        :name="selectedPetData?.name"
-        :kind="selectedPetData?.kind" 
-        :gender="selectedPetData?.gender" 
-        :breed="selectedPetData?.breed" 
-        :birthday="selectedPetData?.birthday"
-        :weight="selectedPetData?.weight" 
-        :allergies="selectedPetData?.allergies"
-        :neutered="selectedPetData?.neutered" 
-        :photo_url="selectedPetData?.photo_url"
-        :recipeDetails="selectedPetData?.recipeDetails"
-        @open-meal-info="openMealInfo" />
+        <!-- <ShoppingListModal v-model:show="showShoppingList" /> -->
+        <PetInfoModal v-model:show="showPetInfo" :id="selectedPetData?.id" :name="selectedPetData?.name"
+            :kind="selectedPetData?.kind" :gender="selectedPetData?.gender" :breed="selectedPetData?.breed"
+            :birthday="selectedPetData?.birthday" :weight="selectedPetData?.weight"
+            :allergies="selectedPetData?.allergies" :neutered="selectedPetData?.neutered"
+            :photo_url="selectedPetData?.photo_url" :recipeDetails="selectedPetData?.recipeDetails"
+            @open-meal-info="openMealInfo" @delete-item-modal="openDeleteModal" />
         <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId" :editable="modalEditable"
             @delete-recipe-modal="openRecipeDeleteModal" />
         <DeletePetModal v-model:show="showDeleteModal" :name="selectedItemInfo?.name" :id="selectedItemInfo?.id" />
         <DeleteRecipeModal v-model:show="showRecipeDeleteModal" :name="selectedRecipeInfo?.name"
             :id="selectedRecipeInfo?.id" />
-
     </div>
 </template>
 
