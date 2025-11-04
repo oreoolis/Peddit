@@ -687,4 +687,33 @@ watch(filteredPlaces, () => {
   opacity: 0.8;
 }
 
+.map-page {
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.map-page h1 {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 700; /* Changed from 600 to 700 for bolder */
+  font-size: 2.5rem; /* Make it larger */
+  letter-spacing: -1px; /* Tighter letter spacing */
+  color: #000; /* Pure black */
+}
+
+/* Make labels bolder */
+.controls-container label strong {
+  font-weight: 700;
+}
+
+/* Card improvements */
+.card-title {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 700; /* Bolder */
+  font-size: 1.1rem;
+  color: #000;
+}
+
+.card-text {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
 </style>
