@@ -34,26 +34,28 @@
         <label class="mb-2"><strong>Place Types:</strong></label>
         <div class="category-pills">
           <ButtonTogglable
-            :initialState="selectedCategories.petStores"
-            labelOFF="Pet Stores"
-            labelON="Pet Stores"
-            colorOFF="secondary"
-            colorON="primary"
-            iconLinkON="bi-basket-fill"
-            iconLinkOFF="bi-basket"
-            @toggle="(v) => (selectedCategories.petStores = v, searchPlaces())"
-          />
+          :key="`petstore-${selectedCategories.petStores}`"
+          :initialState="selectedCategories.petStores"
+          labelOFF="Pet Stores"
+          labelON="Pet Stores"
+          colorOFF="secondary"
+          colorON="primary"
+          iconLinkON="bi-basket-fill"
+          iconLinkOFF="bi-basket"
+          @toggle="(v) => (selectedCategories.petStores = v, searchPlaces())"
+        />
 
-          <ButtonTogglable
-            :initialState="selectedCategories.vetClinics"
-            labelOFF="Vet Clinics"
-            labelON="Vet Clinics"
-            colorOFF="secondary"
-            colorON="danger"
-            iconLinkON="bi-hospital-fill"
-            iconLinkOFF="bi-hospital"            
-            @toggle="(v) => (selectedCategories.vetClinics = v, searchPlaces())"
-          />
+        <ButtonTogglable
+          :key="`vetclinic-${selectedCategories.vetClinics}`"
+          :initialState="selectedCategories.vetClinics"
+          labelOFF="Vet Clinics"
+          labelON="Vet Clinics"
+          colorOFF="secondary"
+          colorON="danger"
+          iconLinkON="bi-hospital-fill"
+          iconLinkOFF="bi-hospital"            
+          @toggle="(v) => (selectedCategories.vetClinics = v, searchPlaces())"
+        />
         </div>
       </div>
 
@@ -209,8 +211,10 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import Button from './atoms/button.vue'
 import ButtonTogglable from './atoms/buttonTogglable.vue'
+const route = useRoute()
 const searchInput = ref(null)
 const searchLocation = ref('')
 const selectedCategories = ref({
@@ -248,6 +252,18 @@ const filteredPlaces = computed(() => {
   return sorted.slice(0, resultsLimit.value)
 })
 
+watch(() => route.query.type, (newType) => {
+  if (newType === 'petstore') {
+    selectedCategories.value.petStores = true
+    selectedCategories.value.vetClinics = false
+    searchPlaces()
+  } else if (newType === 'clinic' || newType === 'vetclinic') {
+    selectedCategories.value.petStores = false
+    selectedCategories.value.vetClinics = true
+    searchPlaces()
+  }
+}, { immediate: false })
+
 let map = null
 let service = null
 let infowindow = null
@@ -263,6 +279,8 @@ onMounted(() => {
   if (savedFavorites) {
     favorites.value = JSON.parse(savedFavorites)
   }
+
+  initializeCategoriesFromQuery()
 
   const script = document.createElement('script')
   script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places,geometry`
@@ -298,6 +316,18 @@ onMounted(() => {
     getCurrentLocation()
   }
 })
+function initializeCategoriesFromQuery() {
+  const type = route.query.type
+  
+  if (type === 'petstore') {
+    selectedCategories.value.petStores = true
+    selectedCategories.value.vetClinics = false
+  } else if (type === 'clinic' || type === 'vetclinic') {
+    selectedCategories.value.petStores = false
+    selectedCategories.value.vetClinics = true
+  }
+  // If no query param or invalid, keep default (both true)
+}
 
 function initializeMap() {
   map = new google.maps.Map(document.getElementById("map"), {
