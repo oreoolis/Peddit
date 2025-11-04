@@ -5,6 +5,7 @@ import StatCard from './StatCard.vue';
 import InfoDetail from './InfoDetail.vue';
 import HealthProgressBar from './HealthProgressBar.vue';
 import BaseButton from './BaseButton.vue';
+import NutritionTargets from './NutritionTargets.vue';
 
 const props = defineProps({
   pet: {
@@ -87,15 +88,7 @@ const handleFindVet = () => {
             variant="primary"
           />
         </div>
-        <div class="col-6 col-md-3">
-          <StatCard
-            label="Body Score"
-            :value="pet.body_condition_scale || 'N/A'"
-            unit="/9"
-            size="sm"
-            variant="success"
-          />
-        </div>
+        
         <div class="col-6 col-md-3">
           <StatCard
             label="Neutered"
@@ -123,6 +116,11 @@ const handleFindVet = () => {
           />
         </div>
       </div>
+    </div>
+
+    <!-- Nutrition Targets -->
+    <div class="mb-4">
+      <NutritionTargets :pet="pet" />
     </div>
 
     <!-- Health Status Section -->
