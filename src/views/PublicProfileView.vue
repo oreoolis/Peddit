@@ -6,6 +6,7 @@ import personImage from '../assets/person.jpg';
 import ProfileHeaderSection from '@/components/Organisms/profile/ProfileHeaderSection.vue';
 import ProfileContentTabs from '@/components/Organisms/profile/ProfileContentTabs.vue';
 import BaseButton from '@/components/atomic/BaseButton.vue';
+import ProfileBio from '@/components/atoms/profile/ProfileBio.vue';
 
 // Stores
 import { storeToRefs } from 'pinia';
@@ -150,6 +151,9 @@ watch([user, profile], async ([newUser, newProfile]) => {
         :message="actionMessage"
         :message-type="actionMessageType"
       >
+        <template #bio>
+          <ProfileBio :bio="profile?.bio" />
+        </template>
         <template #actions>
           <BaseButton 
             v-if="showFollowButton" 

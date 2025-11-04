@@ -1,13 +1,14 @@
 <template>
   <div class="stats-row">
-    <ProfileStatItem 
-      v-for="(stat, index) in stats" 
-      :key="stat.label"
-      :value="stat.value"
-      :label="stat.label"
-    />
-    <div v-if="index < stats.length - 1" class="stat-divider" :key="`divider-${index}`"></div>
+    <template v-for="(stat, index) in stats" :key="`stat-${index}`">
+      <ProfileStatItem 
+        :value="stat.value"
+        :label="stat.label"
+      />
+      <div v-if="index < stats.length - 1" class="stat-divider"></div>
+    </template>
   </div>
+  
 </template>
 
 <script setup>
