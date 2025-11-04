@@ -1,88 +1,3 @@
-<template>
-  <Transition name="slide-fade">
-    <div v-if="show" class="breed-selector-panel">
-      <div class="panel-header">
-        <h3 class="panel-title">
-          <BaseIcon name="list-ul" size="lg" class="me-2" />
-          Browse Pet Breeds
-        </h3>
-        <p class="panel-description">Explore different breeds to learn more</p>
-      </div>
-
-      <div class="panel-body">
-        <!-- Pet Kind Selector -->
-        <div class="kind-selector mb-4">
-          <label class="form-label fw-semibold">Select Pet Type:</label>
-          <div class="btn-group w-100" role="group">
-            <input 
-              type="radio" 
-              class="btn-check" 
-              name="petKind" 
-              id="kindCat" 
-              value="cat"
-              v-model="localPetKind"
-            >
-            <label class="btn btn-outline-primary" for="kindCat">
-              <BaseIcon name="heart-fill" size="sm" class="me-2" />
-              Cat
-            </label>
-
-            <input 
-              type="radio" 
-              class="btn-check" 
-              name="petKind" 
-              id="kindDog" 
-              value="dog"
-              v-model="localPetKind"
-            >
-            <label class="btn btn-outline-primary" for="kindDog">
-              <BaseIcon name="heart-fill" size="sm" class="me-2" />
-              Dog
-            </label>
-          </div>
-        </div>
-
-        <!-- Loading State -->
-        <div v-if="loading" class="breed-list-loading">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading breeds...</span>
-          </div>
-          <p class="mt-3 text-muted">Loading {{ localPetKind }} breeds...</p>
-        </div>
-
-        <!-- Error State -->
-        <div v-else-if="error" class="alert alert-danger" role="alert">
-          <BaseIcon name="exclamation-triangle-fill" size="sm" class="me-2" />
-          <strong>Error:</strong> {{ error }}
-        </div>
-
-        <!-- Breeds List -->
-        <div v-else-if="breeds && breeds.length > 0" class="breed-list-container">
-          <input 
-            v-model="searchQuery"
-            placeholder="Search for a breed..."
-            type="text"
-            class="form-control mb-3"
-          >
-          <div class="breed-list-header">
-            <h5 class="mb-0">
-              {{ filteredBreeds.length }} {{ localPetKind.charAt(0).toUpperCase() + localPetKind.slice(1) }} Breeds
-            </h5>
-          </div>
-          <div class="breed-grid">
-            <BreedCard 
-              v-for="breed in filteredBreeds" 
-              :key="breed"
-              :breed-name="breed"
-              @click="handleBreedClick"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </Transition>
-</template>
-
 <script setup>
 import { ref, computed, watch } from 'vue';
 import BaseIcon from '../../atomic/BaseIcon.vue';
@@ -137,6 +52,91 @@ watch(() => props.petKind, () => {
 });
 </script>
 
+<template>
+  <Transition name="slide-fade">
+    <div v-if="show" class="breed-selector-panel">
+      <div class="panel-header bg-primary text-white">
+        <h3 class="panel-title">
+          <BaseIcon name="list-ul" size="lg" class="me-2" variant="light" />
+          Browse Pet Breeds
+        </h3>
+        <p class="panel-description">Find a pet breed!</p>
+      </div>
+
+      <div class="panel-body">
+        <!-- Pet Kind Selector -->
+        <div class="kind-selector mb-4">
+          <label class="form-label fw-semibold">Select Pet Type:</label>
+          <div class="btn-group w-100" role="group">
+            <input 
+              type="radio" 
+              class="btn-check" 
+              name="petKind" 
+              id="kindCat" 
+              value="cat"
+              v-model="localPetKind"
+            >
+            <label class="btn btn-outline-primary" for="kindCat">
+              <BaseIcon name="heart-fill" size="sm" class="me-2" variant="danger"/>
+              Cat
+            </label>
+
+            <input 
+              type="radio" 
+              class="btn-check" 
+              name="petKind" 
+              id="kindDog" 
+              value="dog"
+              v-model="localPetKind"
+            >
+            <label class="btn btn-outline-primary" for="kindDog">
+              <BaseIcon name="heart-fill" size="sm" class="me-2" variant="danger"/>
+              Dog
+            </label>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="loading" class="breed-list-loading">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading breeds...</span>
+          </div>
+          <p class="mt-3 text-muted">Loading {{ localPetKind }} breeds...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="alert alert-danger" role="alert">
+          <BaseIcon name="exclamation-triangle-fill" size="sm" class="me-2" />
+          <strong>Error:</strong> {{ error }}
+        </div>
+
+        <!-- Breeds List -->
+        <div v-else-if="breeds && breeds.length > 0" class="breed-list-container">
+          <input 
+            v-model="searchQuery"
+            placeholder="Search for a breed..."
+            type="text"
+            class="form-control mb-3"
+          >
+          <div class="breed-list-header">
+            <h5 class="mb-0">
+              {{ filteredBreeds.length }} {{ localPetKind.charAt(0).toUpperCase() + localPetKind.slice(1) }} Breeds
+            </h5>
+          </div>
+          <div class="breed-grid">
+            <BreedCard 
+              v-for="breed in filteredBreeds" 
+              :key="breed"
+              :breed-name="breed"
+              @click="handleBreedClick"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </Transition>
+</template>
+
 <style scoped>
 .breed-selector-panel {
   background: white;
@@ -146,8 +146,6 @@ watch(() => props.petKind, () => {
 }
 
 .panel-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
   padding: 2rem;
   text-align: center;
 }
