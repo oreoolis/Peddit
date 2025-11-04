@@ -14,51 +14,64 @@ const router = useRouter();
 const props = defineProps({
     id: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     name: {
         type: String,
-        required: true
+        required: true,
+        default: ''
+        
     },
     kind: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     gender: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     breed: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     birthday: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     weight: {
-        type: Number,
-        required: true
+        type: [Number, String],
+        required: true,
+        default: ''
     },
     allergies: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     neutered: {
-        type: String,
-        required: true
+        type: Boolean,
+        required: true,
+        default: ''
     },
     photo_url: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     recipeDetails: {
-        type: Object,
-        required: false
+        type: [Object, String],
+        required: false,
+        default: ''
     },
     show: {
         type: Boolean,
-        default: false
+        default: false,
+        default: ''
     }
 });
 
@@ -119,10 +132,10 @@ const closeModal = () => {
                         <h2 class="headingFont fw-semibold">Preferred Meal</h2>
                         <div class="row d-flex justify-content-center">
                             <div v-if="props.recipeDetails" class="col-lg-5 mt-5">
-                                <MealPlanCard :rec_id="props.recipeDetails.id" 
-                                :name="props.recipeDetails.recipe_name" 
-                                :desc="props.recipeDetails.description"
-                                :petKind="props.recipeDetails.pet_kind ?? props.kind"
+                                <MealPlanCard :rec_id="props.recipeDetails?.id" 
+                                :name="props.recipeDetails?.recipe_name" 
+                                :desc="props.recipeDetails?.description"
+                                :petKind="props.recipeDetails?.pet_kind ?? props.kind"
                                 @open-meal-info="handleOpenMealInfo"
                                 :editable="false"/>
                             </div>

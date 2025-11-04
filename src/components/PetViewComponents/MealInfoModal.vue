@@ -18,7 +18,7 @@ const router = useRouter();
 const props = defineProps({
     rec_id: {
         type: String,
-        required: true
+        default: ''
     },
     show: {
         type: Boolean,

@@ -10,7 +10,7 @@ defineProps({
         required: true
     },
     nutrition: {
-        type: String,
+        type: [String, Object],
         required: true
     },
     image: {
@@ -18,7 +18,7 @@ defineProps({
         default: '/src/assets/Sprite/Food/Set3-Meat/13.png'
     },
     amount: {
-        type: String,
+        type: [String, Number],
         required: true
     }
 });
