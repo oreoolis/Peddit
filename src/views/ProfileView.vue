@@ -75,6 +75,11 @@ const handleImageUpload = async (file) => {
   }
 };
 
+const handleSaveProfile = async (profile) => {
+  const { success, data } = await userStore.updateProfile({ ...profile });
+  console.log(success + ": " + data);
+};
+
 // Lifecycle
 onMounted(async () => {
   // Ensure auth is initialised and profile loaded

@@ -1,50 +1,3 @@
-<template>
-  <div v-if="show" class="modal-backdrop" @click="close">
-    <div class="modal-content bg-white" @click.stop>
-      <div class="modal-header d-flex">
-        <h5 class="modal-title primary">Edit Profile</h5>
-        <button type="button" class="btn-close ms-auto" @click="close"></button>
-      </div>
-
-      <div class="modal-body">
-        <div class="mb-3">
-          <label class="form-label">Display name</label>
-          <input
-            v-model="form.display_name"
-            type="text"
-            class="form-control"
-            :maxlength="50"
-            placeholder="Your display name"
-          />
-          <div class="form-text">Shown on your profile (@username stays the same)</div>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Bio</label>
-          <textarea
-            v-model="form.bio"
-            class="form-control"
-            rows="4"
-            :maxlength="280"
-            placeholder="Tell people about you and your pets…"
-          />
-          <div class="form-text">Max 280 characters</div>
-        </div>
-
-        <div v-if="error" class="alert alert-danger">{{ error }}</div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-secondary" @click="close" :disabled="saving">Cancel</button>
-        <button class="btn bg-primary white" @click="save" :disabled="saving">
-          <span v-if="saving" class="spinner-border spinner-border-sm me-2"></span>
-          Save changes
-        </button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { reactive, watch, ref } from 'vue';
 
@@ -95,6 +48,53 @@ const fail = (msg) => {
   error.value = msg || 'Failed to save';
 };
 </script>
+
+<template>
+  <div v-if="show" class="modal-backdrop" @click="close">
+    <div class="modal-content bg-white" @click.stop>
+      <div class="modal-header d-flex">
+        <h5 class="modal-title primary">Edit Profile</h5>
+        <button type="button" class="btn-close ms-auto" @click="close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Display name</label>
+          <input
+            v-model="form.display_name"
+            type="text"
+            class="form-control"
+            :maxlength="50"
+            placeholder="Your display name"
+          />
+          <div class="form-text">Shown on your profile</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Bio</label>
+          <textarea
+            v-model="form.bio"
+            class="form-control"
+            rows="4"
+            :maxlength="280"
+            placeholder="Tell people about you and your pets…"
+          />
+          <div class="form-text">Max 280 characters</div>
+        </div>
+
+        <div v-if="error" class="alert alert-danger">{{ error }}</div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn bg-primary white" @click="save" :disabled="saving">
+          <span v-if="saving" class="spinner-border spinner-border-sm me-2"></span>
+          Save changes
+        </button>
+        <button class="btn btn-secondary" @click="close" :disabled="saving">Cancel</button>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .modal-backdrop {
