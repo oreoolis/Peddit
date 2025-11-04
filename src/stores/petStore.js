@@ -351,12 +351,8 @@ export const usePetStore = defineStore('pets', () => {
             if (supabaseError) throw supabaseError;
 
             pets.value = (data ?? []).map(row => ({
-                pet_id: row.pet_id,
-                owner_id: row.owner_id,
-                name: row.name,
-                kind: row.kind,
-                birthdate: row.birthdate,
-                computed_life_stage: row.computed_life_stage,
+                ...row,
+                id: row.id ?? row.pet_id,
                 profile: row.profile_id
                     ? {
                         id: row.profile_id,

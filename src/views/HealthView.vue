@@ -94,6 +94,7 @@ const handleBreedClick = (breedName) => {
 onMounted(async () => {
   if (userId.value) {
     await petStore.fetchPetsWithProfiles(userId.value);
+    //await petStore.fetchPetsWithProfiles(userId.value);
     console.log(pets);
   }
 });
