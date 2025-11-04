@@ -6,66 +6,76 @@ import PetInfoCard from '../molecules/PetInfoCard.vue';
 import buttonTogglable from '../atoms/buttonTogglable.vue';
 import { usePetStore } from '@/stores/petStore';
 import { useRouter } from 'vue-router';
-import { usePetNutritionStore } from '@/stores/petNutritionStore';
 
 const petStore = usePetStore();
-// const nutritionStore = usePetNutritionStore();
 const router = useRouter();
 
-const recipeInfo = ref({});
 
 const props = defineProps({
     id: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     name: {
         type: String,
-        required: true
+        required: true,
+        default: ''
+        
     },
     kind: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     gender: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     breed: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     birthday: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     weight: {
-        type: Number,
-        required: true
+        type: [Number, String],
+        required: true,
+        default: ''
     },
     allergies: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     neutered: {
-        type: String,
-        required: true
+        type: Boolean,
+        required: true,
+        default: ''
     },
     photo_url: {
         type: String,
-        required: true
+        required: true,
+        default: ''
     },
     recipeDetails: {
-        type: Object,
-        required: false
+        type: [Object, String],
+        required: false,
+        default: ''
     },
     show: {
         type: Boolean,
-        default: false
+        default: false,
+        default: ''
     }
 });
 
-const emit = defineEmits(['update:show', 'uploaded', 'error', 'click', 'open-meal-info']);
+const emit = defineEmits(['update:show', 'click', 'open-meal-info', 'delete-item-modal']);
 const handleOpenMealInfo = (payload) => {
     // If child MealPlanCard forwards a payload, re-emit it so parents can respect editable flags.
     if (payload && typeof payload === 'object') {
@@ -78,7 +88,6 @@ const handleOpenMealInfo = (payload) => {
         rec_id: props.recipeDetails?.id
     });
 }
-const view = ref(false);
 
 const editPet = () => {
     router.push({
@@ -88,21 +97,15 @@ const editPet = () => {
 }
 
 
-const deletePet = async () => {
-    if (confirm("You are going to delete " + props.name + ". Are you sure?")) {
-        try {
-            const res = await petStore.deletePet(props.id);
-            if (!res.success) {
-                throw new Error(res.error);
-            }
-            alert(props.name + " has been successfully deleted.") // change to parent toast - QoL
-            router.push('/pet');
-        } catch (error) {
-            alert("Error deleting " + props.name + ". Please try again.");
-        }
-    }
+const openDeleteModal = () => {
+    emit('delete-item-modal', {
+        id: props.id, 
+        name: props.name
+    });
+    closeModal();
 }
 
+const view = ref(false);
 const closeModal = () => {
     if (!view.value) {
         emit('update:show', false);
@@ -136,10 +139,10 @@ const closeModal = () => {
                         <h2 class="headingFont fw-semibold">Preferred Meal</h2>
                         <div class="row d-flex justify-content-center">
                             <div v-if="props.recipeDetails" class="col-12 col-lg-6 mt-3 mt-md-5">
-                                <MealPlanCard :rec_id="props.recipeDetails.id" 
-                                :name="props.recipeDetails.recipe_name" 
-                                :desc="props.recipeDetails.description"
-                                :petKind="props.recipeDetails.pet_kind ?? props.kind"
+                                <MealPlanCard :rec_id="props.recipeDetails?.id" 
+                                :name="props.recipeDetails?.recipe_name" 
+                                :desc="props.recipeDetails?.description"
+                                :petKind="props.recipeDetails?.pet_kind ?? props.kind"
                                 @open-meal-info="handleOpenMealInfo"
                                 :editable="false"/>
                             </div>
@@ -151,7 +154,7 @@ const closeModal = () => {
                     <buttonTogglable class="px-4 mx-1" iconLinkON="bi-pen-fill" labelON="Editing..." colorON="primary"
                         iconLinkOFF="bi-pen" labelOFF="Edit" colorOFF="primary" @click="editPet"></buttonTogglable>
 
-                    <Button label="Delete" class="px-4" color="danger" type="button" @click="deletePet">
+                    <Button label="Delete" class="px-4" color="danger" type="button" @click="openDeleteModal">
                         <i class="bi bi-trash3 mx-1"></i>
                     </Button>
                 </div>
