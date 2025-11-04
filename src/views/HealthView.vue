@@ -108,7 +108,7 @@ onMounted(async () => {
     <div class="container py-4 mx-auto">
       <!-- Header -->
       <BasePageHeader 
-        title="Health Dashboard" 
+        title="Pet Health Dashboard" 
         subtitle="Monitor and manage your pets' health and wellbeing"
         icon="heart-pulse-fill"
         icon-variant="danger"
