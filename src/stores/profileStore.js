@@ -109,7 +109,6 @@ export const useProfileStore = defineStore('profile', () => {
 
             profiles.value = transformedProfs || [];
 
-            console.log(profiles.value);
             
             return { success: true, data };
         } catch (err) {

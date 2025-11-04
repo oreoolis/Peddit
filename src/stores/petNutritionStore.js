@@ -80,8 +80,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
    * Life stages: 'adult_maintenance', 'growth_and_reproduction'
    */
   const getNutritionProfile = async (kind, lifeStage) => {
-    console.log(kind);
-    console.log(lifeStage);
+
     loading.value = true;
     error.value = null;
     try {
@@ -383,7 +382,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
 
       // Parse nutrition to json
 
-      console.log(transformedPosts);
+  
 
       recipePosts.value = transformedPosts;
     } catch (error) {

@@ -113,7 +113,7 @@ const resetForm = () => {
         gender: 'unknown',
         birthdate: '',
         weight_kg: null,
-        neutered: null,
+        neutered: true,
         allergies: ''
     }
     if (imagePreview.value) {
@@ -256,7 +256,7 @@ onMounted(async () => {
                         </div>
                         <div class="mb-3">
                             <label class="form-label headingFont fw-bold h5">Selected Meal</label>
-                            <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes"
+                            <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes "
                                 :isSearchable="true" v-model="form.preferred_recipe" />
                         </div>
 
@@ -264,12 +264,12 @@ onMounted(async () => {
                             <label for="" class="form-label headingFont fw-bold h5">Neutered:</label>
                             <div class="neutered-radio radio-inputs bodyFont mt-2">
                                 <label class="radio">
-                                    <input name="neutered" type="radio" value="Yes" id="n_yes"
+                                    <input name="neutered" type="radio" :value="true" id="n_yes"
                                         v-model="form.neutered" />
                                     <span class="name">Yes</span>
                                 </label>
                                 <label class="radio">
-                                    <input name="neutered" type="radio" value="No" id="n_no" v-model="form.neutered" />
+                                    <input name="neutered" type="radio" :value="false" id="n_no" v-model="form.neutered" />
                                     <span class="name">No</span>
                                 </label>
                             </div>

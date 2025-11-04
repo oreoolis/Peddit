@@ -63,7 +63,7 @@ export const usePetStore = defineStore('pets', () => {
             if (!petData.name || !petData.kind) {
                 throw new Error('Pet name and kind are required');
             }
-            console.log(petData);
+            
             const { data, error: supabaseError } = await supabase
                 .from('pets')
                 .insert([{

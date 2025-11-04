@@ -33,7 +33,10 @@ const displayValue = computed(() => {
   if (isOpen.value) {
     return searchQuery.value;
   }
-  return selectedLabel.value;
+  if (selectedLabel.value){
+    return selectedLabel.value
+  }
+  return "Select Ingredient";
 });
 
 const filteredOptions = computed(() => {

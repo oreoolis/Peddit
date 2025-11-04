@@ -16,7 +16,7 @@ const props = defineProps({
   Vote_score: { type: Number, default: 99 },
   Comment_count: { type: Number, default: 12 },
   Animal_Type: { type: String, default: 'dog' }, // 'dog' or 'cat', if its unknown there will be a shrug
-  Cost_Per_Week: { type: Number, default: 25.5 },
+  // Cost_Per_Week: { type: Number, default: 25.5 },
   Recipe_Nutrition_Stats: {
     // Accept nutrition as an object keyed by nutrient name, e.g.
     // { fat: { unit: 'g', value: 1.2 }, iron: { unit: 'mg', value: 0.7 } }
@@ -96,10 +96,10 @@ function onCardClick(e) {
         </div>
 
         <!-- Right: compact stats (flex-shrink so it stays sized to content) -->
-        <div class="header-right d-flex align-items-center gap-3 flex-shrink-0 headingFont">
+        <!-- <div class="header-right d-flex align-items-center gap-3 flex-shrink-0 headingFont">
             <h4 class="fw-bold">Cost:</h4>
             <h4 class="fw-bold">$ <span class="text-success ">{{ props.Cost_Per_Week }}</span> / Week</h4>
-        </div>
+        </div> -->
     </div>
     <!-- nutritonal Data here -->
     <div class="card-body">

@@ -91,8 +91,6 @@ const selectPlan = (payload) => {
     // payload might be an object emitted by MealPlanCard or a primitive id
     if (!payload) return;
     const id = (typeof payload === 'object') ? (payload.rec_id ?? payload.id) : payload;
-    // log selection for debugging and verify emitted payloads
-    console.log('[ShareRecipePostModal] meal plan select payload:', payload, 'resolved id:', id, 'previous selected:', selectedPlanId.value);
     selectedPlanId.value = id;
 };
 
@@ -137,9 +135,9 @@ const handleSubmit = () => {
                     <!-- Meal Plan -->
                     <div class="mb-3">
                         <label  class="form-label headingFont fw-bold h5 mb-3">Select a Meal Plan</label>
-                        <div class="d-flex px-2 gap-3 row">
+                        <div class="d-flex gap-3 row">
                         <div v-if="userMealPlans.length === 0" class="text-muted">No meal plans found</div>
-                        <MealPlanCard class="me-2"
+                        <MealPlanCard class="col-auto mx-auto"
                         v-for="Meal in userMealPlans"
                         :key="Meal.rec_id"
                         :rec_id="Meal.rec_id"

@@ -41,13 +41,15 @@ watch(authStore.userId, async (userId) => {
 <template>
   <!-- give the root an app-bg class so styles are scoped to the app container -->
   <NavBar />
-  <div class="app-bg min-vh-100 d-flex flex-column">
+  <div class="app-bg min-vh-100 d-flex flex-column ">
     <div class="router-view flex-grow-1 pb-4 pb-sm-5 mb-5">
-      <RouterView />
+      <RouterView  />
+      
     </div>
+     <NavBarBottom/>
     <ChatbotWidget v-if="SHOW_CHATBOT" />
     <!-- keep NavBarBottom after the main content in DOM order inside the app container; its height is exposed via --nav-bottom-height -->
-    <NavBarBottom />
+   
   </div>
 </template>
 

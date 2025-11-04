@@ -35,7 +35,6 @@ const deleteItem = async () => {
         if (!res.success) {
             throw new Error(res.error);
         }
-        alert(props.name + " has been successfully deleted");
         router.push('/pet');
         closeModal();
     } catch (error) {

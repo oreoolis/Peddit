@@ -1,16 +1,19 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import BaseAvatar from '@/components/atomic/BaseAvatar.vue';
 import BaseLabel from '@/components/atomic/BaseLabel.vue';
 import BaseStatNumber from '@/components/atomic/BaseStatNumber.vue';
 import ShareButton from '@/components/Organisms/social/ShareButton.vue';
 import UpvoteControl from '@/components/molecules/social/VoteControl.vue';
 import Button from '@/components/atoms/button.vue';
+import MealInfoModal from '@/components/PetViewComponents/MealInfoModal.vue';
 import Comment from '@/components/atoms/social/Comment.vue';
 import TextInput from '@/components/atoms/TextInput.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { storeToRefs } from 'pinia';
 import { usePostStore } from '@/stores/postStore';
+import { supabase } from '@/lib/supabaseClient';
 import { useCommentStore } from '@/stores/commentStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useUserStore } from '@/stores/userStore';
@@ -83,6 +86,7 @@ const postStore = usePostStore();
 
 const petNutriStore = usePetNutritionStore();
 const { currentRecipePost: currentPost } = storeToRefs(petNutriStore);
+const router = useRouter();
 
 const commentStore = useCommentStore();
 const { submitting, comments } = storeToRefs(commentStore)
@@ -95,6 +99,7 @@ const { profile: authorProfile } = storeToRefs(userStore);
 
 const isLiked = ref(false);
 const serverVote = ref(0); // -1 | 0 | 1
+const showMealInfoModal = ref(false);
 
 // --- 2. START: "Show More" Logic ---
 const INITIAL_COMMENT_COUNT = 3; // Number of comments to show initially
@@ -109,18 +114,58 @@ const displayedComments = computed(() => {
   // Otherwise, show only the initial amount
   return comments.value.slice(0, INITIAL_COMMENT_COUNT);
 });
+// Disable the comment input when submitting or when the user is not authenticated
+const commentDisabled = computed(() => {
+  return submitting.value || !user.value || !user.value.id;
+});
+
+// Show a helpful label when the input is disabled due to auth
+const commentLabel = computed(() => {
+  return (!user.value || !user.value.id) ? 'Please Log in to comment' : 'What are your thoughts?';
+});
 // --- END: "Show More" Logic ---
 
 onMounted(async () => {
-  console.log(props.postId);
+
   if (props.postId) {
-      console.log("sds");
+
       await petNutriStore.fetchRecipePostById(props.postId);
       await commentStore.fetchCommentsByPostID(props.postId);
-      console.log(currentPost.value);
-      console.log('currentPost', currentPost.value);
-      console.log('recipe ingredients', currentPost.value?.recipes?.recipe_ingredients[0].food_ingredients.nutrition);
-      // optionally: fetch user's vote here and set serverVote
+      // Attempt to determine current user's persisted vote for UI (same logic as ViewPost)
+      try {
+        const post = currentPost.value;
+        let myVote = 0;
+        if (post) {
+          if (Array.isArray(post.post_votes)) {
+            const found = post.post_votes.find(v => v && v.voter_id === user.value?.id);
+            if (found) myVote = Number(found.vote) || 0;
+          }
+          if (!myVote && typeof post.user_vote !== 'undefined') {
+            myVote = Number(post.user_vote) || 0;
+          }
+          if (!myVote && typeof post.my_vote !== 'undefined') {
+            myVote = Number(post.my_vote) || 0;
+          }
+        }
+
+        // Fallback: query post_votes table directly
+        if ((myVote === 0) && user.value?.id) {
+          const { data: voteRow, error: voteErr } = await supabase
+            .from('post_votes')
+            .select('vote')
+            .eq('post_id', props.postId)
+            .eq('voter_id', user.value.id)
+            .single();
+
+          if (!voteErr && voteRow) {
+            myVote = Number(voteRow.vote) || 0;
+          }
+        }
+
+        serverVote.value = myVote;
+      } catch (err) {
+        console.error('Error resolving persisted vote for post:', err);
+      }
   } else {
       router.push('/');
   }
@@ -143,15 +188,30 @@ const handleCommentSubmit = async (content) => {
 };
 
 const onVote = async (v) => {
+  // Require authentication before allowing vote changes
+  if (!user.value || !user.value.id) {
+    alert('Please sign in to vote.');
+    return;
+  }
+
   const num = Number(v) || 0;
   const normalized = [-1, 0, 1].includes(num) ? num : 0;
   serverVote.value = normalized;
-  console.log('[VOTE]', serverVote.value); // prints -1, 0 or 1
-  console.log(user.value.id);
 
-  if(user.value.id){
-    await postStore.voteOnPost(currentPost.value.id, user.value.id, serverVote.value);
+  // Perform vote via postStore (centralized) then refresh recipe post so the UI shows updated score
+  await postStore.voteOnPost(currentPost.value.id, user.value.id, serverVote.value);
+  // refresh the recipe post to pick up updated vote_score
+  try {
+    await petNutriStore.fetchRecipePostById(props.postId);
+  } catch (err) {
+    console.warn('Failed to refresh recipe post after voting', err);
   }
+};
+
+const handleAuthRequired = () => {
+  // parent reacts when VoteControl blocked an interaction due to disabled state
+  alert('Please sign in to vote.');
+  router.push('/login');
 };
 
 // helper: remove HTML and shorten content for share text
@@ -184,7 +244,31 @@ const nutritionArray = computed(() => {
 const defaultAvatar = props.User_Image || 'https://picsum.photos/seed/defaultpet/120/120';
 const combinedShareText = computed(() => `${props.Recipe_Name} — ${props.Recipe_Desc}\n\nCheck this recipe on Peddit!`);
 function formatCurrency(v){ return typeof v === 'number' ? `$ ${v.toFixed(2)}` : v; }
-function formatDate(d){ return d ? new Date(d).toLocaleDateString() : ''; }
+function formatDate(d){
+  if (!d) return '';
+  const date = new Date(d);
+  // human friendly: relative short (e.g. "2h ago") when recent, otherwise medium date + short time
+  try {
+    const now = Date.now();
+    const diffMs = now - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+
+    const formatted = date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+
+    if (diffSec < 5) return `just now · ${formatted}`;
+    if (diffSec < 60) return `${diffSec}s ago · ${formatted}`;
+    if (diffMin < 60) return `${diffMin}m ago · ${formatted}`;
+    if (diffHour < 24) return `${diffHour}h ago · ${formatted}`;
+    if (diffDay < 7) return `${diffDay}d ago · ${formatted}`;
+
+    return formatted;
+  } catch (err) {
+    return new Date(d).toLocaleString();
+  }
+}
 </script>
 
 <template>
@@ -200,8 +284,8 @@ function formatDate(d){ return d ? new Date(d).toLocaleDateString() : ''; }
               <small class="text-muted">Recipe • {{ currentPost.recipes.pet_kind }} • {{ currentPost.recipes.pet_breed }}</small>
             </div>
             <div class="ms-auto text-end">
-              <div class="fw-bold">Cost: <span class="text-success">{{ formatCurrency(currentPost.recipes.price_per_week) }}</span> / Week</div>
-              <div class="small text-muted">{{ formatDate(currentPost.recipes.created_at) }}</div>
+              <!-- <div class="fw-bold">Cost: <span class="text-success">{{ formatCurrency(currentPost.recipes.price_per_week) }}</span> / Week</div> -->
+              <div class="small text-muted">{{ formatDate(currentPost.created_at) }}</div>
             </div>
           </div>
           <!-- Content Text -->
@@ -230,11 +314,16 @@ function formatDate(d){ return d ? new Date(d).toLocaleDateString() : ''; }
           <!-- END: encapsulated recipe block -->
               <!-- actions (kept inside banner for clarity) -->
               <div class="d-flex align-items-center gap-3">
-                <Button label="View Full Recipe" class="btn-primary" />
-                <Button outline label="Save" />
+                <Button label="View Full Recipe" class="btn-primary" @click="showMealInfoModal = true" />
                 <div class="ms-auto d-flex align-items-center gap-3">
                   <ShareButton :initialText="combinedShareText" :title="currentPost.recipes.recipe_name" button-label="Share" />
-                  <UpvoteControl :initialVote="serverVote" :score="currentPost.vote_score" @vote="onVote" />
+                  <UpvoteControl 
+                  :initialVote="serverVote" 
+                  :score="currentPost.vote_score"
+                  :disabled="!user || !user.id"
+                  @vote="onVote"
+                  @auth-required="handleAuthRequired"
+                  />
                 </div>
               </div>
 
@@ -248,7 +337,7 @@ function formatDate(d){ return d ? new Date(d).toLocaleDateString() : ''; }
                  <div v-if="comments && comments.length > 0" class="card mt-4" id="CommentSection">
                 <div class="card-body">
                     <h5 class="mb-4">Comments ({{ comments.length }})</h5>
-                    <TextInput class="mb-4" label="What are your thoughts?" @submit="handleCommentSubmit" :disabled="submitting" />
+                    <TextInput class="mb-4" :label="commentLabel" @submit="handleCommentSubmit" :disabled="commentDisabled" />
                     <div class="comment-list">
                         <!-- 3. Loop over the new 'displayedComments' computed property -->
                         <Comment v-for="comment in displayedComments" :key="comment.id" :Name="comment.profiles.display_name" :Picture="comment.profiles.avatar_url" :Content="comment.content" :timestamp="comment.created_at" />
@@ -265,7 +354,7 @@ function formatDate(d){ return d ? new Date(d).toLocaleDateString() : ''; }
                 <div v-else class="card mt-4" id="CommentSection">
                 <div class="card-body">
                     <h5 class="mb-4">Comments ({{ comments.length }})</h5>
-                    <TextInput class="mb-4" label="What are your thoughts?" @submit="handleCommentSubmit" :disabled="submitting" />
+                    <TextInput class="mb-4" :label="commentLabel" @submit="handleCommentSubmit" :disabled="commentDisabled" />
                     <div class="comment-list">
                         <!-- 3. Loop over the new 'displayedComments' computed property -->
                         <Comment v-for="comment in displayedComments" 
@@ -287,6 +376,13 @@ function formatDate(d){ return d ? new Date(d).toLocaleDateString() : ''; }
         
     </div>
   </main>
+  <!-- Meal Info Modal -->
+  <MealInfoModal
+    :rec_id="currentPost?.recipe_id ?? currentPost?.recipes?.id ?? ''"
+    :show="showMealInfoModal"
+    @update:show="val => showMealInfoModal = val"
+    :editable="false"
+  />
 </template>
 
 <style scoped>

@@ -23,12 +23,10 @@ const emit = defineEmits(['checked', 'delete']);
 
 const checkedIngredient = () => {
     emit('checked', {ingredient_id: props.ingredient_id, isChecked: props.isChecked });
-    console.log("check ingredient test")
 }
 
 const handleIngredientDelete = () => {
     emit('delete', props.ingredient_id);
-    console.log("delete ingredient test")
 }
 
 </script>

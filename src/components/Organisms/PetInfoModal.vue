@@ -56,7 +56,7 @@ const props = defineProps({
     neutered: {
         type: Boolean,
         required: true,
-        default: ''
+        default: true
     },
     photo_url: {
         type: String,
@@ -118,7 +118,7 @@ const closeModal = () => {
         <div class="modal-content bg-white" @click.stop>
             <div class="modal-header d-flex shadow sticky-top">
                 <h5 class="modal-title primary headingFont h3 ">Summary : <i>{{ name }}</i></h5>
-                <Button label="X" color="danger" outline="true" class="ms-auto px-4" @click="closeModal"></Button>
+                <Button label="X" color="danger" outline class="ms-auto px-4" @click="closeModal"></Button>
             </div>
             <form>
                 <div class="modal-body">

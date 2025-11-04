@@ -106,7 +106,7 @@ const openDeleteModal = () => {
                         </svg>
                     </div>
                 </div>
-                <Button label="X" color="danger" outline="true" class="ms-auto px-4" @click="closeModal" />
+                <Button label="X" color="danger" outline class="ms-auto px-4" @click="closeModal" />
             </div>
             <div class="modal-body">
                 <div class="container-fluid">
@@ -150,11 +150,6 @@ const openDeleteModal = () => {
                     label="Delete Meal" 
                     color="danger"
                     @click="openDeleteModal"
-                />
-                <Button 
-                    label="Close" 
-                    color="primary"
-                    @click="closeModal"
                 />
             </div>
         </div>

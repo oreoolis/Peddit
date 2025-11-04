@@ -84,12 +84,12 @@ const toggleBreedSelector = () => {
 
 const handleFindVet = (payload) => {
   router.push('/map');
-  console.log('Finding vet for:', payload);
+  
 
 };
 
 const handleBreedClick = (breedName) => {
-  console.log('Breed clicked:', breedName);
+  
 };
 
 onMounted(async () => {

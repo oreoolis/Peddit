@@ -212,7 +212,7 @@ export const useUserStore = defineStore('user', () => {
 
             if (fetchError) throw fetchError;
 
-            console.log(data);
+
             shoppingList.value = data;
             
             return { success: true, data };

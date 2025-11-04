@@ -19,7 +19,7 @@ const initialQuery = route.query.q || '';
 
 
 const petNutritionStore = usePetNutritionStore();
-const { recipePostQuery, filteredRecipePosts: foundPosts } = storeToRefs(petNutritionStore);
+const { recipePostQuery, filteredRecipePosts: foundPosts, loading } = storeToRefs(petNutritionStore);
 
 const visibleItems = ref([]);
 
@@ -40,8 +40,7 @@ watch(foundPosts, (newList) => {
   if (!newList) visibleItems.value = [];
   else mountInBatches(newList, 6, 40);
 
-  console.log(recipePostQuery.value);
-  console.log(foundPosts.value);
+
 });
 
 // run initial search if q present
@@ -49,7 +48,7 @@ onMounted(() => {
   petNutritionStore.fetchRecipes();
   petNutritionStore.fetchAllRecipePost();
   if (initialQuery) recipePostQuery.value = initialQuery;
-  console.log(foundPosts.value);
+
 });
 
 // react to query param changes (browser back/forward or external navigation)

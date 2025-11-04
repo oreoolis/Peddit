@@ -169,13 +169,13 @@ const handleSubmit = async () => {
     );
   }
 
-      // Add ALL ingredients to shopping list at once as an ARRAY
+  // Add ALL ingredients to shopping list at once as an ARRAY
   if (selectedIngredients.value.length > 0) {
     const formattedIngredients = selectedIngredients.value.map(selIng => ({
       food_ingredients: selIng.ingredient,
       quantity_g: selIng.amount
     }));
-    
+
     await userStore.addUnformattedToShoppingList(formattedIngredients);
   }
 
@@ -274,13 +274,13 @@ onMounted(async () => {
         </div>
         <!-- Cards side-by-side on all viewports -->
         <div class="row justify-content-center mt-3 mb-3 g-3">
-          <div class="col-12 col-sm-6 col-md-6 col-lg-6">
+          <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
             <div @click="selectPetKind('dog')" class="dog-breed-card"
               :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
               <p class="pet-title brandFont text-light display-1">Dog</p>
             </div>
           </div>
-          <div class="col-12 col-sm-6 col-md-6 col-lg-6">
+          <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
             <div @click="selectPetKind('cat')" class="cat-breed-card"
               :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
               <p class="pet-title brandFont text-light display-1">Cat</p>
@@ -304,23 +304,17 @@ onMounted(async () => {
             </div>
             <div class="mb-4">
               <label for="notes" class="form-label headingFont fw-bold h5">Notes</label>
-              <searchBar class="mt-3" id="notes" v-model="notes" type="textarea"
-                placeholder="Add any notes here..."></searchBar>
+              <searchBar class="mt-3" id="notes" v-model="notes" type="textarea" placeholder="Add any notes here...">
+              </searchBar>
             </div>
 
             <!-- Ingredients Section -->
             <div class="mb-4">
               <h5 class="headingFont fw-bold mb-3">Ingredients</h5>
               <div class="ingredient-grid">
-                <IngredientCard 
-                  v-for="(item, idx) in selectedIngredients" 
-                  :key="idx" 
-                  :name="item.food_ingredients.name"
-                  :type="item.food_ingredients.type" 
-                  :nutrition="item.food_ingredients.nutrition"
-                  :amount="item.quantity_g" 
-                  @click="removeIngredient(item.id)" 
-                />
+                <IngredientCard v-for="(item, idx) in selectedIngredients" :key="idx" :name="item.food_ingredients.name"
+                  :type="item.food_ingredients.type" :nutrition="item.food_ingredients.nutrition"
+                  :amount="item.quantity_g" @click="removeIngredient(item.id)" />
 
                 <button class="icon-btn add-btn shadow my-auto mx-auto" @click.prevent="openIngredientModal"
                   type="button">
