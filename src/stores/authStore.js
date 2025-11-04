@@ -53,21 +53,46 @@ export const useAuthStore = defineStore('auth', () => {
             if (!authSubscription) {
                 const { data: { subscription } } = supabase.auth.onAuthStateChange(
                     async (event, newSession) => {
-                        console.log('Auth event:', event);
+                        
+
+                        const previousUserId = user.value?.id;
+
                         session.value = newSession;
                         user.value = newSession?.user ?? null;
                         loading.value = false;
 
-                        // Handle specific events
-                        if (event === 'SIGNED_IN' && newSession?.user) {
-                            // Fetch user profile when signed in
-                            const userStore = useUserStore();
-                            await userStore.fetchProfile();
-                        } else if (event === 'SIGNED_OUT') {
-                            // Clear user profile when signed out
-                            const userStore = useUserStore();
-                            userStore.clearProfile();
+                        const userStore = useUserStore();
+
+                        switch(event){
+                            case 'SIGNED_IN':
+                            case 'TOKEN_REFRESH':
+                            case 'USER_UPDATED':
+                            case 'MFA_CHALLENGE_VERIFIED':
+                                if (newSession?.user && (previousUserId !== newSession.user.id || !userStore.profile)){
+                                    await userStore.fetchProfile();
+                                }
+                                break;
+                            
+                            case 'SIGNED_OUT':
+                                userStore.profile = null;
+                                userStore.error = null;
+                                break;
+
+                            default:
+                                
+                                break;
                         }
+
+                        // Handle specific events
+                        // if (event === 'SIGNED_IN' && newSession?.user) {
+                        //     // Fetch user profile when signed in
+                        //     const userStore = useUserStore();
+                        //     await userStore.fetchProfile();
+                        // } else if (event === 'SIGNED_OUT') {
+                        //     // Clear user profile when signed out
+                        //     const userStore = useUserStore();
+                        //     userStore.clearProfile();
+                        // }
                     }
                 );
                 authSubscription = subscription;
@@ -187,12 +212,17 @@ export const useAuthStore = defineStore('auth', () => {
     // };
 
     // Cleanup subscription when store is disposed
-    // const cleanup = () => {
-    //     if (authSubscription) {
-    //         authSubscription.unsubscribe();
-    //         authSubscription = null;
-    //     }
-    // };
+    const cleanup = () => {
+        if (authSubscription) {
+            authSubscription.unsubscribe();
+            authSubscription = null;
+        }
+    };
+
+    const clearProfile = () => { 
+        profile.value = null; 
+        error.value = null; 
+    };
 
     return {
         // State
@@ -212,5 +242,7 @@ export const useAuthStore = defineStore('auth', () => {
         signInWithEmail,
         signInWithOAuth,
         signOut,
+        clearProfile,
+        cleanup
     };
 });

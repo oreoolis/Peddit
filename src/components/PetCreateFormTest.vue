@@ -16,7 +16,7 @@ const form = ref({
     gender: 'unknown',
     birthdate: '',
     weight_kg: null,
-    neutered: null
+    neutered: true
 })
 
 const imageFile = ref(null);
@@ -83,7 +83,7 @@ const resetForm = () => {
         gender: 'unknown',
         birthdate: '',
         weight_kg: null,
-        neutered: null
+        neutered: true
     }
     if (imagePreview.value) {
         URL.revokeObjectURL(imagePreview.value);

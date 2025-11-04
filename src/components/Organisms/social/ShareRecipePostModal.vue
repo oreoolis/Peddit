@@ -3,6 +3,10 @@ import { ref, watch } from 'vue';
 import Button from '../../atoms/button.vue';
 import searchBar from '../../atoms/searchBar.vue';
 import MealPlanCard from '@/components/PetViewComponents/MealPlanCard.vue';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
+import { storeToRefs } from 'pinia';
+import { useAuthStore } from '@/stores/authStore';
+
 const props = defineProps({
     show: {
         type: Boolean,
@@ -22,26 +26,82 @@ const props = defineProps({
 const emit = defineEmits(['update:show', 'create-post']);
 
 // Form state
-// Form state
 const postContent = ref('');
+const selectedPlanId = ref(null);
 
-// TODO: Get Current User's Recipes
+// Character limits for share modal
+const CONTENT_MAX_CHARS = 5000;
 
-// Reset form when modal is closed
-watch(() => props.show, (newVal) => {
+const enforceChars = (text = '', max = Infinity) => {
+    if (!text) return '';
+    return text.slice(0, max);
+}
+
+const contentCharsRemaining = () => Math.max(0, CONTENT_MAX_CHARS - (postContent.value?.length || 0));
+
+watch(postContent, (val) => {
+    if (val == null) return;
+    const enforced = enforceChars(val, CONTENT_MAX_CHARS);
+    if (enforced !== val) postContent.value = enforced;
+});
+
+// Stores
+const petNutritionStore = usePetNutritionStore();
+const { recipes: storeRecipes } = storeToRefs(petNutritionStore);
+const authStore = useAuthStore();
+
+// Local meal plans shown in modal (defaults to prop sample)
+const userMealPlans = ref(props.user_MealPlans || []);
+
+// Fetch the current user's recipes when modal opens
+watch(() => props.show, async (newVal) => {
     if (!newVal) {
         postContent.value = '';
+        selectedPlanId.value = null;
+        return;
+    }
+
+    // If user is logged in, fetch their recipes from the store
+    const userId = authStore.user?.id;
+    if (userId) {
+        try {
+            await petNutritionStore.fetchRecipes(userId);
+            // Map store recipes to the simple shape used by this modal
+            userMealPlans.value = (storeRecipes.value || []).map(r => ({
+                rec_id: r.id,
+                name: r.recipe_name,
+                desc: r.description,
+                petKind: r.pet_kind ?? null
+            }));
+        } catch (err) {
+            console.warn('Failed to fetch user meal plans for Share modal:', err);
+            userMealPlans.value = props.user_MealPlans || [];
+        }
+    } else {
+        // Not logged in: use provided sample or empty
+        userMealPlans.value = props.user_MealPlans || [];
     }
 });
 
 const closeModal = () => {
     emit('update:show', false);
 };
-// Need some logic for Recipe Id
+
+const selectPlan = (payload) => {
+    // payload might be an object emitted by MealPlanCard or a primitive id
+    if (!payload) return;
+    const id = (typeof payload === 'object') ? (payload.rec_id ?? payload.id) : payload;
+    selectedPlanId.value = id;
+};
+
 const handleSubmit = () => {
+    // enforce limits again before submit
+    postContent.value = enforceChars(postContent.value, CONTENT_MAX_CHARS);
+
     if ( postContent.value) {
         emit('create-post', {
             content: postContent.value,
+            recipeId: selectedPlanId.value ?? null
         });
         closeModal();
     } else {
@@ -53,7 +113,7 @@ const handleSubmit = () => {
 <template>
     <div v-if="show" class="modal-backdrop" @click="closeModal">
         <div class="modal-content bg-white" @click.stop>
-            <div class="modal-header">
+            <div class="modal-header sticky-top">
                 <h5 class="modal-title headingFont">Share A Recipe</h5>
                 <Button icon="bi-x-lg" outline color="danger" @click="closeModal" label="X" class="ms-auto" />
             </div>
@@ -67,21 +127,30 @@ const handleSubmit = () => {
                             type="textarea"
                             placeholder="What's on your mind?"
                         />
+                        <div class="form-text text-muted small mt-1">
+                            {{ contentCharsRemaining() }} chars remaining
+                        </div>
                     </div>
 
                     <!-- Meal Plan -->
                     <div class="mb-3">
                         <label  class="form-label headingFont fw-bold h5 mb-3">Select a Meal Plan</label>
-                        <div class="d-flex px-2 gap-3">
-                        <MealPlanCard class="me-2"
-                        v-for="Meal in props.user_MealPlans"
-                        :key="Meal"
-                        :rec_id="Meal.rec_id"
-                        :name="Meal.name"
-                        :desc="Meal.desc"
-                        :editable="false"
-                        :compact="true"
-                        ></MealPlanCard>
+                        <div class="d-flex gap-3 row">
+                        <div v-if="userMealPlans.length === 0" class="text-muted">No meal plans found</div>
+                        <MealPlanCard
+                            class="col-auto mx-auto"
+                            v-for="meal in userMealPlans"
+                            :key="meal.rec_id"
+                            :rec_id="meal.rec_id"
+                            :name="meal.name"
+                            :desc="meal.desc"
+                            :petKind="meal.petKind"
+                            :editable="false"
+                            :compact="true"
+                            actionLabel="Select Plan"
+                            @open-meal-info="selectPlan"
+                            :class="{ 'selected-plan': selectedPlanId === meal.rec_id}"
+                        />
                         </div>
                     </div>
                 </div>
@@ -159,4 +228,57 @@ textarea.form-control {
   height: 150px;
   border: 2px solid #e0e0e0;
 }
+
+.selected-plan {
+    /* Stronger selected visual: pop, lift and pulse */
+    position: relative;
+    z-index: 30;
+    transform: translateY(-8px) scale(1.06) ;
+    border: 6px solid var(--bs-primary);
+    box-shadow: 0 12px 40px rgba(var(--bs-primary-rgb), 0.45), 0 6px 18px rgba(131, 138, 226, 0.856);
+    border-radius: 14px;
+    transition: box-shadow 0.28s cubic-bezier(.2,.8,.2,1), transform 0.22s ease, border 0.18s ease;
+
+}
+
+/* animated pulsing ring */
+.selected-plan::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 18px;
+    pointer-events: none;
+    background: radial-gradient(circle at center, rgba(var(--bs-primary-rgb), 0.12), transparent 40%);
+    transform: scale(0.9);
+    animation: pulse-ring 1.6s ease-out infinite;
+    z-index: -1;
+}
+
+@keyframes pulse-ring {
+    0% { transform: scale(0.95); opacity: 0.9 }
+    60% { transform: scale(1.12); opacity: 0.35 }
+    100% { transform: scale(1.2); opacity: 0 }
+}
+
+/* stronger animated glow behind the selected card */
+.selected-plan::before {
+    content: "";
+    position: absolute;
+    inset: -10px;
+    border-radius: 22px;
+    pointer-events: none;
+    background: radial-gradient(circle at center, rgba(var(--bs-primary-rgb), 0.28), rgba(var(--bs-primary-rgb), 0.14) 30%, transparent 55%);
+    filter: blur(10px);
+    opacity: 0.9;
+    transform: scale(1);
+    z-index: -2;
+    animation: glow-border 2s ease-in-out infinite;
+}
+
+@keyframes glow-border {
+    0% { opacity: 0.6; transform: scale(0.98); }
+    50% { opacity: 1; transform: scale(1.03); }
+    100% { opacity: 0.6; transform: scale(0.98); }
+}
+
 </style>

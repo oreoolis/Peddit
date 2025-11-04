@@ -2,7 +2,6 @@
 import { onMounted, ref, computed } from 'vue';
 import Comment  from '../components/atoms/social/Comment.vue';
 import TextInput from '@/components/atoms/TextInput.vue';
-import searchBar from '@/components/atoms/searchBar.vue';
 import { usePostStore } from '@/stores/postStore';
 import { storeToRefs } from 'pinia';
 import { useCommentStore } from '@/stores/commentStore';
@@ -10,11 +9,10 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useUserStore } from '@/stores/userStore';
-import SelectAndOption from '@/components/atoms/SelectAndOption.vue';
-import Button from '@/components/atoms/button.vue';
 import UpvoteControl from '@/components/molecules/social/VoteControl.vue';
 import ShareButton from '@/components/Organisms/social/ShareButton.vue';
-
+import PostContentCarousel from '@/components/molecules/social/PostContentCarousel.vue';
+import { supabase } from '@/lib/supabaseClient';
 const router = useRouter();
 
 const props = defineProps({
@@ -52,13 +50,60 @@ const displayedComments = computed(() => {
   // Otherwise, show only the initial amount
   return comments.value.slice(0, INITIAL_COMMENT_COUNT);
 });
-// --- END: "Show More" Logic ---
+
+// Disable the comment input when submitting or when the user is not authenticated
+const commentDisabled = computed(() => {
+    return submitting.value || !user.value || !user.value.id;
+});
+
+// Show a helpful label when the input is disabled due to auth
+const commentLabel = computed(() => {
+    return (!user.value || !user.value.id) ? 'Please Log in to comment' : 'What are your thoughts?';
+});
 
 onMounted(async () =>{
     if (props.postId) {
         await postStore.fetchPostById(props.postId);
         await commentStore.fetchCommentsByPostID(props.postId);
-        // optionally: fetch user's vote here and set serverVote
+        // Attempt to determine current user's persisted vote for UI
+        try {
+            // 1) If the fetched post includes per-post votes, use them
+            const post = currentPost.value;
+            let myVote = 0;
+            if (post) {
+                // common shapes: post.post_votes (array of { voter_id, vote })
+                if (Array.isArray(post.post_votes)) {
+                    const found = post.post_votes.find(v => v && v.voter_id === user.value?.id);
+                    if (found) myVote = Number(found.vote) || 0;
+                }
+                // alternate shape: post.user_vote or post.my_vote
+                if (!myVote && typeof post.user_vote !== 'undefined') {
+                    myVote = Number(post.user_vote) || 0;
+                }
+                if (!myVote && typeof post.my_vote !== 'undefined') {
+                    myVote = Number(post.my_vote) || 0;
+                }
+            }
+
+            // 2) Fallback: query post_votes table directly (no store changes)
+            if ((myVote === 0) && user.value?.id) {
+                const { data: voteRow, error: voteErr } = await supabase
+                    .from('post_votes')
+                    .select('vote')
+                    .eq('post_id', props.postId)
+                    .eq('voter_id', user.value.id)
+                    .single();
+
+                if (!voteErr && voteRow) {
+                    myVote = Number(voteRow.vote) || 0;
+                }
+            }
+
+            serverVote.value = myVote;
+        } catch (err) {
+            // don't block rendering on vote lookup errors
+            console.error('Error resolving persisted vote for post:', err);
+        }
     } else {
         router.push('/');
     }
@@ -69,10 +114,14 @@ const handleCommentSubmit = async (content) => {
         console.error("User is not logged in or profile not loaded.");
         return;
     }
+    // enforce comment character limit
+    const MAX_COMMENT_CHARS = 2000;
+    const enforced = (content || '').slice(0, MAX_COMMENT_CHARS);
+
     const result = await commentStore.createComment({
         postId: props.postId,
         authorId: user.value.id,
-        content: content,
+        content: enforced,
         authorProfile: authorProfile.value
     });
     if (!result.success) {
@@ -81,15 +130,23 @@ const handleCommentSubmit = async (content) => {
 };
 
 const onVote = async (v) => {
-  const num = Number(v) || 0;
-  const normalized = [-1, 0, 1].includes(num) ? num : 0;
-  serverVote.value = normalized;
-  console.log('[VOTE]', serverVote.value); // prints -1, 0 or 1
-  console.log(user.value.id);
+    // Require authentication before allowing vote changes
+    if (!user.value || !user.value.id) {
+        alert('Please sign in to vote.');
+        return;
+    }
 
-  if(user.value.id){
+    const num = Number(v) || 0;
+    const normalized = [-1, 0, 1].includes(num) ? num : 0;
+    serverVote.value = normalized; // prints -1, 0 or 1
+
     await postStore.voteOnPost(currentPost.value.id, user.value.id, serverVote.value);
-  }
+};
+
+const handleAuthRequired = () => {
+    // parent reacts when VoteControl blocked an interaction due to disabled state
+    alert('Please sign in to vote.');
+    router.push('/login');
 };
 
 // helper: remove HTML and shorten content for share text
@@ -104,7 +161,32 @@ const combinedMessage = computed(() => {
   const url = window.location.href;
   return `Check out this link from Peddit!\n\n${url}`;
 });
-console.log(currentPost)
+
+function formatDate(d){
+    if (!d) return '';
+    const date = new Date(d);
+    try {
+        const now = Date.now();
+        const diffMs = now - date.getTime();
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHour = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHour / 24);
+
+        const formatted = date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+
+        if (diffSec < 5) return `just now · ${formatted}`;
+        if (diffSec < 60) return `${diffSec}s ago · ${formatted}`;
+        if (diffMin < 60) return `${diffMin}m ago · ${formatted}`;
+        if (diffHour < 24) return `${diffHour}h ago · ${formatted}`;
+        if (diffDay < 7) return `${diffDay}d ago · ${formatted}`;
+
+        return formatted;
+    } catch (err) {
+        return new Date(d).toLocaleString();
+    }
+}
+
 </script>
 
 <template>
@@ -115,10 +197,17 @@ console.log(currentPost)
                 <div class="card-body">
                     <div class="post-meta d-flex align-items-center gap-2 small mb-3">
                         <img class="avatar rounded-circle" :src="currentPost.profiles.avatar_url" alt="">
-                        <span class="fw-bold text-body">{{ currentPost.profiles.display_name }}</span>
+                                                <span class="fw-bold text-body">{{ currentPost.profiles.display_name }}</span>
+                                                <div class="ms-auto text-end">
+                                                    <div class="small text-muted">{{ formatDate(currentPost.created_at) }}</div>
+                                                </div>
                     </div>
                     <h1 class="post-title h2 headingFont fw-bold mb-4">{{ currentPost.title }}</h1>
-                    <div class="post-body bodyFont fs-5" v-html="currentPost.content"></div>
+                    <!-- Render content as plain text and preserve newlines via CSS -->
+                    <div class="post-body bodyFont fs-5" style="white-space: pre-wrap;">{{ currentPost.content }}</div>
+                    <!-- TODO: TO ATTACH post_media -->
+                    <PostContentCarousel  :data="currentPost.post_media" class="border-top :data "></PostContentCarousel>
+                    
                 </div>
                 <div class="card-footer bg-transparent d-flex align-items-center gap-3 justify-content-end border-top">
 
@@ -130,7 +219,9 @@ console.log(currentPost)
                      <UpvoteControl
                          :initialVote="serverVote"
                          :score="currentPost.vote_score"
+                         :disabled="!user || !user.id"
                          @vote="onVote"
+                         @auth-required="handleAuthRequired"
                      />
                  </div>
             </div>
@@ -139,10 +230,15 @@ console.log(currentPost)
             <div v-if="comments && comments.length > 0" class="card mt-4" id="CommentSection">
                 <div class="card-body">
                     <h5 class="mb-4">Comments ({{ comments.length }})</h5>
-                    <TextInput class="mb-4" label="What are your thoughts?" @submit="handleCommentSubmit" :disabled="submitting" />
+                    <TextInput class="mb-4" :label="commentLabel" @submit="handleCommentSubmit" :disabled="commentDisabled" :max-chars="2000" />
                     <div class="comment-list">
                         <!-- 3. Loop over the new 'displayedComments' computed property -->
-                        <Comment v-for="comment in displayedComments" :key="comment.id" :Name="comment.profiles.display_name" :Picture="comment.profiles.avatar_url" :Content="comment.content" :timestamp="comment.created_at" />
+                        <Comment v-for="comment in displayedComments" 
+                        :key="comment.id" 
+                        :Name="comment.profiles.display_name" 
+                        :Picture="comment.profiles.avatar_url" 
+                        :Content="comment.content" 
+                        :timestamp="comment.created_at" />
                     </div>
                     
                     <!-- 4. "View More" Button -->
@@ -156,7 +252,7 @@ console.log(currentPost)
                 <div v-else class="card mt-4" id="CommentSection">
                 <div class="card-body">
                     <h5 class="mb-4">Comments ({{ comments.length }})</h5>
-                    <TextInput class="mb-4" label="What are your thoughts?" @submit="handleCommentSubmit" :disabled="submitting" />
+                    <TextInput class="mb-4" :label="commentLabel" @submit="handleCommentSubmit" :disabled="commentDisabled" :max-chars="1000" />
                     <div class="comment-list">
                         <!-- 3. Loop over the new 'displayedComments' computed property -->
                         <Comment v-for="comment in displayedComments" :key="comment.id" :Name="comment.profiles.display_name" :Picture="comment.profiles.avatar_url" :Content="comment.content" :timestamp="comment.created_at" />

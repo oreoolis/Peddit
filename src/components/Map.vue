@@ -1,3 +1,4 @@
+
 <template>
   <div class="container-fluid map-page">
     <h1 class="mt-3 mb-3">Pet Stores & Clinics Near You</h1>
@@ -19,37 +20,41 @@
             @click="clearLocation" 
             class="clear-btn"
             title="Clear location"
+            label="x"
           >
             ✕
           </button>
         </div>
-        <button @click="getCurrentLocation" class="btn btn-outline-secondary ms-2">
-          📍 Use My Location
-        </button>
+        <Button @click="getCurrentLocation" label="📍 Use My Location" outline color="secondary">
+          
+        </Button>
       </div>
 
       <!-- Category Selection -->
       <div class="category-selection mb-3">
         <label class="mb-2"><strong>Place Types:</strong></label>
         <div class="category-pills">
-          <div 
-            class="category-pill"
-            :class="{ active: selectedCategories.petStores }"
-            @click="toggleCategory('petStores')"
-          >
-            <span class="category-icon">🏪</span>
-            <span>Pet Stores</span>
-            <span class="remove-icon" v-if="selectedCategories.petStores">✕</span>
-          </div>
-          <div 
-            class="category-pill"
-            :class="{ active: selectedCategories.vetClinics }"
-            @click="toggleCategory('vetClinics')"
-          >
-            <span class="category-icon">🏥</span>
-            <span>Vet Clinics</span>
-            <span class="remove-icon" v-if="selectedCategories.vetClinics">✕</span>
-          </div>
+          <ButtonTogglable
+            :initialState="selectedCategories.petStores"
+            labelOFF="Pet Stores"
+            labelON="Pet Stores"
+            colorOFF="secondary"
+            colorON="primary"
+            iconLinkON="bi-basket-fill"
+            iconLinkOFF="bi-basket"
+            @toggle="(v) => (selectedCategories.petStores = v, searchPlaces())"
+          />
+
+          <ButtonTogglable
+            :initialState="selectedCategories.vetClinics"
+            labelOFF="Vet Clinics"
+            labelON="Vet Clinics"
+            colorOFF="secondary"
+            colorON="danger"
+            iconLinkON="bi-hospital-fill"
+            iconLinkOFF="bi-hospital"            
+            @toggle="(v) => (selectedCategories.vetClinics = v, searchPlaces())"
+          />
         </div>
       </div>
 
@@ -100,36 +105,37 @@
       <div class="d-flex align-items-center justify-content-center gap-3">
         <label><strong>Sort by:</strong></label>
         <div class="btn-group" role="group" aria-label="Sort filter">
-          <button
-            class="btn btn-sm"
+          <Button
             :class="sortMode === 'rating' ? 'btn-primary' : 'btn-outline-primary'"
             @click="setSortMode('rating')"
+            label="⭐ Top Rated"
           >
-            ⭐ Top Rated
-          </button>
-          <button
-            class="btn btn-sm"
+            
+          </Button>
+          <Button
+            class="btn btn-sm ms-1"
             :class="sortMode === 'distance' ? 'btn-primary' : 'btn-outline-primary'"
             @click="setSortMode('distance')"
+            label="📍 Nearest"
           >
-            📍 Nearest
-          </button>
+            
+          </Button>
         </div>
         <div class="btn-group ms-3" role="group" aria-label="Result filter">
-          <button
-            class="btn btn-sm"
+          <Button
             :class="showMode === 'top10' ? 'btn-success' : 'btn-outline-success'"
             @click="setShowMode('top10')"
+            label="Show top 10"
           >
-            Show Top 10
-          </button>
-          <button
-            class="btn btn-sm"
+          </Button>
+          <Button
+            class="ms-1"
             :class="showMode === 'all' ? 'btn-success' : 'btn-outline-success'"
             @click="setShowMode('all')"
+            :label="'Show All (' + allPlaces.length + ')'"
           >
-            Show All ({{ allPlaces.length }})
-          </button>
+            
+          </Button>
         </div>
       </div>
     </div>
@@ -178,13 +184,13 @@
           </div>
         </div>
         <div class="card-footer-btn">
-          <button
+          <Button
             v-if="place.opening_hours"
-            class="btn btn-sm w-100"
+            class=" w-100"
             :class="place.opening_hours.open_now ? 'btn-success' : 'btn-danger'"
+            :label=" place.opening_hours.open_now ? '🟢 Open Now' : '🔴 Closed'"
           >
-            {{ place.opening_hours.open_now ? '🟢 Open Now' : '🔴 Closed' }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -193,7 +199,9 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
-
+import Button from './atoms/button.vue'
+import searchBar from './atoms/searchBar.vue'
+import ButtonTogglable from './atoms/buttonTogglable.vue'
 const searchInput = ref(null)
 const searchLocation = ref('')
 const selectedCategories = ref({
@@ -423,8 +431,6 @@ function searchPlaces() {
         // Only update allPlaces once all requests are complete
         allPlaces.value = tempPlaces
         loading.value = false
-        console.log('Total unique places:', allPlaces.value.length)
-        console.log('Place IDs:', allPlaces.value.map(p => p.place_id))
         renderMarkers()
       }      
     })
@@ -538,7 +544,7 @@ function toggleFavorite(place) {
   localStorage.setItem('petStoreFavorites', JSON.stringify(favorites.value))
   
   // TODO: Later you can also save to backend/user profile
-  console.log('Favorites:', favorites.value)
+
 }
 
 // Watch for changes in filtered places and update markers
@@ -644,7 +650,7 @@ watch(filteredPlaces, () => {
 }
 
 .favorite-btn.favorited {
-  border-color: #ff4757;
+  border-color: var(--bs-warning);
   background: #ffe0e3;
 }
 
@@ -676,40 +682,9 @@ watch(filteredPlaces, () => {
   gap: 10px;
 }
 
-.category-pill {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: white;
-  border: 2px solid #dee2e6;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-  user-select: none;
-}
-
-.category-pill:hover {
-  border-color: #4285F4;
-  background: #f8f9fa;
-}
-
-.category-pill.active {
-  background: #4285F4;
-  color: white;
-  border-color: #4285F4;
-}
-
-.category-icon {
-  font-size: 18px;
-}
-
 .remove-icon {
   font-size: 14px;
   opacity: 0.8;
 }
 
-.category-pill:not(.active) .remove-icon {
-  display: none;
-}
 </style>

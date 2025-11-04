@@ -28,7 +28,7 @@ const props = defineProps({
     default: null,
   },
   neutered: {
-    type: String,
+    type: [String, Boolean],
     default: null
   }
 })
@@ -65,7 +65,9 @@ const props = defineProps({
       </div>
       <div class="data-row">
         <div class="label headingFont">Neutered</div>
-        <div class="value text-truncate bodyFont" :title="props.neutered">{{ props.neutered || 'Unknown' }}</div>
+        <div v-if="props.neutered == true" class="value text-truncate bodyFont" :title="props.neutered">Yes</div>
+        <div v-else-if="props.neutered == false" class="value text-truncate bodyFont" :title="props.neutered">No</div>
+        <div v-else class="value text-truncate bodyFont" :title="props.neutered">Unknown</div>
       </div>
     </div>
 

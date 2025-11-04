@@ -116,7 +116,6 @@ const fetchNutritionRequirements = async () => {
   
   if (result.success) {
     nutritionRequirements.value = result.data;
-    console.log(nutritionRequirements.value);
     calculateComparison();
   }
 };

@@ -40,6 +40,50 @@ const selectedModel = computed(() => {
   return selectedMode.value === 'thinking' ? thinking : simple
 })
 
+/** Model capability map for multi-image support. */
+const MODEL_CAPS = Object.freeze({
+  'meta-llama/llama-3.2-11b-vision-instruct': { maxImages: 1 },
+  'openai/gpt-4o-mini': { maxImages: 16 },
+})
+function getModelCaps(name){
+  return MODEL_CAPS[name] || { maxImages: 3 }
+}
+
+/** Create a single collage data URL from up to 3 images for models that only accept one image. */
+async function composeImagesGrid(urls){
+  const srcs = (urls || []).slice(0,3)
+  const imgs = await Promise.all(srcs.map(u => new Promise((res, rej)=>{
+    const im = new Image()
+    im.crossOrigin = 'anonymous'
+    im.onload = () => res(im)
+    im.onerror = () => rej(new Error('Image load failed'))
+    im.src = u
+  })))
+  const n = imgs.length
+  const cols = n === 1 ? 1 : 2
+  const rows = n === 1 ? 1 : 2
+  const cell = 384
+  const pad = 8
+  const w = cols*cell + (cols-1)*pad
+  const h = rows*cell + (rows-1)*pad
+  const canvas = document.createElement('canvas')
+  canvas.width = w; canvas.height = h
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,w,h)
+  imgs.forEach((im, idx) => {
+    const c = idx % cols, r = Math.floor(idx/cols)
+    const x = c*(cell+pad), y = r*(cell+pad)
+    const scale = Math.min(cell / im.width, cell / im.height)
+    const dw = Math.round(im.width * scale)
+    const dh = Math.round(im.height * scale)
+    const dx = x + Math.floor((cell - dw)/2)
+    const dy = y + Math.floor((cell - dh)/2)
+    ctx.drawImage(im, dx, dy, dw, dh)
+  })
+  return canvas.toDataURL('image/jpeg', 0.9)
+}
+
+
 /** @type {readonly string[]} */
 const SUGGESTIONS = [
   'Create a 7-day meal plan for a 2-year-old Labrador (25kg)',
@@ -51,13 +95,14 @@ const SUGGESTIONS = [
 const SYSTEM_MSG = {
   role: 'system',
   content: [
-    'You are Peddit’s helpful assistant. Rules:',
+    'You are Peddit’s helpful assistant.',
+    'Rules that you must always abide to before responding:',
+    '0) Always respond in a structured manner with appropriate paragraphings, headings and boldings.',
     '1) Be concise, friendly, and focus on pet nutrition, pet profiles, and social help.',
-    '2) If you need user account data, ask first.',
-    '3) Use short lists, practical tips, and clear cautions.',
-    '4) If symptoms seem urgent, recommend seeing a vet.',
-    '5) If not clear, ask for pet age, breed, gender, allergies/conditions.',
-    '6) Ask for country/state to recommend local products or places.',
+    '2) Use short lists, practical tips, and clear cautions.',
+    '3) If symptoms seem urgent, recommend seeing a vet.',
+    '4) If not clear, ask for pet age, breed, gender, allergies/conditions.',
+    '5) Ask for country/state to recommend local products or places.',
   ].join(' '),
 }
 
@@ -86,18 +131,32 @@ const state = reactive({
 /** copy tick + toast */
 const copiedIndex = ref(-1)
 const toast = reactive({ show: false, text: '' })
-function showToast(t) { toast.text = t; toast.show = true; setTimeout(()=> toast.show=false, 1800) }
+function showToast(t) {
+  toast.text = t;
+  toast.show = true;
+  setTimeout(() => (toast.show = false), 1800);
+}
+const fileInput = ref(/** @type {HTMLInputElement|null} */(null))
+const attached = reactive({ files: /** @type {File[]} */([]), urls: /** @type {string[]} */([]) })
+const _attachedSig = new Set()
+function _sig(f){ return `${f?.name || ''}|${f?.size || 0}|${f?.lastModified || 0}` }
+const dragActive = ref(false)
 
 const editMode = reactive({ active: false, index: -1 })
+const editBuffer = ref('')
+const editRefMap = new Map()
 function startEdit(i) {
   const m = state.messages[i]
   if (!m || m.role !== 'user' || sending.value) return
   editMode.active = true
   editMode.index = i
-  input.value = m.content
-  focusInput(); autosize()
+  editBuffer.value = m.content
+  nextTick(()=>{
+    const el = editRefMap.get(i)
+    if (el){ el.focus(); el.selectionStart = el.selectionEnd = el.value.length }
+  })
 }
-function cancelEdit() { editMode.active = false; editMode.index = -1; input.value = ''; autosize() }
+function cancelEdit() { editMode.active = false; editMode.index = -1; editBuffer.value = '' }
 
 // ---------- Markdown ----------
 const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
@@ -119,7 +178,9 @@ function loadHistory() {
     return Array.isArray(parsed) && parsed.length ? sanitizeHistory(parsed) : [{ role: 'assistant', content: GREETING }]
   } catch { return [{ role: 'assistant', content: GREETING }] }
 }
-function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.messages)) } catch {} }
+function persist(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.messages)) } catch {}
+}
 function loadBranches() { try { const raw = localStorage.getItem(STORAGE_BRANCH_KEY); const parsed = raw?JSON.parse(raw):null; if (Array.isArray(parsed)) histories.value = parsed } catch {} }
 function persistBranches() { try { localStorage.setItem(STORAGE_BRANCH_KEY, JSON.stringify(histories.value)) } catch {} }
 
@@ -161,7 +222,29 @@ function findAssistantAfter(userIndex){
 function buildPayloadMessages(){
   const recent = state.messages.filter(Boolean).slice(-MAX_CONTEXT_MESSAGES)
   const cleaned = recent.filter(m => !(m.role==='assistant' && m.content===THINKING))
-  return [SYSTEM_MSG, ...cleaned]
+  // Map any user message with image to OpenAI-compatible "content" parts
+  const mapped = [SYSTEM_MSG, ...cleaned].map(m => {
+    if (m.role === 'user' && (m.imageUrls?.length)) {
+      return {
+        role: 'user',
+        content: [
+          { type: 'text', text: String(m.content || '') },
+          ...m.imageUrls.slice(0,3).map(u => ({ type: 'image_url', image_url: { url: u } }))
+        ]
+      }
+    }
+    if (m.role === 'user' && m.imageUrl) {
+      return {
+        role: 'user',
+        content: [
+          { type: 'text', text: String(m.content || '') },
+          { type: 'image_url', image_url: { url: m.imageUrl } }
+        ]
+      }
+    }
+    return m
+  })
+  return mapped
 }
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6) }
@@ -216,6 +299,63 @@ function prevUserVersion(uIdx){ const u = state.messages[uIdx]; if (!u?.history?
 function nextUserVersion(uIdx){ const u = state.messages[uIdx]; if (!u?.history?.length) return; gotoUserHistory(uIdx, (u.vpos ?? 0) + 1) }
 
 // ---------- Send (new turn at end) ----------
+
+// ---------- Image attach & drag/drop ----------
+function handleFiles(files){
+  const list = Array.from(files || [])
+  const imgs = list.filter(f => f && f.type && f.type.startsWith('image/'))
+  if (!imgs.length) return
+  for (const f of imgs){
+    if (attached.files.length >= 3) break
+    const sig = _sig(f)
+    if (_attachedSig.has(sig)) continue
+    const reader = new FileReader()
+    reader.onload = () => {
+      const url = typeof reader.result === 'string' ? reader.result : ''
+      if (!url) return
+      if (attached.files.length >= 3 || _attachedSig.has(sig)) return
+      _attachedSig.add(sig)
+      attached.files.push(f)
+      attached.urls.push(url)
+    }
+    reader.readAsDataURL(f)
+  }
+}
+function onDragEnter(e){ e.stopPropagation?.(); dragActive.value = true }
+function onDragOver(e){ e.preventDefault(); e.stopPropagation?.(); dragActive.value = true }
+function onDragLeave(e){ e.stopPropagation?.(); dragActive.value = false }
+function onDrop(e){
+  e.preventDefault()
+  e.stopPropagation?.()
+  dragActive.value = false
+  const files = e.dataTransfer?.files
+  if (files?.length) handleFiles(files)
+}
+function onFileChange(e){
+  const files = e?.target?.files
+  if (files?.length) handleFiles(files)
+  if (e?.target) e.target.value = ''
+}
+function removeAttachment(){
+  attached.files = []
+  attached.urls = []
+  _attachedSig.clear()
+}
+function removeAttachmentAt(idx){
+  const f = attached.files[idx]
+  if (f) _attachedSig.delete(_sig(f))
+  attached.files.splice(idx,1)
+  attached.urls.splice(idx,1)
+}
+function onPaste(e){
+  const items = e.clipboardData?.items || []
+  for (const it of items){
+    if (it.type && it.type.startsWith('image/')){
+      const f = it.getAsFile?.()
+      if (f){ handleFiles([f]); e.preventDefault?.() }
+    }
+  }
+}
 async function onSend() {
   const text = input.value?.trim()
   if (!text || sending.value) return
@@ -225,7 +365,22 @@ async function onSend() {
   autosize()
 
   // push new user + placeholder assistant (end of convo)
-  state.messages.push({ role: 'user', content: text, ts: Date.now() })
+  const __imgs = attached.urls || [];
+  let attachPayload = {};
+  const caps = getModelCaps(selectedModel.value);
+  if (__imgs.length) {
+    if (__imgs.length > 1 && caps.maxImages === 1) {
+      try {
+        const collage = await composeImagesGrid(__imgs);
+        attachPayload = { imageUrl: collage };
+      } catch {}
+    } else {
+      attachPayload = { imageUrls: __imgs.slice(0, Math.min(3, caps.maxImages)) };
+    }
+  }
+  state.messages.push({ role: 'user', content: text, ts: Date.now(), ...attachPayload });
+  removeAttachment()
+  removeAttachment()
   state.messages.push({ role: 'assistant', content: THINKING, ts: Date.now(), status: 'streaming' })
   sending.value = true
 
@@ -346,7 +501,7 @@ async function regenerateFrom(i){
 async function confirmEditResend(){
   if (!editMode.active || sending.value) return
   const i = editMode.index
-  const txt = input.value?.trim()
+  const txt = editBuffer.value?.trim()
   if (!txt) return
 
   // snapshot current version (with full tail) BEFORE mutation
@@ -430,7 +585,7 @@ function clearChat(){
 </script>
 
 <template>
-  <div v-if="CHAT_ENABLED" class="peddit-chat top-right" data-testid="peddit-chat">
+  <div v-if="CHAT_ENABLED" class="peddit-chat top-right" data-testid="peddit-chat" @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
     <!-- Bubble -->
     <button aria-label="Open chat" class="peddit-chat-bubble" @click="toggle" title="Chat with Peddit" :aria-expanded="open ? 'true' : 'false'">
       <span class="bubble-circle"><img class="bubble-img" :src="pawUrl" alt="Open chat" /></span>
@@ -438,21 +593,21 @@ function clearChat(){
     </button>
 
     <!-- Panel -->
+      <!-- drop overlay moved below -->
     <transition name="chat-slide">
-      <div v-show="open" class="peddit-chat-panel card" role="dialog" aria-modal="true" aria-label="Peddit Chat" :aria-busy="sending ? 'true' : 'false'">
+      <div v-if="open" class="peddit-chat-panel card" @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
         <div class="card-header d-flex justify-content-between align-items-center headingFont">
           <strong>Peddit Chat</strong>
           <div class="d-flex gap-2 align-items-center">
-            <div class="mode-switch" data-testid="mode-switch" aria-label="Model mode">
-              <button type="button" class="mode-btn" :class="{active: selectedMode === 'simple'}" @click="selectedMode = 'simple'" title="Fast, lightweight">Simple</button>
-              <button type="button" class="mode-btn" :class="{active: selectedMode === 'thinking'}" @click="selectedMode = 'thinking'" title="More reasoning tokens">Thinking</button>
-            </div>
+            <!-- mode switch moved to footer -->
             <span class="text-muted small me-2" v-if="sending">streaming…</span>
             <button class="btn btn-sm btn-outline-danger" v-if="sending" @click="cancelStreaming">Cancel</button>
             <button class="btn btn-sm btn-outline-secondary" @click="clearChat" :disabled="sending">Clear</button>
             <button class="btn btn-sm btn-outline-dark" @click="toggle" :disabled="sending">Close</button>
           </div>
         </div>
+
+        <div class="drop-overlay" v-if="dragActive">Drop image anywhere to attach</div>
 
         <!-- Body -->
         <div class="card-body p-0 bodyFlex">
@@ -463,33 +618,56 @@ function clearChat(){
                 <span v-if="m.ts" class="text-muted" style="font-size: 11px;">· {{ new Date(m.ts).toLocaleTimeString() }}</span>
               </div>
 
-              <div class="message-content">
-                <template v-if="m.content === '…thinking'">
-                  <span class="typing"><span></span><span></span><span></span></span>
-                </template>
-                <template v-else>
-                  <div class="md" v-html="renderMarkdown(m.content)"></div>
-                </template>
-              </div>
+              
+<div class="message-content">
+  <div v-if="m.role === 'user' && (m.imageUrls?.length || m.imageUrl)" class="msg-image">
+    <template v-if="m.imageUrls?.length">
+      <div class="img-grid">
+        <img v-for="(u,ux) in m.imageUrls.slice(0,3)" :key="ux" :src="u" alt="attachment" />
+      </div>
+    </template>
+    <img v-else :src="m.imageUrl" alt="attachment" />
+  </div>
 
-              <!-- Hover actions -->
+  <template v-if="m.content === '…thinking'">
+    <span class="typing"><span></span><span></span><span></span></span>
+  </template>
+  <template v-else>
+    <template v-if="editMode.active && editMode.index === i && m.role==='user'">
+      <textarea class="inline-edit"
+                v-model="editBuffer"
+                :ref="el => el && editRefMap.set(i, el)"
+                @keydown.enter.exact.prevent="confirmEditResend"
+                @keydown.esc.prevent="cancelEdit"></textarea>
+      <div class="d-flex gap-2 mt-2">
+        <button class="btn btn-light" @click="cancelEdit" :disabled="sending">Cancel</button>
+        <button class="btn btn-primary" @click="confirmEditResend" :disabled="sending || !editBuffer.trim()">Send</button>
+      </div>
+    </template>
+    <template v-else>
+      <div class="md" v-html="renderMarkdown(m.content)"></div>
+    </template>
+  </template>
+</div>
+
+<!-- Hover actions -->
               <div class="msg-actions" :class="m.role">
                 <template v-if="m.role === 'user'">
                   <button class="icon-btn" title="Edit" aria-label="Edit message" @click="startEdit(i)">
-                    <svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34c-.39-.39-1.03-.39-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg>
+                    <svg width="16" height="30" viewBox="0 0 22 10"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34c-.39-.39-1.03-.39-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg>
                   </button>
                   <button class="icon-btn" :class="{ tick: copiedIndex === i }" title="Copy" aria-label="Copy message" @click="copyMessage(i)">
                     <span v-if="copiedIndex === i">✓</span>
-                    <svg v-else width="16" height="16" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    <svg v-else width="16" height="30" viewBox="0 0 22 10"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
                   </button>
                 </template>
                 <template v-else-if="m.role === 'assistant'">
                   <button class="icon-btn" title="Regenerate" aria-label="Regenerate from here" @click="regenerateFrom(i)">
-                    <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 6V3L8 7l4 4V8c3.31 0 6 2.69 6 6a6 6 0 01-6 6 6 6 0 01-6-6H4a8 8 0 008 8 8 8 0 008-8c0-4.42-3.58-8-8-8z"/></svg>
+                    <svg width="16" height="30" viewBox="0 0 22 10"><path d="M12 6V3L8 7l4 4V8c3.31 0 6 2.69 6 6a6 6 0 01-6 6 6 6 0 01-6-6H4a8 8 0 008 8 8 8 0 008-8c0-4.42-3.58-8-8-8z"/></svg>
                   </button>
                   <button class="icon-btn" :class="{ tick: copiedIndex === i }" title="Copy" aria-label="Copy message" @click="copyMessage(i)">
                     <span v-if="copiedIndex === i">✓</span>
-                    <svg v-else width="16" height="16" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    <svg v-else width="16" height="30" viewBox="0 0 22 10"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
                   </button>
                 </template>
               </div>
@@ -511,14 +689,63 @@ function clearChat(){
           <div class="suggestions" role="list" v-if="showSuggestions">
             <button v-for="(s, idx) in SUGGESTIONS" :key="idx" type="button" class="chip" role="listitem" @click="useSuggestion(s)">{{ s }}</button>
           </div>
+<div v-if="attached.urls.length" class="attachment-preview" aria-label="Attached images preview">
+  <div class="img-grid">
+    <div v-for="(u, idx) in attached.urls.slice(0,3)" :key="idx" class="img-wrap">
+      <img :src="u" alt="attached image" />
+      <button type="button" class="btn btn-sm btn-outline-secondary mt-1" @click="removeAttachmentAt(idx)">Remove</button>
+    </div>
+  </div>
+  <div class="text-muted small mt-1">Max 3 images.</div>
+</div>
 
-          <textarea ref="inputEl" class="form-control mb-2" rows="1" placeholder="Type a message… (Enter to send, Shift+Enter for newline)" v-model="input" @keydown="onKeydown" @input="autosize" :disabled="sending"></textarea>
+<input type="file" ref="fileInput" accept="image/*" multiple class="d-none" @change="onFileChange" />
+          
 
-          <div class="d-flex justify-content-end gap-2" v-if="!editMode.active">
-            <button class="btn btn-outline-secondary" @click="regenerate" :disabled="sending || !hasUserMessage">Regenerate</button>
-            <button class="btn btn-primary" @click="onSend" :disabled="sending || !input.trim()">Send</button>
-          </div>
-          <div class="d-flex justify-content-between gap-2" v-else>
+                    <!-- Input row: text-only -->
+<div class="input-top">
+  <textarea ref="inputEl"
+            class="prompt-input"
+            rows="1"
+            v-model="input"
+            :placeholder="placeholder"
+            @keydown.enter.exact.prevent="onSend"
+            @keydown.shift.enter.prevent="newline"
+            @paste="onPaste"
+            @input="autosize"
+            :disabled="sending"></textarea>
+</div>
+
+<!-- Control row: attach + mode + send -->
+<div class="input-bottom" role="group" aria-label="Chat controls">
+  <!-- Paperclip -->
+  <button type="button" class="icon-btn attach-btn" title="Attach image" aria-label="Attach image" @click="fileInput?.click()">
+    <svg width="18" height="18" viewBox="0 0 26 18" aria-hidden="true">
+      <path d="M8.5 6.5l7.07-7.07a5 5 0 117.07 7.07l-9.9 9.9a7 7 0 11-9.9-9.9l9.19-9.19" fill="none" stroke="currentColor" stroke-width="2"/>
+    </svg>
+  </button>
+
+  <!-- Mode -->
+  <select class="mode-select form-select form-select-sm" v-model="selectedMode" aria-label="Select mode" :disabled="sending">
+    <option value="simple">Simple</option>
+    <option value="thinking">Thinking</option>
+  </select>
+
+  <div class="spacer"></div>
+
+  <!-- Send up-arrow -->
+  <button type="button"
+          class="icon-btn send-btn"
+          :disabled="sending || !input.trim()"
+          @click="onSend"
+          title="Send"
+          aria-label="Send message">
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 17L17 7M17 7H9m8 0v8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+</div>
+          <div class="d-flex justify-content-between gap-2" v-if="false">
             <div class="text-muted small d-flex align-items-center">Editing previous prompt…</div>
             <div class="d-flex gap-2">
               <button class="btn btn-light" @click="cancelEdit" :disabled="sending">Cancel</button>
@@ -537,6 +764,23 @@ function clearChat(){
 </template>
 
 <style scoped>
+
+/* Drop overlay covering the entire panel for drag & drop */
+.peddit-chat { position: relative; }
+.peddit-chat-panel { position: relative; }
+.drop-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px dashed #999;
+  background: rgba(0,0,0,0.35);
+  color: #fff; font-weight: 600; font-size: 1rem;
+  pointer-events: none;
+  z-index: 10;
+}
+.attachment-preview { margin: 0 12px 8px 12px; border: 1px solid #e5e5e5; border-radius: 8px; padding: 8px; background: #fafafa; }
+.attachment-preview img { max-width: 100%; max-height: 180px; height: auto; display: block; border-radius: 6px; object-fit: contain; }
+.msg-image img { max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 8px; }
+
 :host, .peddit-chat {
   --bubble-size: 56px;
   --navbar-height: 64px;
@@ -560,7 +804,7 @@ function clearChat(){
   width: min(380px, 92vw);
   max-height: calc(100dvh - (var(--navbar-height) + 8px + var(--bubble-size) + 24px));
   display: flex; flex-direction: column; z-index: 1100;
-  border-radius: var(--peddit-radius); overflow: hidden; box-shadow: var(--peddit-shadow);
+  border-radius: var(--peddit-radius); overflow: auto; box-shadow: var(--peddit-shadow);
   background: var(--bs-body-bg, #fff);
 }
 
@@ -619,4 +863,116 @@ function clearChat(){
 .mode-switch .mode-btn { padding:6px 10px; font-size:12px; line-height:1; border:none; background:transparent; cursor:pointer; opacity:.7; }
 .mode-switch .mode-btn.active { background: rgba(0,0,0,.06); opacity:1; font-weight:600; }
 .mode-switch .mode-btn:focus { outline:none; box-shadow:none; }
+
+/* Attach pin button positioned at the left of the prompt bar */
+.card-footer { position: relative; }
+.pin-btn { position:absolute; left:14px; top:14px; width:28px; height:28px; display:inline-grid; place-items:center; z-index:2; }
+.card-footer .form-control { padding-left: 48px; }
+
+
+
+/* === Input bar layout === */
+.input-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.input-left .attach-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  padding: 6px;
+  cursor: pointer;
+}
+
+.mode-select {
+  min-width: 140px;
+}
+
+.prompt-input {
+  width: 100%;
+  min-height: 44px;
+  max-height: 160px;
+  resize: none;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--bs-primary);
+  color: white;
+  display: inline-grid;
+  place-items: center;
+}
+
+.send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* remove old absolute pin styles if present */
+.pin-btn { position: static; }
+
+/* prevent overlap on textarea when old style is present */
+.card-footer .form-control { padding-left: 12px; }
+
+/* === Two-row input layout === */
+.input-top { margin-bottom: 8px; }
+.input-bottom { display: flex; align-items: center; gap: 10px; }
+.input-bottom .spacer { flex: 1 1 auto; }
+
+.prompt-input {
+  width: 100%;
+  min-height: 44px;
+  max-height: 160px;
+  resize: none;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  padding: 6px;
+  cursor: pointer;
+}
+
+.attach-btn { width: 32px; height: 32px; border-radius: 8px; }
+.mode-select { min-width: 160px; }
+
+.send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--bs-primary);
+  color: white;
+  display: inline-grid;
+  place-items: center;
+}
+.send-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* clean old absolute pin styles if any */
+.pin-btn { position: static; }
+
+/* ---- Attachment icon alignment fix ---- */
+.input-bottom { align-items: center; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.icon-btn svg { display: block; }
+.attach-btn { width: 36px; height: 36px; border-radius: 8px; overflow: visible; }
+</style>
+
+<style>
+.img-grid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:8px; }
+.img-grid img{ max-width:100%; border-radius:8px; border:1px solid #e5e7eb; }
+.inline-edit{ width:100%; min-height:80px; padding:8px; border:1px solid #ced4da; border-radius:6px; font: inherit; }
 </style>

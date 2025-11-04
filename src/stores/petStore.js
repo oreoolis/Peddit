@@ -63,7 +63,7 @@ export const usePetStore = defineStore('pets', () => {
             if (!petData.name || !petData.kind) {
                 throw new Error('Pet name and kind are required');
             }
-            console.log(petData);
+            
             const { data, error: supabaseError } = await supabase
                 .from('pets')
                 .insert([{
@@ -325,6 +325,53 @@ export const usePetStore = defineStore('pets', () => {
         pets.value = [];
         currentPet.value = null;
     }
+
+    /**
+     * Fetch pets joined with their appropriate nutrition profile.
+     * @param {string|undefined|null} ownerId Optional: filter to a specific owner UUID.
+     * @returns {Promise<Array<{
+     *   pet_id: string,
+     *   owner_id: string,
+     *   name: string,
+     *   kind: string,
+     *   birthdate: string | null,
+     *   computed_life_stage: 'growth_and_reproduction'|'adult_maintenance',
+     *   profile: { id: number|null, nutrition: object|null, source_document: string|null }
+     * }>>}
+     */
+    const fetchPetsWithProfiles = async (ownerId = null) => {
+        try {
+            loading.value = true;
+            error.value = null;
+
+            const { data, error: supabaseError } = await supabase.rpc('get_pets_with_profile', {
+                p_owner_id: ownerId ?? null
+            });
+
+            if (supabaseError) throw supabaseError;
+
+            pets.value = (data ?? []).map(row => ({
+                pet_id: row.pet_id,
+                owner_id: row.owner_id,
+                name: row.name,
+                kind: row.kind,
+                birthdate: row.birthdate,
+                computed_life_stage: row.computed_life_stage,
+                profile: row.profile_id
+                    ? {
+                        id: row.profile_id,
+                        nutrition: row.nutrition,
+                        source_document: row.source_document
+                    }
+                    : { id: null, nutrition: null, source_document: null }
+            }));
+        } catch (err) {
+            error.value = err.message;
+            console.error('Error fetching pets with profiles:', err);
+        } finally {
+            loading.value = false;
+        }
+    }
     
     return {
         // State
@@ -349,6 +396,7 @@ export const usePetStore = defineStore('pets', () => {
         clearPets,
         uploadPetImage,
         deletePetImage,
-        downloadPetImage
+        downloadPetImage,
+        fetchPetsWithProfiles
     }
 })

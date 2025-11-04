@@ -1,23 +1,28 @@
 <script setup>
 import ItemsChecklist from '@/components/PetViewComponents/ItemsChecklist.vue';
-import MealPlanCards from '@/components/PetViewComponents/MealPlanCard.vue';
+import MealPlanCard from '@/components/PetViewComponents/MealPlanCard.vue';
 import PetCards from '@/components/molecules/create-edit-pet/PetCard.vue';
 import { RouterLink, useRoute } from 'vue-router';
 import { ref, watch, onMounted } from 'vue';
 import ShoppingListModal from '@/components/PetViewComponents/ShoppingListModal.vue';
+import PetInfoModal from '@/components/Organisms/PetInfoModal.vue';
+import MealInfoModal from '@/components/PetViewComponents/MealInfoModal.vue';
+import ToastStatus from '@/components/molecules/ToastStatus.vue';
+import Button from '@/components/atoms/button.vue';
 import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
-import Button from '@/components/atoms/button.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
+import { useToastStore } from '@/stores/toastStore';
+import DeletePetModal from '@/components/PetViewComponents/DeletePetModal.vue';
+import DeleteRecipeModal from '@/components/PetViewComponents/DeleteRecipeModal.vue';
 
 const petStore = usePetStore();
-const { } = storeToRefs(petStore);
+const toastStore = useToastStore();
 const authStore = useAuthStore();
 const nutritionStore = usePetNutritionStore();
 const { recipes } = storeToRefs(nutritionStore);
-const route = useRoute();
 
 watch(() => authStore.userId, (newUserId) => {
     if (newUserId) {
@@ -26,92 +31,154 @@ watch(() => authStore.userId, (newUserId) => {
     }
 }, { immediate: true });
 
-const showShoppingList = ref(false);
-const openShoppingList = () => {
-    showShoppingList.value = true;
+// const showShoppingList = ref(false);
+// const openShoppingList = () => {
+//     showShoppingList.value = true;
+// }
+
+// display pet modal
+const selectedPetData = ref(null);
+const showPetInfo = ref(false);
+const openPetInfo = (petData) => {
+    selectedPetData.value = petData;
+    showPetInfo.value = true;
 }
 
-const showPetInfo = ref(false);
-const openPetInfo = () => {
-    showPetInfo.value = true;
+const selectedRecipeId = ref(null);
+const showMealInfo = ref(false);
+
+// emit to delete recipe
+const showRecipeDeleteModal = ref(false);
+const selectedRecipeInfo = ref({ id: '', name: '' });
+const openRecipeDeleteModal = (recipeData) => {
+    console.log('Received delete recipe data:', recipeData); // Debug line
+    if (recipeData && recipeData.id) {
+        selectedRecipeInfo.value = {
+            id: recipeData.id,
+            name: recipeData.name || ''
+        };
+        showRecipeDeleteModal.value = true;
+    } else {
+        console.error('Invalid recipe data received:', recipeData);
+    }
+}
+
+
+// emit to delete pet
+const showDeleteModal = ref(false);
+const selectedItemInfo = ref(null);
+const openDeleteModal = (itemData) => {
+    selectedItemInfo.value = itemData;
+    showDeleteModal.value = true;
+}
+// whether modal should show edit/delete actions when opened from various places
+const modalEditable = ref(true);
+const openMealInfo = (payload) => {
+    // payload might be an id or an object { rec_id, editable }
+    if (payload && typeof payload === 'object') {
+        selectedRecipeId.value = payload.rec_id ?? payload.id ?? null;
+        modalEditable.value = typeof payload.editable === 'boolean' ? payload.editable : true;
+    } else {
+        selectedRecipeId.value = payload;
+        modalEditable.value = true;
+    }
+    showMealInfo.value = true;
 }
 
 const userStore = useUserStore();
 const { shoppingList } = storeToRefs(userStore);
 
-onMounted(async () => {
-    if (route.state?.showOpSuccess) { // if route state exists, load showEditSuccess
-        const toastElement = document.getElementById('liveToast');
-        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement, { autohide: true, delay: 3000 });
-        if (document.getElementById("message")) {
-            document.getElementById("message").innerText = route.state.message;
-            document.getElementById("message").style.fontWeight = "bold";
-        }
-        toastBootstrap.show();
-    }
+const handleDel = async (ingredient_id) => {
+    userStore.deleteShoppingListItem(ingredient_id);
+    console.log("outer del");
+}
 
+const handleChecked = async ({ ingredient_id, isChecked }) => {
+    userStore.updateShoppingListItem(ingredient_id, !isChecked);
+    console.log("outer checked");
+}
+
+onMounted(async () => {
     try {
         // Fetch shopping list
         await userStore.fetchShoppingList();
-        // debug - shows what the store returned
+
         console.log("Fetched shopping list:", shoppingList.value);
-        console.log(recipes.value);
+        console.log("Recipes: ", recipes.value);
         //await userStore.addMultipleToShoppingList();
     } catch (err) {
         console.error("Error fetching shopping list:", err);
     }
-
-    console.log("HELLSO");
 });
 
 </script>
 
 <template>
     <div class="pet-view">
-        <!-- Toast Message -->
-        <div class="toast-container position-fixed bottom-0 end-0 p-3">
-            <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header bg-success">
-                    <strong class="me-auto text-light">Peddit</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body" id="message">
-                </div>
-            </div>
-        </div>
-
+        <ToastStatus :showOpSuccess="toastStore.showOpSuccess" :message="toastStore.message" />
         <div class="pet-card-container container-fluid">
-            <div class="row d-flex justify-content-center">
-                <div class="col-3">
-                    <h1 class="text-start px-3 py-5 headingFont fw-semibold display-4 ">My Pets</h1>
-                </div>
-                <div class="col-7 d-flex align-items-center justify-content-end ">
-                    <div class="py-5 px-3 ">
-                        <router-link to="/create-pet" custom v-slot="{ href, navigate }">
-                            <Button label="+ Add Pet" color="primary" :href="href" role="link" @click="navigate">
+            <!-- Header Section -->
+            <div class="row justify-content-center align-items-center py-5">
+                <div class="col-lg-9">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <h1 class="headingFont fw-semibold display-4 mb-0">My Pets</h1>
+                        <router-link to="/create-pet" v-if="petStore.pets?.length > 0" custom
+                            v-slot="{ href, navigate }">
+                            <Button label="+ Add Pet" color="primary" :href="href" role="link" @click="navigate"
+                                class="shadow-sm">
                             </Button>
                         </router-link>
                     </div>
                 </div>
             </div>
-            <div v-if="petStore.loading">
-                <section class="loading-dots-container mb-3">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                </section>
-            </div>
-            <div v-else-if="petStore.pets.length == 0">
-                <h1 class="headingFont text-center" style="color: lightcoral">No pets. Create a pet.</h1>
-            </div>
-            <!-- To do v-if if there is no pets rendered from DB, else show current screen -->
-            <div v-else class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3 g-4 gy-4 justify-content-center ">
-                <div v-for="pet in petStore.pets" :key="pet.id" class="col-xl-3 col-md-5 mb-4 ">
-                    <PetCards :id="pet.id" :name="pet.name" :kind="pet.kind" :gender="pet.gender" :breed="pet.breed"
-                        :birthday="pet.birthdate" :weight="pet.weight_kg" :allergies="pet.allergies"
-                        :photo_url="pet.photo_url" :recipe_id="pet.preferred_recipe" />
+            <div class="row">
+                <!-- Loading State -->
+                <div v-if="petStore?.loading" class="loading-wrapper">
+                    <section class="loading-dots-container">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </section>
+                </div>
+
+                <!-- Empty State -->
+                <div v-else-if="petStore.pets?.length === 0" class="empty-state-container">
+                    <div class="empty-state-content">
+                        <div class="empty-state-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <circle cx="12" cy="8" r="7"></circle>
+                                <path d="M12 15v6"></path>
+                                <path d="M9 18h6"></path>
+                            </svg>
+                        </div>
+                        <h2 class="headingFont fw-semibold mb-3">No Pets Yet</h2>
+                        <p class="bodyFont text-muted mb-4">Start by adding your first furry friend to track their
+                            health and nutrition.</p>
+                        <router-link to="/create-pet" custom v-slot="{ href, navigate }">
+                            <Button label="Add Your First Pet" color="primary" :href="href" role="link"
+                                @click="navigate" class="shadow-sm px-4 py-2">
+                            </Button>
+                        </router-link>
+                    </div>
+                </div>
+
+                <!-- Pet Cards Grid -->
+                <div v-else class="row justify-content-center">
+                    <div class="col-12 col-lg-10 px-5">
+                        <div class="row g-4 pb-1 d-flex justify-content-center">
+                            <div v-for="pet in petStore.pets" :key="pet.id"
+                                class="col-xl-5 col-sm-12 col-md-6 g-5 mb-5">
+                                <PetCards :id="pet?.id" :name="pet?.name" :kind="pet?.kind" :gender="pet?.gender"
+                                    :breed="pet?.breed" :birthday="pet?.birthdate" :weight="pet?.weight_kg"
+                                    :allergies="pet?.allergies" :neutered="pet?.neutered" :photo_url="pet?.photo_url"
+                                    :recipe_id="pet?.preferred_recipe" @open-pet-info="openPetInfo" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -119,67 +186,64 @@ onMounted(async () => {
         <div class="grocery-checklist container-fluid">
             <div class="row d-flex justify-content-center">
                 <div class="col-lg-9">
-                    <h1 class="headingFont fw-semibold display-4 mt-5 mb-2">Weekly Grocery Checklist</h1>
+                    <h1 class="headingFont fw-semibold display-4 mt-5 mb-2">My Grocery Checklist</h1>
                 </div>
             </div>
             <div class="row">
                 <div class="col-lg-12 d-flex justify-content-center">
                     <div class="bg-light container bodyFont fw-bold rounded-3 shadow p-3 mt-3">
                         <!--Use v-for to loop through list of grocery items, Max number of cols per row: 3 (col-lg-4) -->
-                        <div class="row px-3 py-3">
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
+                        <!-- TODO: Bern -->
+                        <div v-if="shoppingList?.length === 0">
+                            <div class="text-center fw-bold mt-5">
+                                <h3>No available recipes to get ingredients!</h3>
+                                <h3>Create one to populate the shopping list!</h3>
                             </div>
                         </div>
-                        <div class="row px-3 py-3 justify-evenly">
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                        </div>
-                        <div class="row px-3 py-3 justify-evenly">
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
-                            </div>
-                            <div class="col-lg-4">
-                                <ItemsChecklist />
+                        <div class="row px-3 py-3 g-2">
+                            <div v-for="ingredient in shoppingList" class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                <ItemsChecklist 
+                                    :label="ingredient?.food_ingredients?.name"
+                                    :ingredient_id="ingredient?.ingredient_id" 
+                                    :qty="ingredient?.quantity_g" 
+                                    :isChecked="ingredient?.is_purchased" 
+                                    @delete="handleDel"
+                                    @checked="handleChecked"/>
                             </div>
                         </div>
-                        <div class="text-end px-1 py-1">
-                            <!-- size: none -->
+                        <!-- <div class="text-end px-1 py-1">
                             <Button label="+ Edit" color="primary" class="button-edit-list fw-bold bodyFont"
                                 @click="openShoppingList">
-
                             </Button>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="meal-plans-container container-fluid ">
-            <div class="row d-flex justify-content-center mt-5 py-2">
+        <div class="meal-plans-container container-fluid">
+            <div class="row d-flex justify-content-center mt-5 py-4">
                 <div class="col-lg-9">
-                    <h1 class="headingFont fw-semibold display-4">My Meal Plans</h1>
-                    <button class="button-recommend bodyFont">
-                        Auto Recommend
-                    </button>
-                    <div class="meal-plan-cards container-fluid">
-                        <div v-if="nutritionStore.loading">
+                    <!-- Header Section -->
+                    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+                        <h1 class="headingFont fw-semibold display-4 mb-0">My Meal Plans</h1>
+                        <div class="d-flex gap-3">
+                            <router-link to="/add-meal-plan" custom v-slot="{ href, navigate }">
+                                <button class="icon-btn add-btn shadow-sm" @click="navigate" :href="href" role="link">
+                                    <div class="add-icon"></div>
+                                    <div class="btn-txt">New Plan</div>
+                                </button>
+                            </router-link>
+                            <button class="button-recommend bodyFont shadow-sm">
+                                Auto Recommend
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Meal Plan Cards Section -->
+                    <div class="meal-plan-cards container-fluid px-0">
+                        <!-- Loading State -->
+                        <div v-if="nutritionStore?.loading" class="loading-container">
                             <section class="loading-dots-container">
                                 <div class="dot"></div>
                                 <div class="dot"></div>
@@ -188,29 +252,41 @@ onMounted(async () => {
                                 <div class="dot"></div>
                             </section>
                         </div>
-                        <div v-if="nutritionStore.recipes.length == 0">
-                            <h1>No recipes. Create one now!</h1>
+
+                        <!-- Empty State -->
+                        <div v-else-if="recipes?.length === 0" class="empty-state text-center py-5">
+                            <h2 class="headingFont fw-semibold mb-3">No Meal Plans Yet</h2>
+                            <p class="bodyFont text-muted mb-4">Create your first meal plan to get started!</p>
                         </div>
-                        <div v-else class="row">
-                            <div v-for="recipe in nutritionStore.recipes"
-                                class="col-sm-12 col-md-3 col-lg-4 d-flex justify-content-center">
-                                <MealPlanCards :rec_id="recipe.id" :name="recipe.recipe_name"
-                                    :desc="recipe.description" />
-                            </div>
-                            <div class="col-sm-12 col-md-3 col-lg-4 d-flex justify-content-center">
-                                <router-link to="/add-meal-plan" custom v-slot="{ href, navigate }">
-                                    <button class="icon-btn add-btn shadow" @click="navigate" :href="href" role="link">
-                                        <div class="add-icon"></div>
-                                        <div class="btn-txt">New Plan</div>
-                                    </button>
-                                </router-link>
+
+                        <!-- Recipe Cards Grid -->
+                        <div v-else class="row g-4">
+                            <div v-for="recipe in nutritionStore?.recipes" :key="recipe.id"
+                                class="col-auto d-flex justify-content-center">
+                                <div style="width: 100%; max-width: 340px;">
+                                    <MealPlanCard :rec_id="recipe?.id" :name="recipe?.recipe_name"
+                                        :desc="recipe?.description" :petKind="recipe?.pet_kind"
+                                        @open-meal-info="openMealInfo(recipe?.id)" />
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <ShoppingListModal v-model:show="showShoppingList" />
+
+        <!-- <ShoppingListModal v-model:show="showShoppingList" /> -->
+        <PetInfoModal v-model:show="showPetInfo" :id="selectedPetData?.id" :name="selectedPetData?.name"
+            :kind="selectedPetData?.kind" :gender="selectedPetData?.gender" :breed="selectedPetData?.breed"
+            :birthday="selectedPetData?.birthday" :weight="selectedPetData?.weight"
+            :allergies="selectedPetData?.allergies" :neutered="selectedPetData?.neutered"
+            :photo_url="selectedPetData?.photo_url" :recipeDetails="selectedPetData?.recipeDetails"
+            @open-meal-info="openMealInfo" @delete-item-modal="openDeleteModal" />
+        <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId" :editable="modalEditable"
+            @delete-recipe-modal="openRecipeDeleteModal" />
+        <DeletePetModal v-model:show="showDeleteModal" :name="selectedItemInfo?.name" :id="selectedItemInfo?.id" />
+        <DeleteRecipeModal v-model:show="showRecipeDeleteModal" :name="selectedRecipeInfo?.name"
+            :id="selectedRecipeInfo?.id" />
     </div>
 </template>
 
@@ -427,6 +503,132 @@ onMounted(async () => {
         transform: scale(0.8);
         background-color: #b3d4fc;
         box-shadow: 0 0 0 0 rgba(178, 212, 252, 0.7);
+    }
+}
+
+/* Loading Wrapper */
+.loading-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    padding: 3rem 0;
+}
+
+/* Empty State Styling */
+.empty-state-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 500px;
+    padding: 3rem 1.5rem;
+}
+
+.empty-state-content {
+    text-align: center;
+    max-width: 500px;
+    background: white;
+    padding: 3rem 2rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state-icon {
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+}
+
+.empty-state-icon svg {
+    width: 100px;
+    height: 100px;
+}
+
+.empty-state-content h2 {
+    color: #2d3748;
+    font-size: 1.75rem;
+}
+
+.empty-state-content p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #64748b;
+}
+
+/* Pet Cards Grid - Using Bootstrap's row-cols for responsive grid */
+.row-cols-1>* {
+    padding: 0.75rem;
+}
+
+/* Smooth transitions for cards */
+.col {
+    transition: transform 0.2s ease;
+}
+
+/* Add hover effect on the whole card column */
+.col:hover {
+    transform: translateY(-5px);
+}
+
+/* Improved shadow utilities */
+.shadow-sm {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .pet-card-container .display-4 {
+        font-size: 2rem;
+    }
+
+    .empty-state-content {
+        padding: 2rem 1.5rem;
+    }
+
+    .empty-state-icon svg {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+@media (max-width: 576px) {
+    .d-flex.gap-3 {
+        flex-direction: column;
+        align-items: flex-start !important;
+        width: 100%;
+    }
+}
+
+/* Grid spacing improvements */
+.g-4 {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 1.5rem;
+}
+
+@media (min-width: 1200px) {
+    .g-4 {
+        --bs-gutter-x: 2rem;
+        --bs-gutter-y: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .d-flex.gap-3 {
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .pet-card-container .display-4 {
+        font-size: 2.5rem;
+        margin-bottom: 0;
+    }
+
+    .meal-plans-container .display-4 {
+        font-size: 2.5rem;
+        margin-bottom: 0;
+        text-align: center;
     }
 }
 </style>

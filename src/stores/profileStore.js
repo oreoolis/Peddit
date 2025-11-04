@@ -67,7 +67,7 @@ export const useProfileStore = defineStore('profile', () => {
             const { data, error: fetchError } = await supabase
                 .from('profiles')
                 .select('*')
-                .eq('username', username)
+                .eq('display_name', username)
                 .single();
 
             if (fetchError) throw fetchError;
@@ -109,7 +109,6 @@ export const useProfileStore = defineStore('profile', () => {
 
             profiles.value = transformedProfs || [];
 
-            console.log(profiles.value);
             
             return { success: true, data };
         } catch (err) {

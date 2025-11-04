@@ -12,25 +12,46 @@ import MealViewSearchResult from './MealViewSearchResult.vue';
 import router from '@/router';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { storeToRefs } from 'pinia';
+import MealInfoModal from '@/components/PetViewComponents/MealInfoModal.vue';
 
 
 // TODO: Bern code
 const petNutritionStore = usePetNutritionStore();
 const { recipeQuery, recipes } = storeToRefs(petNutritionStore);
+// provide a local `query` binding used by the template's v-model
+const query = recipeQuery;
 
 const featured = computed(() => recipes.value);
 
+
+// modal state for viewing meal info
+const selectedRecipeId = ref(null);
+const showMealInfo = ref(false);
+// whether the modal should show edit/delete actions
+const modalEditable = ref(true);
+
+// carousel refs used in the template
+const carouselEl = ref(null);
+const carouselInner = ref(null);
+
+// style used to constrain carousel content width (keeps controls visible)
+const contentMaxWidth = computed(() => 'min(1100px, 95vw)');
+
+const openMealInfo = (payload) => {
+  // payload might be a plain id, or an object like { rec_id }
+  if (payload && typeof payload === 'object') {
+    selectedRecipeId.value = payload.rec_id ?? payload.id ?? null;
+    // if editable was provided, use it; otherwise default true
+    modalEditable.value = typeof payload.editable === 'boolean' ? payload.editable : true;
+  } else {
+    selectedRecipeId.value = payload;
+    modalEditable.value = true;
+  }
+  showMealInfo.value = true;
+}
+
 function goToSearchResults(submittedValue) {
-  // const term = (typeof submittedValue === 'string' && submittedValue.trim().length)
-  //   ? submittedValue.trim()
-  //   : (query.value ?? '').toString().trim();
 
-  // if (!term) return;
-  // console.log("Clicked");
-  // // keep the composable's query in sync
-  // query.value = term;
-
-  // // run immediate search (populate results)
   // if (typeof searchNow === 'function') searchNow(term);
   recipeQuery.value = submittedValue;
 
@@ -45,9 +66,8 @@ onMounted(async () => {
   try {
     await petNutritionStore.fetchRecipes();
     // debug - shows what the store returned
-    console.log("Fetched recipes:", recipes.value);
   } catch (err) {
-    console.error("Error fetching recipes:", err);
+
   }
 });
 
@@ -63,19 +83,23 @@ onMounted(async () => {
       <h1 class="text-center headingFont bg-primary text-white py-2">Popular Meal Plans</h1>
       <div class="carousel-inner text-center bg-primary-light" ref="carouselInner">
         <div v-if="!featured">Nothing</div>
-        <div v-for="(f, idx) in featured" 
-        :key="f.id" 
-        :class="['carousel-item', {active: idx===0}]">
+    <div v-for="(f, idx) in featured" 
+  :key="f.id" 
+  :class="['carousel-item', {active: idx===0}]">
           <!-- centered content container: keeps content away from the very edges so controls stay visible -->
           <div class="carousel-content-container w-100 py-3 px-2">
             <div class="carousel-content mx-auto d-flex flex-column flex-md-row align-items-center justify-content-center" :style="{ maxWidth: contentMaxWidth }">
               <!-- LEFT: feature panel -->
               <div class="feature-panel p-5 mb-3  text-center text-md-start">
-                <StatCard :label="f.recipe_name" :unit="f.notes" size="sm" highlight />
+                <StatCard 
+                :label="f.recipe_name ?? ''" 
+                value="" 
+                :unit="f.notes ?? ''" 
+                size="sm" highlight />
                 <div class="mt-3">
-                    <InfoDetail label="Pet Type and Breed" :value="f.pet_kind + ' - ' + f.pet_breed"/>
-                    <InfoDetail label="Price Per Week" :value="'$' + f.price_per_week "/>
-                    <InfoDetail label="Likes" :value="f.likes"/>
+                  <InfoDetail label="Pet Type and Breed" :value="(f.pet_kind || '') + (f.pet_breed ? ' - ' + f.pet_breed : '')"/>
+                  <InfoDetail label="Price Per Week" :value="typeof f.price_per_week === 'number' ? ('$' + f.price_per_week) : '—'"/>
+                  <InfoDetail label="Likes" :value="f.likes ?? 0"/>
                 </div>
                 <p class="text-muted mt-2 fs-5">Created by @{{ f.profiles.display_name }}
                     <base-avatar
@@ -83,15 +107,18 @@ onMounted(async () => {
                     </base-avatar>
                 </p>
 
-                <div class="d-flex gap-2 justify-content-center justify-content-md-start mt-2">
-                  <Button label="View Plan" />
-                  <Button outline color="primary" label="Save" />
-                </div>
+
               </div>
 
               <!-- RIGHT: card -->
               <div class="carousel-card d-flex" style="max-width:420px;">
-                <MealPlanCard :editable="false" :name="f.recipe_name" :rec_id="f.id" :desc="f.desc" style="width:100% !important; height:100% !important; margin:0 !important;"/>
+                <MealPlanCard 
+                :editable="false" 
+                :name="f.recipe_name"
+                :rec_id="f.id" 
+                :desc="f.description" 
+                :petKind="f.pet_kind" 
+                @open-meal-info="openMealInfo" />
               </div>
             </div>
           </div>
@@ -109,8 +136,12 @@ onMounted(async () => {
      <!-- TODO: Need to insert Plans here into RecommendedMeals -->
       <div v-if="!featured">Nothing</div>
       <RecommendedMeals
-        :plans="featured.value"
+        :plans="featured"
+        @open-meal-info="openMealInfo"
       ></RecommendedMeals>
+      
+    <!-- Meal info modal -->
+    <MealInfoModal v-model:show="showMealInfo" :rec_id="selectedRecipeId ?? '' " :editable="modalEditable" />
    </main>
  </template>
  

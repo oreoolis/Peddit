@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
-const { getPublicImage } = useStorage();
+const { getPublicImage, uploadMultipleImages, listAllFiles, uploadImage } = useStorage();
 
 /**
  * Post store for managing posts, including fetching, creating, updating, and deleting posts
@@ -71,6 +71,7 @@ export const usePostStore = defineStore('posts', () => {
                     ),
                     post_media (*)
                 `)
+                .is('recipe_id', null)
                 .order('created_at', { ascending: false })
                 .range(page.value * PAGE_SIZE, (page.value + 1) * PAGE_SIZE - 1);
 
@@ -123,6 +124,13 @@ export const usePostStore = defineStore('posts', () => {
             loading.value = true;
             error.value = null;
 
+
+            if (!postId) {
+                const msg = 'fetchPostById requires a postId argument';
+                error.value = msg;
+                console.error(msg);
+                return { success: false, error: msg };
+            }
             // Join post with author
             const { data, error: supabaseError } = await supabase
                 .from('posts')
@@ -140,8 +148,20 @@ export const usePostStore = defineStore('posts', () => {
 
             if (supabaseError) throw supabaseError;
 
-            if (data.profiles?.avatar_url) {
+            // defensive: only transform avatar if data and profiles exist
+            if (data?.profiles?.avatar_url) {
                 data.profiles.avatar_url = getPublicImage('avatars', data.profiles.avatar_url);
+            }
+            currentPost.value = data || null;
+
+            if (Array.isArray(data.post_media)) {
+                // Ensure media are ordered and expose public URLs for the carousel
+                data.post_media = data.post_media
+                    .sort((a, b) => (a.ordinal ?? 999) - (b.ordinal ?? 999) || new Date(a.created_at) - new Date(b.created_at))
+                    .map(m => ({
+                        ...m,
+                        url: getPublicImage('post-media', m.storage_path)
+                    }));
             }
 
             currentPost.value = data;
@@ -169,6 +189,8 @@ export const usePostStore = defineStore('posts', () => {
         try {
             loading.value = true;
             error.value = null;
+
+            await uploadImage('post-media', new File([new Blob(['x'])], 'test.txt', { type: 'text/plain' }), 'tests/hello.txt')
 
             if (!postData.content && !postData.title) {
                 throw new Error('Post must have content or title');
@@ -199,6 +221,55 @@ export const usePostStore = defineStore('posts', () => {
 
             if (data.profiles?.avatar_url) {
                 data.profiles.avatar_url = getPublicImage('avatars', data.profiles.avatar_url);
+            }
+
+            // Handle multiple media uploads if provided
+            const files = [];
+            if (Array.isArray(postData?.imageFiles)) files.push(...postData.imageFiles);
+            if (postData?.imageFile) files.push(postData.imageFile);
+
+            if (files.length > 0) {
+                const uploadResults = await uploadMultipleImages('post-media', files, `posts/${data.id}`);
+
+                const successes = uploadResults
+                    .map((res, i) => ({ res, i }))
+                    .filter(x => !x.res?.error && x.res?.data);
+
+                const mediaRows = successes.map(({ res, i }) => ({
+                    post_id: data.id,
+                    storage_path: res.path,
+                    mime: files[i]?.type,
+                    size_bytes: files[i]?.size,
+                    ordinal: i + 1
+                }));
+
+                const validRows = mediaRows.filter(r => !!r.storage_path);
+
+                if (validRows.length > 0) {
+                    const { data: mediaData, error: mediaError } = await supabase
+                        .from('post_media')
+                        .insert(validRows)
+                        .select();
+
+                    if (mediaError) throw mediaError;
+
+                    data.post_media = (mediaData || [])
+                        .map(m => ({
+                            ...m,
+                            url: getPublicImage('post-media', m.storage_path)
+                        }))
+                        .sort((a, b) => (a.ordinal ?? 999) - (b.ordinal ?? 999) || new Date(a.created_at) - new Date(b.created_at));
+                }
+            }
+            
+            if (Array.isArray(data.post_media)) {
+                // Ensure media are ordered and expose public URLs for the carousel
+                data.post_media = data.post_media
+                    .sort((a, b) => (a.ordinal ?? 999) - (b.ordinal ?? 999) || new Date(a.created_at) - new Date(b.created_at))
+                    .map(m => ({
+                        ...m,
+                        url: getPublicImage('post-media', m.storage_path)
+                    }));
             }
 
             // Add to local state (at beginning for newest first)
@@ -244,6 +315,35 @@ export const usePostStore = defineStore('posts', () => {
 
             if (supabaseError) throw supabaseError;
 
+            // If new media was provided in updates, upload and record
+            const files = [];
+            if (Array.isArray(updates?.imageFiles)) files.push(...updates.imageFiles);
+            if (updates?.imageFile) files.push(updates.imageFile);
+
+            if (files.length > 0) {
+                const uploadResults = await uploadMultipleImages('post-media', files, `posts/${postId}`);
+
+                const successes = uploadResults
+                    .map((res, i) => ({ res, i }))
+                    .filter(x => !x.res?.error && x.res?.data);
+
+                const mediaRows = successes.map(({ res, i }) => ({
+                    post_id: postId,
+                    storage_path: res.path,
+                    mime: files[i]?.type,
+                    size_bytes: files[i]?.size,
+                    ordinal: i + 1
+                }));
+
+                const validRows = mediaRows.filter(r => !!r.storage_path);
+                if (validRows.length > 0) {
+                    const { error: mediaError } = await supabase
+                        .from('post_media')
+                        .insert(validRows);
+                    if (mediaError) throw mediaError;
+                }
+            }
+
             // Update in local state
             const index = posts.value.findIndex(post => post.id === postId);
             if (index !== -1) {
@@ -280,6 +380,21 @@ export const usePostStore = defineStore('posts', () => {
         try {
             loading.value = true;
             error.value = null;
+
+            // Attempt to delete storage files under this post's folder
+            try {
+                const files = await listAllFiles('post-media', `posts/${postId}`);
+                const paths = files.map(f => f.path);
+                if (paths.length > 0) {
+                    await supabase.storage.from('post-media').remove(paths);
+                }
+            } catch (e) {
+                // Non-fatal: log and continue with DB delete
+                console.warn('Warning removing storage for post', postId, e?.message || e);
+            }
+
+            // Clean up post_media rows
+            await supabase.from('post_media').delete().eq('post_id', postId);
 
             const { error: supabaseError } = await supabase
                 .from('posts')

@@ -4,7 +4,9 @@ const emit = defineEmits(['vote']);
 
 const props = defineProps({
   initialVote: { type: Number, default: 0 }, // -1 | 0 | 1 (controlled)
-  score: { type: Number, default: 0 }
+  score: { type: Number, default: 0 },
+  // when true, disable controls (useful when user not authenticated)
+  disabled: { type: Boolean, default: false }
 });
 
 const vote = ref(props.initialVote);
@@ -19,6 +21,11 @@ watch(() => props.initialVote, (v) => {
 });
 
 const setVote = (val) => {
+  if (props.disabled) {
+    // Emit a clear signal so parent can react (e.g., show login)
+    emit('auth-required');
+    return;
+  }
   const newVote = vote.value === val ? 0 : val; // toggle
   emit('vote', newVote);
 };
@@ -26,7 +33,7 @@ const setVote = (val) => {
 
 <template>
   <div class="d-flex align-items-center gap-2">
-    <button class="btn btn-sm" :class="vote === 1 ? 'btn-success' : 'btn-outline-secondary'" @click="setVote(1)">
+    <button class="btn btn-sm" :class="vote === 1 ? 'btn-success' : 'btn-outline-secondary'" @click="setVote(1)" :disabled="props.disabled">
       <i :class="vote === 1 ? 'bi-hand-thumbs-up-fill' : 'bi-hand-thumbs-up'"></i>
     </button>
 
@@ -35,7 +42,7 @@ const setVote = (val) => {
       <span class="burst-particles" aria-hidden="true"></span>
     </div>
 
-    <button class="btn btn-sm" :class="vote === -1 ? 'btn-danger' : 'btn-outline-secondary'" @click="setVote(-1)">
+    <button class="btn btn-sm" :class="vote === -1 ? 'btn-danger' : 'btn-outline-secondary'" @click="setVote(-1)" :disabled="props.disabled">
       <i :class="vote === -1 ? 'bi-hand-thumbs-down-fill' : 'bi-hand-thumbs-down'"></i>
     </button>
   </div>

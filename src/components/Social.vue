@@ -24,7 +24,7 @@ const { comments, commentLoading: loading } = storeToRefs(commentStore);
 
 const userStore = useUserStore();
 const { profile: authorProfile } = storeToRefs(userStore);
-console.log("Author Profile in Search View: ", authorProfile.value);
+
 // Store comments by post ID
 const commentsByPostId = ref({});
 
@@ -34,6 +34,21 @@ const { query, filteredProfiles } = storeToRefs(profileStore);
 const debFilteredProfiles = useDebounce(filteredProfiles, 300);
 const debFilteredPosts = useDebounce(filteredPosts, 300);
 
+// UI: limit lists and allow expanding
+const INITIAL_LIST_COUNT = 5;
+const showAllProfiles = ref(false);
+const showAllPosts = ref(false);
+
+const visibleProfiles = computed(() => {
+  const arr = debFilteredProfiles.value || [];
+  return showAllProfiles.value ? arr : arr.slice(0, INITIAL_LIST_COUNT);
+});
+
+const visiblePosts = computed(() => {
+  const arr = debFilteredPosts.value || [];
+  return showAllPosts.value ? arr : arr.slice(0, INITIAL_LIST_COUNT);
+});
+
 const combinedQuery = computed({
   get(){ return query.value },
   set(newVal){
@@ -42,70 +57,41 @@ const combinedQuery = computed({
   }
 });
 
-const props = defineProps({
-    foundProfiles:{
-        type: Array,
-        default:
-            [
-                {
-                    Name: "@bernardcks",
-                    Image: "/src/assets/person.jpg",
-                    Following: 1,
-                    followers: 100,
-                },{
-                    Name: "@johnDoe",
-                    Image: "/src/assets/person.jpg",
-                    Following: 111,
-                    followers: 100,                    
-                },{
-                    Name: "@MaryJane",
-                    Image: "/src/assets/person.jpg",
-                    Following: 179,
-                    followers: 999,
-                }
-            ]
-    } ,
+// const props = defineProps({
+//     foundProfiles:{
+//         type: Array,
+//         default:
+//             [
+//                 {
+//                     Name: "@bernardcks",
+//                     Image: "/src/assets/person.jpg",
+//                     Following: 1,
+//                     followers: 100,
+//                 },{
+//                     Name: "@johnDoe",
+//                     Image: "/src/assets/person.jpg",
+//                     Following: 111,
+//                     followers: 100,                    
+//                 },{
+//                     Name: "@MaryJane",
+//                     Image: "/src/assets/person.jpg",
+//                     Following: 179,
+//                     followers: 999,
+//                 }
+//             ]
+//     } ,
 
-}
-)
+// }
+// )
 onMounted(async () => {
     try {
         await profileStore.fetchAllProfiles();
         await postStore.fetchPosts();
-        // debug - shows what the store returned
-        console.log("Fetched posts:", posts.value);
-        //console.log("Fetched profiles:", profiles.value);
     } catch (err) {
         console.error("Error fetching posts:", err);
     }
 });
 
-const showCreatePostModal = ref(false);
-const showShareRecipePostModal = ref(false);
-const handleCreatePost = async (postData) => {
-    if (!authStore.user) {
-        alert("You must be logged in to create a post.");
-        return;
-    }
-    
-    // Call the Pinia store action to create the post
-    console.log("--- New Post Data Received ---");
-    console.log("Author ID:", authStore.user.id);
-    console.log("Title:", postData.title);
-    console.log("Content:", postData.content);
-
-    // Check if an image file was included and log its details
-    if (postData.imageFile) {
-        console.log("Image File Attached:", postData.imageFile);
-        console.log("  - Name:", postData.imageFile.name);
-        console.log("  - Size:", postData.imageFile.size, "bytes");
-        console.log("  - Type:", postData.imageFile.type);
-    } else {
-        console.log("Image File Attached: None");
-    }
-
-    postStore.createPost(authStore.user.id, postData);
-};
 
 </script>
 
@@ -118,21 +104,36 @@ const handleCreatePost = async (postData) => {
   <section class="section w-75 mx-auto">
     <header class="section-header border-bottom mb-2">
       <div class="badge mx-2">Profiles</div>
-      <h1 class="section-title pb-2">Discover people</h1>
+      <h1 class="pb-2 section-title" >Discover people</h1>
     </header>
 
     <div class="grid">
-      <ProfileSearch
-        v-for="(profile, idx) in debFilteredProfiles"
-        :key="profile.id + '_' + idx"
-        :Name="profile.display_name"
-        :Image="profile.avatar_url"
-        :handle="'@'+profile.display_name"
-        :Following="profile.following_count"
-        :Followers="profile.follower_count"
-        class="card card-profile"
-      />
-    </div>
+        <ProfileSearch
+          v-for="(profile, idx) in visibleProfiles"
+          :key="profile.id + '_' + idx"
+          :Name="profile.display_name"
+          :Image="profile.avatar_url"
+          :handle="'@'+profile.display_name"
+          :Following="profile.following_count"
+          :Followers="profile.follower_count"
+          :LinkID="profile.display_name"
+          class="card card-profile"
+        />
+      </div>
+      <div class="text-center mt-2">
+        <Button
+          v-if="(debFilteredProfiles.length || 0) > INITIAL_LIST_COUNT && !showAllProfiles"
+          outline
+          :label="`Show all ${debFilteredProfiles.length} profiles`"
+          @click="showAllProfiles = true"
+        />
+        <Button
+          v-else-if="showAllProfiles"
+          outline
+          label="Show less"
+          @click="showAllProfiles = false"
+        />
+      </div>
   </section>
 
 
@@ -143,7 +144,7 @@ const handleCreatePost = async (postData) => {
             <h1 class="section-title pb-2">Trending posts</h1>
         </header>
 
-        <div class="grid">
+  <div class="grid">
             <!-- friendly empty state / debug hint -->
             <div v-if="(posts || []).length === 0" class="empty text-muted p-3">
                 No posts to display — check the console (Fetched posts:)
@@ -151,7 +152,7 @@ const handleCreatePost = async (postData) => {
 
             <!-- safer prop access for post fields so a missing `profiles` doesn't break rendering -->
             <PostSearch
-                v-for="post in debFilteredPosts"
+                v-for="post in visiblePosts"
                 :key="post?.id ?? post?.link ?? post?.title"
                 :link="post?.id ?? post?.link"
                 :title="post?.title"
@@ -159,25 +160,26 @@ const handleCreatePost = async (postData) => {
                 :Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
                 :CommentCount="post?.comment_count"
                 :VoteScore="post?.vote_score"
+                :created_at="post?.created_at"
             />
+        </div>
+        <div class="text-center mt-2">
+          <Button
+            v-if="(debFilteredPosts.length || 0) > INITIAL_LIST_COUNT && !showAllPosts"
+            outline
+            :label="`Show all ${debFilteredPosts.length} posts`"
+            @click="showAllPosts = true"
+          />
+          <Button
+            v-else-if="showAllPosts"
+            outline
+            label="Show less"
+            @click="showAllPosts = false"
+          />
         </div>
     </section>
   <!-- create post modal here -->
-   <div class="d-flex justify-content-center my-2">
-   <Button @click="showCreatePostModal = true" label="Create Post" ></Button>
-     <CreatePostModal 
-    :show="showCreatePostModal" 
-    @update:show="showCreatePostModal = $event"
-    @create-post="handleCreatePost"
-  />
-  
-<Button @click="showShareRecipePostModal = true" label="Share Recipe">
-</Button>
-  <ShareRecipePostModal
-    :show="showShareRecipePostModal" 
-    @update:show="showShareRecipePostModal = $event"  
-  ></ShareRecipePostModal>
-   </div>
+
 
 </template>
 <style scoped>
@@ -209,13 +211,6 @@ const handleCreatePost = async (postData) => {
   box-shadow: 0 6px 18px rgba(60,160,220,0.12);
 }
 
-/* Title styling */
-.section-title {
-  margin: 0;
-  font-weight: 800;
-  color: #112;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-}
 
 /* Grids */
 .grid {

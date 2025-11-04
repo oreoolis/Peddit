@@ -1,6 +1,7 @@
-
 <script setup>
+import { computed } from 'vue';
 import MealPlanCard from '@/components/PetViewComponents/MealPlanCard.vue';
+
 const props = defineProps({
   plans: {
     type: Array,
@@ -14,16 +15,26 @@ const props = defineProps({
   }
 });
 
+// Normalize plan objects so the component can accept both the sample shape
+// (name/desc) and the store shape (recipe_name/description/notes)
+const normalizedPlans = computed(() => {
+  return (props.plans || []).map(p => ({
+    id: p.id ?? p.rec_id ?? p.recipe_id ?? (p.name || p.recipe_name) ?? null,
+    name: p.recipe_name ?? p.name ?? p.recipe?.recipe_name ?? '',
+    desc: p.description ?? p.desc ?? p.notes ?? (p.recipe?.description) ?? '',
+    petKind: p.pet_kind ?? p.petKind ?? p.recipe?.pet_kind ?? null
+  }));
+});
+
 </script>
 
 <template>
-         <!-- Recommended: GRID (variant 1) -->
      <section class="mx-auto">
-        <h1 class="text-center headingFont bg-primary text-white py-2 ">Recommended</h1>
+        <h1 class="text-center headingFont bg-primary text-white py-2 ">What Others Are Feeding</h1>
        <div class=" py-4 row recommend-grid row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 d-flex justify-content-center">
-         <div v-for="r in plans" :key="r.id" class=" col">
+         <div v-for="r in normalizedPlans" :key="r.id" class=" col">
            <div class="card-wrapper w-100 justify-content-center">
-             <MealPlanCard :name="r.name" :rec_id="r.id" :desc="r.desc" class="w-100"/>
+             <MealPlanCard :name="r.name" :rec_id="r.id" :desc="r.desc" :petKind="r.petKind" class="w-100" :editable="false" @open-meal-info="$emit('open-meal-info', $event)"/>
            </div>
          </div>
        </div>
@@ -34,10 +45,5 @@ const props = defineProps({
 <style scoped>
 /* Recommended grid tweaks remain... */
 .recommend-grid .card-wrapper { display:flex; align-items:stretch; }
-.recommend-grid .card-wrapper .recipeCard {
-  width: 100% !important;
-  height: auto !important;
-  min-height: 240px;
-  margin-bottom: 0;
-}
+
 </style>

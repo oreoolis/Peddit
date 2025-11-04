@@ -9,16 +9,20 @@ import { useRoute, useRouter } from 'vue-router'
 import { usePetInfoApi } from '@/composables/usePetInfoApi';
 import BreedSelect from '@/components/molecules/create-edit-pet/BreedSelect.vue';
 import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelect.vue';
+import { usePetNutritionStore } from '@/stores/petNutritionStore';
+import Button from '@/components/atoms/button.vue';
+import { useToastStore } from '@/stores/toastStore';
 
 
 const petStore = usePetStore();
 const authStore = useAuthStore();
+const nutritionStore = usePetNutritionStore();
 const route = useRoute(); // get route params - retrieve info from state
 const router = useRouter(); // naivgate to next page
-
+const toastStore = useToastStore();
 const showSuccess = ref(false);
-
 const currentPet = ref(petStore.getPetById(route.query.id))
+const recipes = ref(null);
 
 // initial form data
 const petKind = ref(currentPet.value.kind); // default value on load
@@ -89,9 +93,9 @@ const handleSubmit = async () => {
 
         showSuccess.value = true;
         resetForm();
+        toastStore.showToast("Pet has been updated!");
         router.push({
-            path: '/pet',
-            state: { showOpSuccess: true, message: currentPet.name + "has been updated." }
+            path: '/pet'
         });
 
         // Hide success message after 3 seconds
@@ -109,7 +113,7 @@ const resetForm = () => {
         gender: 'unknown',
         birthdate: '',
         weight_kg: null,
-        neutered: null,
+        neutered: true,
         allergies: ''
     }
     if (imagePreview.value) {
@@ -123,36 +127,19 @@ const resetForm = () => {
 const selectPetKind = (kind) => {
     petKind.value = kind;
     form.value.kind = kind;
-    showToast(`You have chosen ${kind.charAt(0).toUpperCase() + kind.slice(1)}!`);
 }
 
-const showToast = (text) => {
-    const toastElement = document.getElementById('liveToast');
-    if (!toastElement) { return }
-    const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement, { autohide: true, delay: 3000 });
-    if (document.getElementById("message")) {
-        document.getElementById("message").innerText = text;
-        document.getElementById("message").style.fontWeight = "bold";
+onMounted(async () => {
+    const res = await nutritionStore.fetchRecipes(authStore.userId);
+    if (res.success) {
+        recipes.value = res.data;
     }
-    toastBootstrap.show();
-}
+})
 
 </script>
 
 <template>
     <div class="container-fluid">
-        <!-- toast message: to change to vue component -->
-        <div class="toast-container position-fixed bottom-0 end-0 p-3">
-            <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header bg-success">
-                    <strong class="me-auto text-light">Peddit</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body" id="message">
-                </div>
-            </div>
-        </div>
-
         <form @submit.prevent="handleSubmit" class="pet-form">
             <div class="pet-selector mt-4 mb-5">
                 <div class="row d-flex justify-content-evenly">
@@ -269,7 +256,7 @@ const showToast = (text) => {
                         </div>
                         <div class="mb-3">
                             <label class="form-label headingFont fw-bold h5">Selected Meal</label>
-                            <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes"
+                            <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes "
                                 :isSearchable="true" v-model="form.preferred_recipe" />
                         </div>
 
@@ -277,45 +264,30 @@ const showToast = (text) => {
                             <label for="" class="form-label headingFont fw-bold h5">Neutered:</label>
                             <div class="neutered-radio radio-inputs bodyFont mt-2">
                                 <label class="radio">
-                                    <input name="neutered" type="radio" value="Yes" id="n_yes"
+                                    <input name="neutered" type="radio" :value="true" id="n_yes"
                                         v-model="form.neutered" />
                                     <span class="name">Yes</span>
                                 </label>
                                 <label class="radio">
-                                    <input name="neutered" type="radio" value="No" id="n_no" v-model="form.neutered" />
+                                    <input name="neutered" type="radio" :value="false" id="n_no" v-model="form.neutered" />
                                     <span class="name">No</span>
-                                </label>
-                                <label class="radio">
-                                    <input name="neutered" type="radio" value="unknown" id="n_unknown"
-                                        v-model="form.neutered" />
-                                    <span class="name">Unknown</span>
                                 </label>
                             </div>
                         </div>
                     </div>
                     <div class="form-actions d-flex justify-content-center">
-                        <button class="button-recommend bodyFont d-inline" type="button" @click="resetForm"
-                            :disabled="petStore.loading">
-                            Reset
-                        </button>
-                        <button class="button-add-pet bodyFont d-inline" type="submit"
-                            :disabled="petStore.loading || !form.name || !form.kind">
+                        <Button class=" bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm"
+                            label="Reset" :disabled="petStore.loading">
+                        </Button>
+                        <Button class="bodyFont d-inline mx-2" :label="petStore.loading ? 'Creating...' : 'Edit Pet'"
+                            type="submit" :disabled="petStore.loading || !form.name || !form.kind">
                             <span v-if="petStore.loading" class="spinner"></span>
-                            {{ petStore.loading ? 'Editing...' : 'Edit Pet' }}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
-            <div v-if="showSuccess" class='success-msg'>
-                Pet created successfully.
-            </div>
-            <div v-if="petStore.error" class='error-msg'>
-                {{ petStore.error }}
-            </div>
         </form>
     </div>
-    <!-- <ImageUploadModal v-model:show="showUploadModal" :current-avatar="profile?.avatar_url" @uploaded="handleImageUpload"
-    title="Upload Pet Photo" @error="console.error" /> -->
 </template>
 
 <style>

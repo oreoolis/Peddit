@@ -6,29 +6,37 @@ import searchBar from '@/components/atoms/searchBar.vue';
 import Button from '@/components/atoms/Button.vue';
 import NutritionalOutputCard from '@/components/molecules/NutritionalOutputCard.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
-import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useToastStore } from '@/stores/toastStore';
+import { useUserStore } from '@/stores/userStore';
+
 import { storeToRefs } from 'pinia';
 import { useRouter, useRoute } from 'vue-router';
 
 // stores
 const nutritionStore = usePetNutritionStore();
-const petStore = usePetStore();
+const toastStore = useToastStore();
 const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute(); // get id from route params
+const userStore = useUserStore();
+
 
 const { ingredients, loading } = storeToRefs(nutritionStore);
 
 // current meal information
-const currentMeal = ref(nutritionStore.getRecipe(route.query.meal));
+const recId = route.query.meal;
+const currentMeal = ref(nutritionStore.getRecipe(recId));
 
 // dynamic updating form values
-const recipeName = currentMeal.recipe_name;
-const recipeDescription = currentMeal.description;
-const notes = currentMeal.notes;
-const selectedIngredients = currentMeal.recipe_ingredients;
+const petKind = ref('');
+const recipeName = ref('');
+const recipeDescription = ref('');
+const notes = ref('');
+const selectedIngredients = ref([]);
 const showSuccess = ref(false);
+const petNutritionProfile = ref(null);
+
 
 // total nutrients
 
@@ -46,8 +54,8 @@ const nutrients = computed(() => {
 
   // Calculate totals from selected ingredients
   selectedIngredients.value.forEach(item => {
-    const nutrition = item.ingredient.nutrition;
-    const multiplier = item.amount / 100; // Convert per 100g to actual amount
+    const nutrition = item.food_ingredients.nutrition;
+    const multiplier = item.quantity_g / 100;
 
     if (nutrition.protein?.value) totals.protein += nutrition.protein.value * multiplier;
     if (nutrition.fat?.value) totals.fat += nutrition.fat.value * multiplier;
@@ -56,54 +64,55 @@ const nutrients = computed(() => {
     if (nutrition.calcium?.value) totals.calcium += nutrition.calcium.value * multiplier;
   });
 
-  // Return in the format your component expects
+  // Add comparison with requirements if profile is loaded
+  const comparisonData = petNutritionProfile.value ? {
+    proteinRequired: petNutritionProfile.value.min_protein_g,
+    fatRequired: petNutritionProfile.value.min_fat_g,
+    ironRequired: petNutritionProfile.value.min_iron_mg,
+    zincRequired: petNutritionProfile.value.min_zinc_mg,
+    calciumRequired: petNutritionProfile.value.min_calcium_g
+  } : null;
+
   return {
-    protein: { name: "Protein", value: totals.protein.toFixed(2) },
-    fat: { name: "Fat", value: totals.fat.toFixed(2) },
-    iron: { name: "Iron", value: totals.iron.toFixed(2) },
-    zinc: { name: "Zinc", value: totals.zinc.toFixed(2) },
-    calcium: { name: "Calcium", value: totals.calcium.toFixed(2) }
+    protein: {
+      name: "Protein",
+      value: totals.protein.toFixed(2),
+      required: comparisonData?.proteinRequired
+    },
+    fat: {
+      name: "Fat",
+      value: totals.fat.toFixed(2),
+      required: comparisonData?.fatRequired
+    },
+    iron: {
+      name: "Iron",
+      value: totals.iron.toFixed(2),
+      required: comparisonData?.ironRequired
+    },
+    zinc: {
+      name: "Zinc",
+      value: totals.zinc.toFixed(2),
+      required: comparisonData?.zincRequired
+    },
+    calcium: {
+      name: "Calcium",
+      value: totals.calcium.toFixed(2),
+      required: comparisonData?.calciumRequired
+    }
   };
 });
 
-// set date to conform with supabase standard
-const formatDate = () => {
-  const ms = Date.now();                   // epoch ms
-  const d = new Date(ms);                  // Date object
 
-  const pad = (n, l = 2) => String(n).padStart(l, "0");
-  const yyyy = d.getUTCFullYear();
-  const MM = pad(d.getUTCMonth() + 1);
-  const dd = pad(d.getUTCDate());
-  const HH = pad(d.getUTCHours());
-  const mm = pad(d.getUTCMinutes());
-  const ss = pad(d.getUTCSeconds());
-  const SSS = pad(d.getUTCMilliseconds(), 3);
-
-  // Date only has ms precision; microseconds beyond ms default to 000
-  const uuu = "000";                       // microseconds beyond ms
-  return `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}.${SSS}${uuu}+00`;
-}
-
-// static form values
-const form = ref({
-  recipe_name: recipeName,
-  description: recipeDescription,
-  notes: notes,
-  created_at: formatDate(),
-  updated_at: formatDate(),
-});
 
 const showIngredientModal = ref(false);
-
 const openIngredientModal = () => {
   showIngredientModal.value = true;
 }
 
 const addIngredient = (data) => {
   selectedIngredients.value.push({
-    ingredient: data.ingredient,
-    amount: data.amount,
+    food_ingredients: data.ingredient,
+    quantity_g: data.amount,
     id: Date.now()
   });
 }
@@ -114,52 +123,67 @@ const removeIngredient = (id) => {
 
 
 const resetForm = () => {
-  form.value = {
-    recipe_name: '',
-    description: '',
-    notes: '',
-    created_at: Date.now(),
-    updated_at: Date.now(),
-  };
+  recipeName.value = '';
+  recipeDescription.value = '';
+  notes.value = '';
   selectedIngredients.value = [];
-  nutritionStore.resetStore();
   showSuccess.value = false;
+  petNutritionProfile.value = null;
+  nutritionStore.resetStore();
+
 }
 
 const handleSubmit = async () => {
-  if (!form.value.recipe_name) {
+  if (!recipeName.value) {
     alert('Please fill in recipe name.');
     return;
   }
 
-  const recipeRes = await nutritionStore.createRecipe({
-    author_id: authStore.userId,
-    recipe_name: form.value.recipe_name,
-    description: form.value.description,
-    notes: form.value.notes
-  });
+  const recipeRes = await nutritionStore.updateRecipe(
+    recId,
+    {
+      author_id: authStore.userId,
+      recipe_name: recipeName.value,
+      description: recipeDescription.value,
+      notes: notes.value
+    }
+  );
 
   if (!recipeRes.success) {
     showSuccess.value = false;
     return;
   }
 
-  const recipeId = recipeRes.data.id;
+  // get and replace all current ingredients
+  const existingIngredients = currentMeal.value?.recipe_ingredients || [];
+  for (let existingIng of existingIngredients) {
+    await nutritionStore.removeIngredientFromRecipe(existingIng.id);
+  }
 
+  // replace with new ones
   for (let selIng of selectedIngredients.value) {
     await nutritionStore.addIngredientToRecipe(
-      recipeId,
-      selIng.ingredient.id,
-      selIng.amount
+      recId,
+      selIng.food_ingredients.id,
+      selIng.quantity_g
     );
+  }
 
+  // Add ALL ingredients to shopping list at once as an ARRAY
+  if (selectedIngredients.value.length > 0) {
+    const formattedIngredients = selectedIngredients.value.map(selIng => ({
+      food_ingredients: selIng.ingredient,
+      quantity_g: selIng.amount
+    }));
+
+    await userStore.addUnformattedToShoppingList(formattedIngredients);
   }
 
   showSuccess.value = true;
   resetForm();
+  toastStore.showToast("Meal has been updated!");
   router.push({
-    path: '/pet',
-    state: { showOpSuccess: true, message: form.value.recipe_name + "has been created!" }
+    path: '/pet'
   });
 
 
@@ -170,40 +194,127 @@ const handleSubmit = async () => {
 
 }
 
+// existing pet Kind
+const computeExistingInformation = async () => {
+  const res = await nutritionStore.getNutritionProfile(
+    petKind.value,
+    'adult_maintenance'
+  )
+  if (res.success) {
+    petNutritionProfile.value = res.data;
+
+  } else {
+    console.error('Failed to load nutrition profile:', res.error);
+  }
+};
+
+
+// changing petKind
+const selectPetKind = async (kind) => {
+  petKind.value = kind;
+  // Fetch nutrition profile immediately after selection
+  const result = await nutritionStore.getNutritionProfile(
+    kind,
+    //set adult as default
+    'adult_maintenance'
+  );
+
+  if (result.success) {
+    petNutritionProfile.value = result.data;
+
+  } else {
+    console.error('Failed to load nutrition profile:', result.error);
+  }
+}
+
+const nutrientMaxValues = computed(() => {
+  if (!petNutritionProfile.value) {
+    return null;
+  }
+
+  return {
+    'Protein': petNutritionProfile.value.nutrition.protein,
+    'Fat': petNutritionProfile.value.nutrition.fat,
+    'Iron': petNutritionProfile.value.nutrition.iron,
+    'Zinc': petNutritionProfile.value.nutrition.zinc,
+    'Calcium': petNutritionProfile.value.nutrition.calcium
+  };
+});
+
 onMounted(async () => {
   await nutritionStore.fetchIngredients();
+  // Await recipe data
+  const result = await nutritionStore.getRecipe(recId);
+
+  if (result.success && result.data) {
+    currentMeal.value = result.data;
+
+    // populate the refs
+    petKind.value = result.data.pet_kind || '';
+    recipeName.value = result.data.recipe_name || '';
+    recipeDescription.value = result.data.description || '';
+    notes.value = result.data.notes || '';
+    selectedIngredients.value = result.data.recipe_ingredients || [];
+  }
+
+  await computeExistingInformation();
 })
 
 </script>
 
 <template>
-  <div class="add-meal-plan d-flex justify-content-center align-items-center min-vh-100">
-    <div class="meal-form container py-5">
-      <div class="row justify-content-center">
-        <div class="col-lg-10 col-xl-9">
-          <h1 class="headingFont display-4 fw-semibold mb-5 text-start">Create Meal Plan</h1>
-          <form class="bodyFont" @submit.prevent="handleSubmit">
+  <div class="container-fluid">
+    <form @submit.prevent="handleSubmit" class="pet-form">
+      <!-- Pet Species Selector -->
+      <div class="pet-selector mt-4 mb-5">
+        <div class="row d-flex justify-content-evenly">
+          <div class="col-lg-8">
+            <h1 class="headingFont display-3 text-start fw-semibold">Edit Meal Plan</h1>
+          </div>
+        </div>
+        <!-- Cards side-by-side on all viewports -->
+        <div class="row justify-content-center mt-3 mb-3 g-3">
+          <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
+            <div @click="selectPetKind('dog')" class="dog-breed-card"
+              :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
+              <p class="pet-title brandFont text-light display-1">Dog</p>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
+            <div @click="selectPetKind('cat')" class="cat-breed-card"
+              :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
+              <p class="pet-title brandFont text-light display-1">Cat</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Inputs -->
+      <div class="input-forms container-fluid">
+        <div class="row justify-content-center">
+          <div class="col-lg-8">
             <div class="mb-4">
               <label for="mealName" class="form-label headingFont fw-bold h5">Meal Name</label>
-              <searchBar id="mealName" type="text" v-model="form.recipe_name" placeholder="Salmon Delight"></searchBar>
+              <searchBar id="mealName" type="text" v-model="recipeName" placeholder="Salmon Delight"></searchBar>
             </div>
             <div class="mb-4">
               <label for="mealDescription" class="form-label headingFont fw-bold h5">Meal Description</label>
-              <searchBar class="mt-3 " id="mealDescription" v-model="form.description" type="textarea"
+              <searchBar class="mt-3" id="mealDescription" v-model="recipeDescription" type="textarea"
                 placeholder="A delicious and healthy meal..."></searchBar>
             </div>
             <div class="mb-4">
-              <label for="mealDescription" class="form-label headingFont fw-bold h5">Notes</label>
-              <searchBar class="mt-3 " id="mealDescription" v-model="form.notes" type="textarea"
-                placeholder="A delicious and healthy meal..."></searchBar>
+              <label for="notes" class="form-label headingFont fw-bold h5">Notes</label>
+              <searchBar class="mt-3" id="notes" v-model="notes" type="textarea" placeholder="Add any notes here...">
+              </searchBar>
             </div>
 
             <!-- Ingredients Section -->
             <div class="mb-4">
               <h5 class="headingFont fw-bold mb-3">Ingredients</h5>
               <div class="ingredient-grid">
-                <IngredientCard v-for="item in selectedIngredients" :key="item.id" :name="item.ingredient.name"
-                  :amount="item.amount" @click="removeIngredient(item.id)" />
+                <IngredientCard v-for="(item, idx) in selectedIngredients" :key="idx" :name="item.food_ingredients.name"
+                  :type="item.food_ingredients.type" :nutrition="item.food_ingredients.nutrition"
+                  :amount="item.quantity_g" @click="removeIngredient(item.id)" />
 
                 <button class="icon-btn add-btn shadow my-auto mx-auto" @click.prevent="openIngredientModal"
                   type="button">
@@ -214,14 +325,21 @@ onMounted(async () => {
             </div>
 
             <!-- Nutritional Output Card -->
-            <!-- protein, carbs, fat, vitamin c, iron -->
-            <NutritionalOutputCard :nutrients="nutrients"></NutritionalOutputCard>
-            <!-- Submit Button -->
-            <Button class="w-100 justify-content-center py-3" label="Create Meal Plan"></Button>
-          </form>
+            <NutritionalOutputCard :nutrients="nutrients" :nutrientMaxValues="nutrientMaxValues">
+            </NutritionalOutputCard>
+
+            <!-- Form Actions -->
+            <div class="form-actions d-flex justify-content-center mt-3">
+              <Button class="bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm" label="Reset">
+              </Button>
+              <Button class="bodyFont d-inline mx-2" label="Save Meal Plan" type="submit">
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </form>
+
     <Teleport to="body">
       <AddIngredientModal class="mb-5" v-model:show="showIngredientModal" @error="console.error"
         :ingredients="ingredients" @addIngredient="addIngredient" />
@@ -229,7 +347,122 @@ onMounted(async () => {
   </div>
 </template>
 
+
 <style scoped>
+.dog-breed-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  background-image: url("../assets/Pixel Art/dog (1).png");
+  background-position: center;
+  background-size: cover;
+  border: 1px solid white;
+  box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(6px);
+  border-radius: 17px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.5s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  font-weight: bolder;
+  color: black;
+  margin: 0 auto;
+}
+
+.cat-breed-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  background-image: url("../assets/Pixel Art/cat (5).png");
+  background-position: center;
+  background-size: cover;
+  border: 1px solid white;
+  box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(6px);
+  border-radius: 17px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.5s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  font-weight: bolder;
+  color: black;
+  margin: 0 auto;
+}
+
+/* Responsive heights using Bootstrap breakpoints */
+@media (min-width: 576px) {
+
+  .dog-breed-card,
+  .cat-breed-card {
+    height: 350px;
+  }
+}
+
+@media (min-width: 768px) {
+
+  .dog-breed-card,
+  .cat-breed-card {
+    height: 400px;
+  }
+}
+
+@media (min-width: 992px) {
+
+  .dog-breed-card,
+  .cat-breed-card {
+    height: 450px;
+  }
+}
+
+@media (min-width: 1200px) {
+
+  .dog-breed-card,
+  .cat-breed-card {
+    height: 500px;
+  }
+}
+
+.dog-breed-card:hover,
+.cat-breed-card:hover {
+  border: 1px solid black;
+  transform: scale(1.05);
+}
+
+.dog-breed-card:active,
+.cat-breed-card:active {
+  transform: scale(0.95) rotateZ(1.7deg);
+}
+
+/* Selected pet card styling */
+.selected-pet {
+  border: 5px solid #407dff !important;
+  box-shadow: 0 0 30px rgba(64, 125, 255, 0.7) !important;
+  transform: scale(1.03);
+  position: relative;
+}
+
+/* Dimmed/unselected pet card */
+.dimmed-pet {
+  opacity: 0.5;
+  filter: grayscale(60%);
+  transform: scale(0.97);
+}
+
+.dimmed-pet:hover {
+  opacity: 0.7;
+  filter: grayscale(40%);
+  transform: scale(1);
+}
+
+
 /* Center entire page in viewport */
 .add-meal-plan {
   position: relative;

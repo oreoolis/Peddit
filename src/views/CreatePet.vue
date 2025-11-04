@@ -3,8 +3,10 @@ import { usePetStore } from '@/stores/petStore';
 import { useAuthStore } from '@/stores/authStore';
 import { usePetInfoApi } from '@/composables/usePetInfoApi';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
-import { onMounted, ref, watch } from 'vue';
+import { useToastStore } from '@/stores/toastStore';
+import { onMounted, ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import Button from '@/components/atoms/button.vue';
 import searchBar from '@/components/atoms/searchBar.vue';
 import BreedSelect from '@/components/molecules/create-edit-pet/BreedSelect.vue';
 import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelect.vue';
@@ -12,6 +14,7 @@ import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelec
 const petStore = usePetStore();
 const authStore = useAuthStore();
 const nutritionStore = usePetNutritionStore();
+const toastStore = useToastStore();
 const router = useRouter(); // push to next page
 
 const showSuccess = ref(false);
@@ -39,7 +42,7 @@ const form = ref({
   gender: 'unknown',
   birthdate: '',
   weight_kg: null,
-  neutered: null,
+  neutered: true,
   allergies: '',
   preferred_recipe: null
 });
@@ -86,11 +89,10 @@ const handleSubmit = async () => {
 
     showSuccess.value = true;
     resetForm();
+    toastStore.showToast("Pet has been created!");
     router.push({
-      path: '/pet',
-      state: { showOpSuccess: true, message: form.value.name + "has been created!" }
+      path: '/pet'
     });
-
 
     // Hide success message after 3 seconds
     setTimeout(() => {
@@ -107,7 +109,7 @@ const resetForm = () => {
     gender: 'unknown',
     birthdate: '',
     weight_kg: null,
-    neutered: null,
+    neutered: true,
     allergies: '',
     preferred_recipe: null
   };
@@ -119,18 +121,16 @@ const resetForm = () => {
 const selectPetKind = (kind) => {
   petKind.value = kind;
   form.value.kind = kind;
-  showToast(`You have chosen ${kind.charAt(0).toUpperCase() + kind.slice(1)}!`);
 }
 
-const showToast = (text) => {
-  const toastElement = document.getElementById('liveToast');
-  if (!toastElement) return;
-  const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement);
-  if (document.getElementById("message")) {
-    document.getElementById("message").innerText = text;
+// filter recipes by petKind
+const filteredRecipes = computed(() => {
+  if (!recipes.value || !form.value.kind) {
+    return null;
   }
-  toastBootstrap.show();
-}
+
+  return recipes.value.filter(recipe => recipe.pet_kind === form.value.kind);
+});
 
 onMounted( async () => {
   const res = await nutritionStore.fetchRecipes(authStore.userId);
@@ -142,17 +142,6 @@ onMounted( async () => {
 
 <template>
   <div class="container-fluid">
-    <!-- Toast Message -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-      <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header bg-primary text-light">
-          <strong class="me-auto">Peddit</strong>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body" id="message"></div>
-      </div>
-    </div>
-
     <form @submit.prevent="handleSubmit" class="pet-form">
       <!-- Pet Species Selector -->
       <div class="pet-selector mt-4 mb-5">
@@ -242,7 +231,7 @@ onMounted( async () => {
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Selected Meal</label>
-              <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes" :isSearchable="true" v-model="form.preferred_recipe" />
+              <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="filteredRecipes" :isSearchable="true" v-model="form.preferred_recipe" />
             </div>
 
 
@@ -250,16 +239,12 @@ onMounted( async () => {
               <label for="" class="form-label headingFont fw-bold h5">Neutered:</label>
               <div class="radio-inputs bodyFont mt-2">
                 <label class="radio">
-                  <input checked name="neutered" type="radio" value="Yes" id="n_yes" v-model="form.neutered" />
+                  <input checked name="neutered" type="radio" :value="true" id="n_yes" v-model="form.neutered" />
                   <span class="name">Yes</span>
                 </label>
                 <label class="radio">
-                  <input name="neutered" type="radio" value="No" id="n_no" v-model="form.neutered" />
+                  <input name="neutered" type="radio" :value="false" id="n_no" v-model="form.neutered" />
                   <span class="name">No</span>
-                </label>
-                <label class="radio">
-                  <input name="neutered" type="radio" value="unknown" id="n_unknown" v-model="form.neutered" />
-                  <span class="name">Unknown</span>
                 </label>
               </div>
             </div>
@@ -277,10 +262,6 @@ onMounted( async () => {
           </div>
         </div>
       </div>
-
-      <!-- Success/Error Messages -->
-      <div v-if="showSuccess" class="alert alert-success text-center">Pet created successfully.</div>
-      <div v-if="petStore.error" class="alert alert-danger text-center">{{ petStore.error }}</div>
     </form>
   </div>
 </template>
