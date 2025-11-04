@@ -89,15 +89,16 @@ const userStore = useUserStore();
 const { shoppingList } = storeToRefs(userStore);
 
 const handleDel = async (ingredient_id) => {
+    userStore.deleteShoppingListItem(ingredient_id);
     console.log("outer del");
 }
 
 const handleChecked = async ({ ingredient_id, isChecked }) => {
+    userStore.updateShoppingListItem(ingredient_id, !isChecked);
     console.log("outer checked");
 }
 
 onMounted(async () => {
-
     try {
         // Fetch shopping list
         await userStore.fetchShoppingList();
@@ -201,8 +202,11 @@ onMounted(async () => {
                         </div>
                         <div class="row px-3 py-3 g-2">
                             <div v-for="ingredient in shoppingList" class="col-12 col-sm-6 col-md-4 col-lg-3">
-                                <ItemsChecklist :label="ingredient?.food_ingredients?.name"
-                                    :ingredient_id="ingredient?.ingredient_id" :qty="ingredient?.quantity_g" 
+                                <ItemsChecklist 
+                                    :label="ingredient?.food_ingredients?.name"
+                                    :ingredient_id="ingredient?.ingredient_id" 
+                                    :qty="ingredient?.quantity_g" 
+                                    :isChecked="ingredient?.is_purchased" 
                                     @delete="handleDel"
                                     @checked="handleChecked"/>
                             </div>

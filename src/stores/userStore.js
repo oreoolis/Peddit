@@ -277,6 +277,89 @@ export const useUserStore = defineStore('user', () => {
         return recipeJson.map(r => ({ ingredient_id: r.food_ingredients.id, quantity_g: r.quantity_g}));
     };
 
+    /**
+     * Updates is_purchased for a shopping list item
+     * @param {number} ingredientId
+     * @param {boolean} isPurchased
+     * @returns {Promise<{ success: boolean, data?: object, error?: string }>}
+    */
+    const updateShoppingListItem = async (ingredientId, isPurchased) => {
+        if (!userId.value) {
+            console.warn('No authenticated user found');
+            return { success: false, error: 'No authenticated user' };
+        }
+
+        try {
+            loading.value = true;
+            error.value = null;
+
+            const { data, error: updateError } = await supabase
+                .from('shopping_list_items')
+                .update({
+                    is_purchased: isPurchased,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq('user_id', userId.value)
+                .eq('ingredient_id', ingredientId)
+                .select();
+
+            if (updateError) throw updateError;
+
+            // Update local state
+            if (Array.isArray(shoppingList.value)) {
+                shoppingList.value = shoppingList.value.map((item) =>
+                    item.ingredient_id === ingredientId ? { ...item, is_purchased: isPurchased } : item
+                );
+            }
+
+            return { success: true, data };
+        } catch (err) {
+            error.value = err.message;
+            return { success: false, error: err.message };
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    /**
+     * Deletes a shopping list item by ingredient_id
+     * @param {number} ingredientId
+     * @returns {Promise<{ success: boolean, error?: string }>}
+     */
+    const deleteShoppingListItem = async (ingredientId) => {
+        if (!userId.value) {
+            console.warn('No authenticated user found');
+            return { success: false, error: 'No authenticated user' };
+        }
+
+        try {
+            loading.value = true;
+            error.value = null;
+
+            const { error: deleteError } = await supabase
+                .from('shopping_list_items')
+                .delete()
+                .eq('user_id', userId.value)
+                .eq('ingredient_id', ingredientId);
+
+            if (deleteError) throw deleteError;
+
+            // Remove from local state
+            if (Array.isArray(shoppingList.value)) {
+            shoppingList.value = shoppingList.value.filter(
+                (item) => item.ingredient_id !== ingredientId
+            );
+            }
+
+            return { success: true };
+        } catch (err) {
+            error.value = err.message;
+            return { success: false, error: err.message };
+        } finally {
+            loading.value = false;
+        }
+    };
+
     // Clear profile value and errors, call this when sign out
     // const clearProfile = () => {
     //     profile.value = null;
@@ -304,6 +387,8 @@ export const useUserStore = defineStore('user', () => {
         deleteProfileImage,
         fetchShoppingList,
         addMultipleToShoppingList,
-        addUnformattedToShoppingList
+        addUnformattedToShoppingList,
+        deleteShoppingListItem,
+        updateShoppingListItem
     };
 });

@@ -34,7 +34,7 @@ const handleIngredientDelete = () => {
 </script>
 <template>
     <div class="custom-checkbox-container">
-        <input class="custom-checkbox-input" :id="props.ingredient_id" type="checkbox" />
+        <input class="custom-checkbox-input" :id="props.ingredient_id" type="checkbox" :checked="props.isChecked"/>
         <label class="custom-checkbox-label" :for="props.ingredient_id" @click="checkedIngredient">
             <span class="custom-checkbox-text bodyFont">{{props.label}}, {{ props.qty }}g</span>
         </label>
