@@ -54,10 +54,8 @@ const neuteredCount = computed(() => {
 });
 
 const statsData = computed(() => [
-  { icon: 'heart-fill', value: pets.value?.length || 0, label: 'Total Pets', variant: 'primary' },
-  { icon: 'shield-fill-check', value: healthyPetsCount.value, label: 'Healthy', variant: 'success' },
-  { icon: 'exclamation-triangle-fill', value: needsAttentionCount.value, label: 'Needs Attention', variant: 'warning' },
-  { icon: 'calendar-check', value: neuteredCount.value, label: 'Neutered', variant: 'info' }
+  { icon: 'heart-fill', value: pets.value?.length || 0, label: 'Total Pets', variant: 'info' },
+  { icon: 'calendar-check', value: neuteredCount.value, label: 'Neutered', variant: 'danger' }
 ]);
 
 // Breed search

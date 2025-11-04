@@ -72,7 +72,7 @@ const formatValue = (v) => {
     </div>
 
     <!-- Nutrients Grid -->
-    <div class="row g-3">
+    <div class="row g-3 nutrient-grid">
       <div v-for="n in nutrientList" :key="n.key" class="col-6 col-sm-4 col-md-3 col-lg-2">
         <StatCard :label="prettyName(n.key)" :value="formatValue(n.value)" :unit="n.unit + '/day'" size="sm" />
       </div>
@@ -104,5 +104,10 @@ const formatValue = (v) => {
 .energy-unit {
   font-size: 0.9rem;
   opacity: 0.9;
+}
+
+.nutrient-grid :deep(.stat-card) {
+  margin-top: 0.5rem;    
+  margin-bottom: 0.75rem;
 }
 </style>
