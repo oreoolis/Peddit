@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="container-fluid map-page">
     <h1 class="mt-3 mb-3">Pet Stores & Clinics Near You</h1>
 
@@ -190,10 +190,10 @@
     <div class="card-footer-btn">
       <!-- Open/Closed Button -->
       <Button
-        v-if="place.opening_hours"
+        v-if="place.isOpen !== undefined"
         class="w-100 mb-2"
-        :class="place.opening_hours.open_now ? 'btn-success' : 'btn-danger'"
-        :label="place.opening_hours.open_now ? '🟢 Open Now' : '🔴 Closed'"
+        :class="place.isOpen ? 'btn-success' : 'btn-danger'"
+        :label="place.isOpen ? '🟢 Open Now' : '🔴 Closed'"
       />
       
     </div>
@@ -233,8 +233,8 @@ const filteredPlaces = computed(() => {
   } else if (sortMode.value === 'open') {
     // Sort by open status first, then by rating
     sorted.sort((a, b) => {
-      const aOpen = a.opening_hours?.open_now ? 1 : 0
-      const bOpen = b.opening_hours?.open_now ? 1 : 0
+      const aOpen = a.isOpen ? 1 : 0
+      const bOpen = b.isOpen ? 1 : 0
       if (bOpen !== aOpen) return bOpen - aOpen
       return (b.rating || 0) - (a.rating || 0)
     })
@@ -340,7 +340,7 @@ function initializeMap() {
         : place.formatted_address
       searchLocation.value = displayText
       map.setCenter(currentLocation)
-      updateCurrentLocationMarker() // ← Add this line
+      updateCurrentLocationMarker() // Add this line
       searchPlaces()
     }
   })
@@ -465,11 +465,11 @@ function searchPlaces() {
     service.nearbySearch(request, (results, status) => {
       if (status === google.maps.places.PlacesServiceStatus.OK && results) {
         results.forEach(place => {
-          // Filter out places without reviews or opening hours
-          if (!place.rating || !place.user_ratings_total || !place.opening_hours) {
-            return // Skip this place
+          // Filter out places without reviews; opening hours fetched via getDetails
+          if (!place.rating || !place.user_ratings_total) {
+            return
           }
-          
+
           if (!seen.has(place.place_id)) {
             seen.add(place.place_id)
             place.categoryType = type
@@ -481,7 +481,10 @@ function searchPlaces() {
               placeLatLng
             )
             place.distance = Math.round(distance) // Store distance in meters
-            
+
+            // Fetch detailed opening hours to compute isOpen()
+            fetchOpenStatus(place)
+
             tempPlaces.push(place)
           }
         })
@@ -525,7 +528,7 @@ function createMarker(place) {
         <strong>${getCategoryLabel(place)} ${place.name}</strong><br>
         ${place.vicinity}<br>
         Rating: ${place.rating || 'N/A'} ⭐<br>
-        ${place.opening_hours ? (place.opening_hours.open_now ? '<span style="color:green">Open Now</span>' : '<span style="color:red">Closed</span>') : ''}
+        ${typeof place.isOpen === 'boolean' ? (place.isOpen ? '<span style="color:green">Open Now</span>' : '<span style="color:red">Closed</span>') : ''}
       </div>
     `)
     infowindow.open(map, marker)
@@ -551,6 +554,33 @@ function getSelectedCategoriesText() {
   if (selected.length === 0) return 'places'
   if (selected.length === 1) return selected[0]
   return selected.join(' or ')
+}
+
+// Fetch opening hours details and compute isOpen() using PlacesService.getDetails()
+function fetchOpenStatus(place) {
+  try {
+    if (!service || !place?.place_id) return
+    service.getDetails(
+      { placeId: place.place_id, fields: ['opening_hours'] },
+      (details, status) => {
+        if (
+          status === google.maps.places.PlacesServiceStatus.OK &&
+          details?.opening_hours &&
+          typeof details.opening_hours.isOpen === 'function'
+        ) {
+          try {
+            place.isOpen = !!details.opening_hours.isOpen()
+          } catch (e) {
+            place.isOpen = undefined
+          }
+        } else {
+          place.isOpen = undefined
+        }
+      }
+    )
+  } catch (e) {
+    place.isOpen = undefined
+  }
 }
 
 function clearLocation() {
