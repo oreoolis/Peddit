@@ -85,14 +85,14 @@ onMounted(async () =>{
                 }
             }
 
-            // 2) Fallback: query post_votes table directly (no store changes)
+            // 2) Fallback: query post_votes table directly (no store changes) // ERROR HERE
             if ((myVote === 0) && user.value?.id) {
                 const { data: voteRow, error: voteErr } = await supabase
                     .from('post_votes')
                     .select('vote')
                     .eq('post_id', props.postId)
                     .eq('voter_id', user.value.id)
-                    .single();
+                    .maybeSingle();
 
                 if (!voteErr && voteRow) {
                     myVote = Number(voteRow.vote) || 0;

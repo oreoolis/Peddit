@@ -155,7 +155,7 @@ onMounted(async () => {
             .select('vote')
             .eq('post_id', props.postId)
             .eq('voter_id', user.value.id)
-            .single();
+            .maybeSingle();
 
           if (!voteErr && voteRow) {
             myVote = Number(voteRow.vote) || 0;
