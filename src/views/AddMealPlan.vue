@@ -118,7 +118,7 @@ const removeIngredient = (id) => {
 
 
 const resetForm = () => {
-  petKind.value = '';
+  petKind.value = 'dog';
   recipeName.value = '';
   recipeDescription.value = '';
   notes.value = '';
@@ -224,6 +224,7 @@ const nutrientMaxValues = computed(() => {
 
 
 onMounted(async () => {
+  selectPetKind('dog');
   // Ensure required data is loaded
   await Promise.all([
     nutritionStore.fetchNutritionProfiles(),
