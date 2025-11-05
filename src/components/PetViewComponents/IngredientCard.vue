@@ -1,6 +1,6 @@
 <script setup>
 // Using <script setup> for modern Vue syntax
-defineProps({
+const props = defineProps({
     name: {
         type: String,
         required: true
@@ -13,13 +13,33 @@ defineProps({
         type: [String, Object],
         required: true
     },
-    image: {
+    meatImg: {
         type: String,
-        default: '/src/assets/Sprite/Food/Set3-Meat/13.png'
+        default: '/src/assets/Sprite/Food/Meat.png'
+    },
+    fruitImg: {
+        type: String,
+        default: '/src/assets/Sprite/Food/Fruit.png'
+    },
+    vegeImg: {
+        type: String,
+        default: '/src/assets/Sprite/Food/Vegetable.png'
+    },
+    grainImg: {
+        type: String,
+        default: '/src/assets/Sprite/Food/Grain.png'
+    },
+    otherImg: {
+        type: String,
+        default: '/src/assets/Sprite/Food/Others.png'
     },
     amount: {
         type: [String, Number],
         required: true
+    },
+    kind: {
+        type: String,
+        default: ''
     }
 });
 </script>
@@ -28,7 +48,12 @@ defineProps({
 <template>
     <div class="card ingredient-card text-center p-2">
         <div class="image-container">
-            <img :src="image" class="card-img-top" alt="Ingredient Image">
+            <!-- classify ingredient type -->
+            <img v-if="kind == 'others'" :src="otherImg" class="card-img-top" alt="Ingredient Image">
+            <img v-else-if="kind == 'grain'" :src="grainImg" class="card-img-top" alt="Ingredient Image">
+            <img v-else-if="kind == 'vegetable'" :src="vegeImg" class="card-img-top" alt="Ingredient Image">
+            <img v-else-if="kind == 'fruit'" :src="fruitImg" class="card-img-top" alt="Ingredient Image">
+            <img v-else :src="meatImg" class="card-img-top" alt="Ingredient Image">
         </div>
         <div class="card-body p-1">
             <h6 class="card-title headingFont fw-bold mb-1">{{ name }}</h6>
@@ -40,26 +65,26 @@ defineProps({
 
 <style scoped>
 .ingredient-card {
-  border: 1px solid var(--bs-border-color-translucent);
-  cursor: pointer;
-  user-select: none;
-  position: relative;
-  overflow: hidden;
-  transition: box-shadow .18s ease, transform .12s ease;
-  will-change: transform, box-shadow;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    border: 1px solid var(--bs-border-color-translucent);
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow .18s ease, transform .12s ease;
+    will-change: transform, box-shadow;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
 
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  min-width: 0; 
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    min-width: 0;
 }
 
 
 .image-container {
-    aspect-ratio: 1 / 1; 
-    width: 100%; 
+    aspect-ratio: 1 / 1;
+    width: 100%;
     align-items: center;
     justify-content: center;
     background-color: var(--bs-light);
@@ -76,7 +101,7 @@ defineProps({
 
 
 .card-body {
-    flex-grow: 1; 
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -104,43 +129,51 @@ defineProps({
 
 
 .ingredient-card:hover {
-    transform: translateY(-3px); 
+    transform: translateY(-3px);
     box-shadow:
-      0 18px 44px rgba(10,20,40,0.10),
-      0 6px 16px rgba(10,20,40,0.08);
+        0 18px 44px rgba(10, 20, 40, 0.10),
+        0 6px 16px rgba(10, 20, 40, 0.08);
 }
 
 
 
 .ingredient-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -140%;
-  width: 40%;
-  height: 100%;
-  pointer-events: none;
-  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0) 100%);
-  transform: skewX(-18deg);
-  opacity: 0.2;
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -140%;
+    width: 40%;
+    height: 100%;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.7) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-18deg);
+    opacity: 0.2;
 }
 
 
 .ingredient-card:hover::before {
-  animation: shine 900ms ease-in-out;
+    animation: shine 900ms ease-in-out;
 }
 
 
 @keyframes shine {
-    0% { left: -100px; }
-    60% { left: 100%; }
-    to { left: 100%; }
+    0% {
+        left: -100px;
+    }
+
+    60% {
+        left: 100%;
+    }
+
+    to {
+        left: 100%;
+    }
 }
 
 
 
 .ingredient-card:active {
-    transform: translateY(1px); 
+    transform: translateY(1px);
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1) inset;
 }
 

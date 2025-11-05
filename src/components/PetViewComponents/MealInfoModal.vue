@@ -131,7 +131,8 @@ const openDeleteModal = () => {
                                 :name="ingredients.food_ingredients.name"
                                 :type="ingredients.food_ingredients.type"
                                 :nutrition="ingredients.food_ingredients.nutrition" 
-                                :amount="ingredients.quantity_g" 
+                                :amount="ingredients.quantity_g"
+                                :kind="ingredients.food_ingredients.type"
                             />
                         </div>
                     </div>
