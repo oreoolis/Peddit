@@ -6,7 +6,7 @@ import { usePetNutritionStore } from '@/stores/petNutritionStore';
 
 const props = defineProps(['id', 'name', 'kind', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'neutered', 'photo_url', 'recipe_id'])
 const nutritionStore = usePetNutritionStore();
-const recipeDetails = ref({});
+const recipeDetails = ref(null);
 const emit = defineEmits(['open-pet-info']);
 
 const handleOpenPetInfo = () => {
@@ -37,9 +37,7 @@ watch(recipeId, async (id) => {
     if (res.success) {
         recipeDetails.value = res.data;
     }
-    },
-    { immediate: false }
-)
+}, { immediate: true });
 
 
 // onMounted(async () => {
@@ -95,7 +93,7 @@ watch(recipeId, async (id) => {
                 <section class="pet-info headingFont ">
 
                     <h4 class="fw-bold d-flex align-items-center" >Current Diet: 
-                        <Button v-if="recipeDetails.recipe_name" class="h-75 mx-1" :label="recipeDetails.recipe_name"
+                        <Button v-if="recipeDetails?.recipe_name" class="h-75 mx-1" :label="recipeDetails?.recipe_name"
                         >
                         </Button>
                         <Button v-else class="h-75 mx-1" label="None">
