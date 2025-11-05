@@ -32,9 +32,9 @@ jobs:
           VITE_CHAT_THINKING_MODEL: ${{ secrets.VITE_CHAT_THINKING_MODEL }}
         run: npm run build
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: 'dist'
       - name: Peddit Deployment
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v3
