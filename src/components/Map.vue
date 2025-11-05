@@ -153,59 +153,52 @@
 </div>
 
     <!-- Cards container -->
-    <div v-if="!loading && allPlaces.length > 0" class="cards-container mt-4">
-      <div
-        v-for="place in filteredPlaces"
-        :key="place.place_id"
-        class="card"
-      >
-        <!-- Favorite Button -->
-        <button 
-          class="favorite-btn"
-          :class="{ favorited: isFavorite(place.place_id) }"
-          @click="toggleFavorite(place)"
-          title="Add to favorites"
-        >
-          {{ isFavorite(place.place_id) ? '❤️' : '🤍' }}
-        </button>
+<div v-if="!loading && allPlaces.length > 0" class="cards-container mt-4">
+  <div
+    v-for="place in filteredPlaces"
+    :key="place.place_id"
+    class="card"
+  >
 
-        <div class="card-content">
-          <h5 class="card-title">
-            <span class="me-2">{{ getCategoryLabel(place) }}</span>
-            {{ place.name }}
-          </h5>
-          <p class="card-text">
-            <small>📍 {{ place.vicinity || place.formatted_address }}</small>
-          </p>
-          <p class="card-text">
-            <small class="text-muted">
-              🚶 {{ place.distance }}m away
-            </small>
-          </p>
-          <p class="card-text">
-            <small class="text-muted">
-              ⭐ {{ place.rating || 'N/A' }} ({{ place.user_ratings_total || 0 }} reviews)
-            </small>
-          </p>
-          
-          <!-- Today's Opening Hours -->
-          <div v-if="place.opening_hours && place.opening_hours.weekday_text" class="opening-hours-today mb-2">
-            <small class="text-muted">
-              <strong>🕐 Today:</strong> {{ getTodayHours(place.opening_hours.weekday_text) }}
-            </small>
-          </div>
-        </div>
-        <div class="card-footer-btn">
-          <Button
-            v-if="place.opening_hours"
-            class=" w-100"
-            :class="place.opening_hours.open_now ? 'btn-success' : 'btn-danger'"
-            :label=" place.opening_hours.open_now ? '🟢 Open Now' : '🔴 Closed'"
-          >
-          </Button>
-        </div>
+    <div class="card-content">
+      <h5 class="card-title">
+        <span class="me-2">{{ getCategoryLabel(place) }}</span>
+        {{ place.name }}
+      </h5>
+      <p class="card-text">
+        <small>📍 {{ place.vicinity || place.formatted_address }}</small>
+      </p>
+      <p class="card-text">
+        <small class="text-muted">
+          🚶 {{ place.distance }}m away
+        </small>
+      </p>
+      <p class="card-text">
+        <small class="text-muted">
+          ⭐ {{ place.rating || 'N/A' }} ({{ place.user_ratings_total || 0 }} reviews)
+        </small>
+      </p>
+      
+      <!-- Today's Opening Hours -->
+      <div v-if="place.opening_hours && place.opening_hours.weekday_text" class="opening-hours-today mb-2">
+        <small class="text-muted">
+          <strong>🕐 Today:</strong> {{ getTodayHours(place.opening_hours.weekday_text) }}
+        </small>
       </div>
     </div>
+    
+    <div class="card-footer-btn">
+      <!-- Open/Closed Button -->
+      <Button
+        v-if="place.opening_hours"
+        class="w-100 mb-2"
+        :class="place.opening_hours.open_now ? 'btn-success' : 'btn-danger'"
+        :label="place.opening_hours.open_now ? '🟢 Open Now' : '🔴 Closed'"
+      />
+      
+    </div>
+  </div>
+</div>
   </div>
 </template>
 
@@ -228,7 +221,6 @@ const allPlaces = ref([])
 const showMode = ref('all')
 const sortMode = ref('rating') // 'rating', 'distance', or 'open'
 const resultsLimit = ref(10) // Number of results to show
-const favorites = ref([]) // Array of favorite place IDs
 
 const filteredPlaces = computed(() => {
   let sorted = [...allPlaces.value]
@@ -273,12 +265,6 @@ let markers = []
 let currentLocation = { lat: 1.3521, lng: 103.8198 }
 let markerIcons = {}
 
-onMounted(() => {
-  // Load favorites from localStorage
-  const savedFavorites = localStorage.getItem('petStoreFavorites')
-  if (savedFavorites) {
-    favorites.value = JSON.parse(savedFavorites)
-  }
 
   initializeCategoriesFromQuery()
 
@@ -311,11 +297,10 @@ onMounted(() => {
         anchor: new google.maps.Point(20, 20)
       }
     }
-    
     initializeMap()
     getCurrentLocation()
   }
-})
+
 function initializeCategoriesFromQuery() {
   const type = route.query.type
   
@@ -558,11 +543,6 @@ function getCategoryLabel(place) {
   return ''
 }
 
-function toggleCategory(category) {
-  selectedCategories.value[category] = !selectedCategories.value[category]
-  searchPlaces()
-}
-
 function getSelectedCategoriesText() {
   const selected = []
   if (selectedCategories.value.petStores) selected.push('pet stores')
@@ -607,29 +587,6 @@ function getTodayHours(weekdayText) {
     return todayHours.replace(todayName + ': ', '')
   }
   return 'Hours not available'
-}
-
-function isFavorite(placeId) {
-  return favorites.value.includes(placeId)
-}
-
-function toggleFavorite(place) {
-  const placeId = place.place_id
-  const index = favorites.value.indexOf(placeId)
-  
-  if (index > -1) {
-    // Remove from favorites
-    favorites.value.splice(index, 1)
-  } else {
-    // Add to favorites
-    favorites.value.push(placeId)
-  }
-  
-  // Save to localStorage
-  localStorage.setItem('petStoreFavorites', JSON.stringify(favorites.value))
-  
-  // TODO: Later you can also save to backend/user profile
-
 }
 
 // Watch for changes in filtered places and update markers
@@ -710,35 +667,6 @@ watch(filteredPlaces, () => {
   position: relative;
 }
 
-.favorite-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: white;
-  border: 2px solid #dee2e6;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.favorite-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.favorite-btn.favorited {
-  border-color: var(--bs-warning);
-  background: #ffe0e3;
-}
-
 .opening-hours-today {
   background: #f8f9fa;
   padding: 8px;
@@ -754,6 +682,9 @@ watch(filteredPlaces, () => {
 .card-footer-btn {
   padding: 0 1rem 1rem 1rem;
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* Add spacing between buttons */
 }
 
 .card:hover {
@@ -861,4 +792,5 @@ watch(filteredPlaces, () => {
     flex: 1;
   }
 }
+
 </style>
