@@ -51,7 +51,7 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
         <div class="card-body" >
             <div class="card-text text-center">
                 <h3 class="headingFont text-light">{{ name }}</h3>
-                <p class="bodyFont text-light">{{ desc }}</p>
+                <p class="bodyFont text-light desc-text">{{ desc }}</p>
 
             </div>
             <div
@@ -76,11 +76,15 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
     border: none;
 }
 
+.recipeCard .card-body {
+    /* leave room for the absolute-positioned summary/footer so description isn't covered */
+    padding-bottom: 5.5rem; /* matches summary height + spacing */
+}
+
 .recipeCard:hover {
     transform: translateY(-6px) scale(1.04);
     box-shadow: 0 14px 30px rgba(25, 25, 25, 0.18), 0 6px 12px rgba(0,0,0,0.08);
 }
-
 
 
 
@@ -130,8 +134,19 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
 .recipeCard.compact p {
     font-size: 0.85rem;
 }
+.recipeCard.compact .card-body { padding-bottom: 4.25rem; }
 .recipeCard.compact .summary-container.container-fluid.px-5 {
     padding: 0.5rem 0.75rem !important;
+}
+
+/* ensure description text clamps to two lines and doesn't overflow under the summary */
+.desc-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .summary-container h5 {
