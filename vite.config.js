@@ -7,11 +7,6 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '') // loads .env*, incl. .env.development.local
 
-  const isProd = mode === 'production'
-
-  // Use '/' locally, '/Peddit/' only in production (GitHub Pages)
-  const base = isProd ? '/Peddit/' : '/'
-
   // Only enable the proxy if you (locally) have a key
   const proxyRoutes = {}
   if (env.OPENROUTER_API_KEY) {
@@ -38,7 +33,7 @@ export default defineConfig(({ mode }) => {
       vue(),
       vueDevTools(), // same as before
     ],
-    base: process.env.BASE_URL || '/',
+    // base,
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)), // same as before

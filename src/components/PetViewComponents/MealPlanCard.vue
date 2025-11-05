@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue';
 import animatedImage from '../atoms/animated/animatedImage.vue';
+import dogSprite from '@/assets/Sprite/Dog/Walk.png';
+import catSprite from '@/assets/Sprite/Cat/Walk.png';
 
 const props = defineProps({
     rec_id: { type: [String, Number], required: true },
@@ -39,16 +41,21 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
 
 </script>
 <template>
-    <div class="recipeCard card overflow-hidden bg-primary shadow p-3 mb-5 rounded-5 border-1" :style="cardStyle" :class="{ compact: compact }">
-        <div class = "mt-0">
+    <div class="recipeCard card overflow-hidden bg-primary shadow p-3 mb-5 rounded-5 border-1" :style="cardStyle"
+        :class="{ compact: compact }">
+        <div class="mt-0">
             <p v-if="petKind == 'dog'" class="d-flex justify-content-center">
-                <animatedImage src="/src/assets/Sprite/Dog/Walk.png" :width="imgSize.width" :height="imgSize.height" :frameWidth="imgSize.frameWidth" :frameHeight="imgSize.frameHeight" :frames="imgSize.frames" :fps="imgSize.fps" />
+                <animatedImage :src="dogSprite" :width="imgSize.width" :height="imgSize.height"
+                    :frameWidth="imgSize.frameWidth" :frameHeight="imgSize.frameHeight" :frames="imgSize.frames"
+                    :fps="imgSize.fps" />
             </p>
             <p v-else class="d-flex justify-content-center">
-                <animatedImage src="/src/assets/Sprite/Cat/Walk.png" :width="imgSize.width" :height="imgSize.height" :frameWidth="imgSize.frameWidth" :frameHeight="imgSize.frameHeight" :frames="imgSize.frames" :fps="imgSize.fps" />
+                <animatedImage :src="catSprite" :width="imgSize.width" :height="imgSize.height"
+                    :frameWidth="imgSize.frameWidth" :frameHeight="imgSize.frameHeight" :frames="imgSize.frames"
+                    :fps="imgSize.fps" />
             </p>
         </div>
-        <div class="card-body" >
+        <div class="card-body">
             <div class="card-text text-center">
                 <h3 class="headingFont text-light">{{ name }}</h3>
                 <p class="bodyFont text-light desc-text">{{ desc }}</p>
@@ -58,9 +65,9 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
                 class="summary-container container-fluid position-absolute bottom-0 start-0 end-0 px-3 py-3 bg-primary">
                 <div class="summary-container container-fluid position-absolute bottom-0 start-0 end-0 px-5 py-3 bg-white"
                     @click="handleOpenMealInfo">
-                        <div class="text-center black fw-bold h5 bodyFont">
-                            {{ actionLabel }}
-                        </div>
+                    <div class="text-center black fw-bold h5 bodyFont">
+                        {{ actionLabel }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -71,27 +78,40 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
     width: 100%;
     max-width: 18rem;
     min-height: 24rem;
-    position: relative; /* contain absolutely positioned summary/footer inside the card */
+    position: relative;
+    /* contain absolutely positioned summary/footer inside the card */
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
     border: none;
 }
 
 .recipeCard .card-body {
     /* leave room for the absolute-positioned summary/footer so description isn't covered */
-    padding-bottom: 5.5rem; /* matches summary height + spacing */
+    padding-bottom: 5.5rem;
+    /* matches summary height + spacing */
 }
 
 .recipeCard:hover {
     transform: translateY(-6px) scale(1.04);
-    box-shadow: 0 14px 30px rgba(25, 25, 25, 0.18), 0 6px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 14px 30px rgba(25, 25, 25, 0.18), 0 6px 12px rgba(0, 0, 0, 0.08);
 }
 
 
 
 @keyframes meal-pulse {
-  0% { transform: scale(0.95); opacity: 0.9 }
-  60% { transform: scale(1.12); opacity: 0.36 }
-  100% { transform: scale(1.22); opacity: 0 }
+    0% {
+        transform: scale(0.95);
+        opacity: 0.9
+    }
+
+    60% {
+        transform: scale(1.12);
+        opacity: 0.36
+    }
+
+    100% {
+        transform: scale(1.22);
+        opacity: 0
+    }
 }
 
 /* shine animation when the card becomes selected; runs once on class toggle */
@@ -100,17 +120,27 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0) 100%);
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.9) 50%, rgba(255, 255, 255, 0) 100%);
     transform: translateX(-150%) skewX(-20deg);
     z-index: 50;
     filter: blur(6px);
-    animation: shine 900ms cubic-bezier(.2,.9,.2,1) 1;
+    animation: shine 900ms cubic-bezier(.2, .9, .2, 1) 1;
 }
 
 @keyframes shine {
-    0% { transform: translateX(-150%) skewX(-20deg); opacity: 0; }
-    40% { opacity: 1; }
-    100% { transform: translateX(150%) skewX(-20deg); opacity: 0; }
+    0% {
+        transform: translateX(-150%) skewX(-20deg);
+        opacity: 0;
+    }
+
+    40% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(150%) skewX(-20deg);
+        opacity: 0;
+    }
 }
 
 /* Responsive SVG sizes */
@@ -128,13 +158,19 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
     width: 11rem;
     height: 6rem;
 }
+
 .recipeCard.compact h3 {
     font-size: 1.1rem;
 }
+
 .recipeCard.compact p {
     font-size: 0.85rem;
 }
-.recipeCard.compact .card-body { padding-bottom: 4.25rem; }
+
+.recipeCard.compact .card-body {
+    padding-bottom: 4.25rem;
+}
+
 .recipeCard.compact .summary-container.container-fluid.px-5 {
     padding: 0.5rem 0.75rem !important;
 }
@@ -152,6 +188,7 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
 .summary-container h5 {
     font-size: 1.25rem;
 }
+
 .summary-container {
     cursor: pointer;
 }
@@ -169,10 +206,12 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
     transition: all 0.4s;
     z-index: 0;
 }
+
 .summary-container:hover::before {
     opacity: 1;
     transform: scale(1);
 }
+
 /* Tablet and below */
 @media (max-width: 768px) {
     .recipeCard svg {
@@ -192,12 +231,12 @@ const actionLabel = computed(() => props.actionLabel || 'View Info');
         font-size: 1rem;
     }
 }
-@media (max-width: 576px) {
-  .recipeCard .kindSvg {
-    width: 10rem;
-    height: 10rem;
-    margin: auto;
-  }
-}
 
+@media (max-width: 576px) {
+    .recipeCard .kindSvg {
+        width: 10rem;
+        height: 10rem;
+        margin: auto;
+    }
+}
 </style>
