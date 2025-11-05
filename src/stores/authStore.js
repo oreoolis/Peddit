@@ -22,6 +22,11 @@ export const useAuthStore = defineStore('auth', () => {
     const userId = computed(() => user.value?.id ?? null);
     const userEmail = computed(() => user.value?.email ?? null);
 
+    const appBase =
+    (import.meta?.env?.BASE_URL) 
+    ? import.meta.env.BASE_URL
+    : (window.__APP_BASE__ || "/Peddit/"); // fallback 
+
     // Private: Auth state change subscription
     let authSubscription = null;
 
@@ -152,11 +157,13 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             loading.value = true;
             error.value = null;
+            
+            const redirectLink = new URL(appBase, window.location.origin).toString();
 
             const { error: oAuthError } = await supabase.auth.signInWithOAuth({
                 provider,
                 options: {
-                    redirectTo: window.location.origin,
+                    redirectTo: redirectLink,
                     ...options
                 }
             });
