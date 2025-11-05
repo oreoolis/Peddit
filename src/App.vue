@@ -1,7 +1,8 @@
 <script setup>
-import { RouterView } from 'vue-router';
+import { RouterView, useRoute } from 'vue-router';
 import NavBar from './components/NavBar.vue';
 import NavBarBottom from './components/molecules/NavBarBottom.vue';
+import { motion, AnimatePresence } from 'motion-v';
 
 // Chatbot widget import + flag
 import ChatbotWidget from '@/components/ChatbotWidget.vue';
@@ -15,11 +16,12 @@ import { useUserStore } from './stores/userStore';
 
 const authStore = useAuthStore();
 const userStore = useUserStore();
+const route = useRoute();
 
 onMounted(async () => {
   await authStore.initAuth();
 
-  if(authStore.userId) {
+  if (authStore.userId) {
     await userStore.fetchProfile();
   }
 });
@@ -44,13 +46,20 @@ watch(() => authStore.userId, async (userId) => {
   <NavBar />
   <div class="app-bg min-vh-100 d-flex flex-column ">
     <div class="router-view flex-grow-1 pb-4 pb-sm-5 mb-5">
-      <RouterView  />
-      
+      <AnimatePresence mode="wait">
+        <RouterView v-slot="{ Component }" :key="route.path">
+          <motion.div :initial="{ opacity: 0, y: 0 }" :animate="{ opacity: 1, y: 0 }" :exit="{ opacity: 0, y: 0 }"
+            :transition="{ duration: 0.2 }">
+            <component :is="Component" />
+          </motion.div>
+        </RouterView>
+      </AnimatePresence>
+
     </div>
-     <NavBarBottom/>
+    <NavBarBottom />
     <ChatbotWidget v-if="SHOW_CHATBOT" />
     <!-- keep NavBarBottom after the main content in DOM order inside the app container; its height is exposed via --nav-bottom-height -->
-   
+
   </div>
 </template>
 
@@ -100,7 +109,8 @@ watch(() => authStore.userId, async (userId) => {
 
 @media (max-width: 768px) {
   .router-view {
-    padding-bottom: 5rem !important; /* Adjust based on NavBarBottom height */
+    padding-bottom: 5rem !important;
+    /* Adjust based on NavBarBottom height */
   }
 }
 

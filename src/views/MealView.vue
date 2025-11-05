@@ -37,6 +37,14 @@ const carouselInner = ref(null);
 // style used to constrain carousel content width (keeps controls visible)
 const contentMaxWidth = computed(() => 'min(1100px, 95vw)');
 
+// helper to truncate text safely for small UI slots
+const truncateText = (v, max = 500) => {
+  if (v === null || typeof v === 'undefined') return '';
+  const s = String(v);
+  if (s.length <= max) return s;
+  return s.slice(0, max).trimEnd() + '…';
+};
+
 const openMealInfo = (payload) => {
   // payload might be a plain id, or an object like { rec_id }
   if (payload && typeof payload === 'object') {
@@ -94,7 +102,7 @@ onMounted(async () => {
                 <StatCard 
                 :label="f.recipe_name ?? ''" 
                 value="" 
-                :unit="f.notes ?? ''" 
+                :unit="truncateText(f?.notes, 40)" 
                 size="sm" highlight />
                 <div class="mt-3">
                   <InfoDetail label="Pet Type and Breed" :value="(f.pet_kind || '') + (f.pet_breed ? ' - ' + f.pet_breed : '')"/>
@@ -115,7 +123,7 @@ onMounted(async () => {
                 :editable="false" 
                 :name="f.recipe_name"
                 :rec_id="f.id" 
-                :desc="f.description" 
+                :desc="truncateText(f?.description, 100)" 
                 :petKind="f.pet_kind" 
                 @open-meal-info="openMealInfo" />
               </div>
