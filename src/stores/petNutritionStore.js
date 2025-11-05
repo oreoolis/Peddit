@@ -65,7 +65,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
       if (fetchError) throw fetchError;
 
       nutritionProfiles.value = data || [];
-      return { success: true, data };
+      return { success: true, data, id: data?.id };
     } catch (err) {
       error.value = err.message;
       console.error('Error fetching nutrition profiles:', err);
@@ -75,34 +75,26 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
     }
   };
 
-  /**
-   * Get nutrition profile for specific pet
-   * Life stages: 'adult_maintenance', 'growth_and_reproduction'
+    /**
+   * Get nutrition profile for specific pet (cached, no network)
+   * Allowed life stages in DB: 'adult_maintenance', 'growth_and_reproduction'
+   * Accepts alias 'adult' -> 'adult_maintenance'
+   * Returns a row object or null.
    */
-  const getNutritionProfile = async (kind, lifeStage) => {
-
-    loading.value = true;
-    error.value = null;
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('pet_nutrition_profiles')
-        .select('*')
-        .eq('kind', kind)
-        .eq('life_stage', lifeStage)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      return { success: true, data };
-    } catch (err) {
-      error.value = err.message;
-      console.error('Error fetching nutrition profile:', err);
-      return { success: false, error: err.message };
-    } finally {
-      loading.value = false;
+  const getNutritionProfile = (kind, lifeStage = 'adult') => {
+    // Map common alias
+    const stage = lifeStage === 'adult' ? 'adult_maintenance' : lifeStage;
+    if (!nutritionProfiles.value || nutritionProfiles.value.length === 0) {
+      // Not loaded yet; caller should have called fetchNutritionProfiles()
+      return null;
     }
+    const row = nutritionProfiles.value.find(
+      (p) => String(p.kind).toLowerCase() === String(kind).toLowerCase()
+          && String(p.life_stage).toLowerCase() === String(stage).toLowerCase()
+    );
+    return row || null;
   };
-
+  
   // ============================================
   // FOOD INGREDIENTS
   // ============================================
@@ -124,7 +116,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
       if (fetchError) throw fetchError;
       
       ingredients.value = data || [];
-      return { success: true, data };
+      return { success: true, data, id: data?.id };
     } catch (err) {
       error.value = err.message;
       console.error('Error fetching ingredients:', err);
@@ -373,7 +365,8 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
       if (error) throw error;
 
       // Change the avatar_url into the image URL inside supabase avatars storage bucket
-      const transformedPosts = data.map(post => {
+      const rows = Array.isArray(data) ? data : [];
+      const transformedPosts = rows.map(post => {
           if (post.profiles?.avatar_url) {
               post.profiles.avatar_url = getPublicImage('avatars', post.profiles.avatar_url);
           }
@@ -420,7 +413,6 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
             pet_breed,
             created_at,
             total_cost_cents,
-            calories,
             recipe_ingredients (
               id,
               quantity_g,
@@ -448,7 +440,8 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
       if (fetchError) throw fetchError;
 
       // Change the avatar_url into the image URL inside supabase avatars storage bucket
-      const transformedPosts = data.map(post => {
+      const rows = Array.isArray(data) ? data : [];
+      const transformedPosts = rows.map(post => {
         if (post.profiles?.avatar_url) {
           post.profiles.avatar_url = getPublicImage('avatars', post.profiles.avatar_url);
         }
@@ -508,7 +501,8 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
       const { data, error: fetchError } = await query;
 
       // Change the avatar_url into the image URL inside supabase avatars storage bucket
-      const transformedPosts = data.map(recipe => {
+      const rowsR = Array.isArray(data) ? data : [];
+      const transformedPosts = rowsR.map(recipe => {
           if (recipe.profiles?.avatar_url) {
               recipe.profiles.avatar_url = getPublicImage('avatars', recipe.profiles.avatar_url);
           }
@@ -571,13 +565,15 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
    * Schema uses: recipe_name, author_id, description, notes
    */
   const createRecipe = async (recipe) => {
+    // Strip fields not guaranteed to exist in DB (e.g., 'calories')
+    const { calories, ...safeRecipe } = recipe || {};
     loading.value = true;
     error.value = null;
 
     try {
       const { data, error: createError } = await supabase
         .from('recipes')
-        .insert([recipe])
+        .insert([safeRecipe])
         .select()
         .single();
 
