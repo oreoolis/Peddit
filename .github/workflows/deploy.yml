@@ -3,8 +3,8 @@ name: Peddit Deployment
 on:
   push:
     branches:
-      - main
-      
+      - feature/dwayne-petcreation
+
 permissions:
   contents: read
   pages: write
