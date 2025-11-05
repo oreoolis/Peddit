@@ -219,10 +219,10 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
-    const clearProfile = () => { 
-        profile.value = null; 
-        error.value = null; 
-    };
+    // const clearProfile = () => { 
+    //     profile.value = null; 
+    //     error.value = null; 
+    // };
 
     return {
         // State
@@ -242,7 +242,6 @@ export const useAuthStore = defineStore('auth', () => {
         signInWithEmail,
         signInWithOAuth,
         signOut,
-        clearProfile,
         cleanup
     };
 });

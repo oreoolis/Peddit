@@ -32,9 +32,10 @@ watch(() => authStore.userId, async (userId) => {
   if (userId) {
     await userStore.fetchProfile();
   } else {
-    userStore.clearProfile();
+    //userStore.fetchProfile();
+    //authStore.clearProfile();
   }
-}, { immediate: false });
+}, { immediate: true });
 
 </script>
 
