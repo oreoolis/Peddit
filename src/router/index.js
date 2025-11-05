@@ -5,7 +5,7 @@ import HomeView from '../views/HomeView.vue';
 // requiresAuth: true(private), false(public)
 // hideWhenAuth: true(hide when logged in)
 const router = createRouter({
-  history: createWebHashHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
