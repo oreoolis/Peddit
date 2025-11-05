@@ -137,19 +137,20 @@ const handleSubmit = () => {
                         <label  class="form-label headingFont fw-bold h5 mb-3">Select a Meal Plan</label>
                         <div class="d-flex gap-3 row">
                         <div v-if="userMealPlans.length === 0" class="text-muted">No meal plans found</div>
-                        <MealPlanCard class="col-auto mx-auto"
-                        v-for="Meal in userMealPlans"
-                        :key="Meal.rec_id"
-                        :rec_id="Meal.rec_id"
-                        :name="Meal.name"
-                        :desc="Meal.desc"
-                        :petKind="Meal.petKind"
-                        :editable="false"
-                        :compact="true"
-                        actionLabel="Select Plan"
-                        @open-meal-info="selectPlan"
-                        :class="{ 'selected-plan': selectedPlanId === Meal.rec_id }"
-                        ></MealPlanCard>
+                        <MealPlanCard
+                            class="col-auto mx-auto"
+                            v-for="meal in userMealPlans"
+                            :key="meal.rec_id"
+                            :rec_id="meal.rec_id"
+                            :name="meal.name"
+                            :desc="meal.desc"
+                            :petKind="meal.petKind"
+                            :editable="false"
+                            :compact="true"
+                            actionLabel="Select Plan"
+                            @open-meal-info="selectPlan"
+                            :class="{ 'selected-plan': selectedPlanId === meal.rec_id}"
+                        />
                         </div>
                     </div>
                 </div>
@@ -229,9 +230,55 @@ textarea.form-control {
 }
 
 .selected-plan {
-        transform: scale(1.03);
-        box-shadow: 0 6px 18px rgba(192, 32, 171, 0.301);
-        border-radius: 12px;
-        outline: 3px solid rgba(var(--bs-primary-rgb), 0.18);
+    /* Stronger selected visual: pop, lift and pulse */
+    position: relative;
+    z-index: 30;
+    transform: translateY(-8px) scale(1.06) ;
+    border: 6px solid var(--bs-primary);
+    box-shadow: 0 12px 40px rgba(var(--bs-primary-rgb), 0.45), 0 6px 18px rgba(131, 138, 226, 0.856);
+    border-radius: 14px;
+    transition: box-shadow 0.28s cubic-bezier(.2,.8,.2,1), transform 0.22s ease, border 0.18s ease;
+
 }
+
+/* animated pulsing ring */
+.selected-plan::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 18px;
+    pointer-events: none;
+    background: radial-gradient(circle at center, rgba(var(--bs-primary-rgb), 0.12), transparent 40%);
+    transform: scale(0.9);
+    animation: pulse-ring 1.6s ease-out infinite;
+    z-index: -1;
+}
+
+@keyframes pulse-ring {
+    0% { transform: scale(0.95); opacity: 0.9 }
+    60% { transform: scale(1.12); opacity: 0.35 }
+    100% { transform: scale(1.2); opacity: 0 }
+}
+
+/* stronger animated glow behind the selected card */
+.selected-plan::before {
+    content: "";
+    position: absolute;
+    inset: -10px;
+    border-radius: 22px;
+    pointer-events: none;
+    background: radial-gradient(circle at center, rgba(var(--bs-primary-rgb), 0.28), rgba(var(--bs-primary-rgb), 0.14) 30%, transparent 55%);
+    filter: blur(10px);
+    opacity: 0.9;
+    transform: scale(1);
+    z-index: -2;
+    animation: glow-border 2s ease-in-out infinite;
+}
+
+@keyframes glow-border {
+    0% { opacity: 0.6; transform: scale(0.98); }
+    50% { opacity: 1; transform: scale(1.03); }
+    100% { opacity: 0.6; transform: scale(0.98); }
+}
+
 </style>
