@@ -10,6 +10,8 @@ import Button from '@/components/atoms/button.vue';
 import searchBar from '@/components/atoms/searchBar.vue';
 import BreedSelect from '@/components/molecules/create-edit-pet/BreedSelect.vue';
 import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelect.vue';
+import dogImage from '@/assets/Pixel Art/dog (1).png';
+import catImage from '@/assets/Pixel Art/cat (5).png';
 
 const petStore = usePetStore();
 const authStore = useAuthStore();
@@ -132,9 +134,9 @@ const filteredRecipes = computed(() => {
   return recipes.value.filter(recipe => recipe.pet_kind === form.value.kind);
 });
 
-onMounted( async () => {
+onMounted(async () => {
   const res = await nutritionStore.fetchRecipes(authStore.userId);
-  if (res.success){
+  if (res.success) {
     recipes.value = res.data;
   }
 });
@@ -150,16 +152,23 @@ onMounted( async () => {
             <h1 class="headingFont display-3 text-start fw-semibold">Create Your Pet</h1>
           </div>
         </div>
-        <div class="row justify-content-center mt-3 mb-3">
-          <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
-            <div @click="selectPetKind('dog')" class="dog-breed-card"
-              :class="{ 'selected-pet': form.kind === 'dog', 'dimmed-pet': form.kind === 'cat' }" id="dog-breed-card">
+        <div class="row justify-content-center mt-3 mb-3 g-3">
+          <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
+            <div @click="selectPetKind('dog')" class="dog-breed-card" :style="{
+              backgroundImage: `url('${dogImage}')`,
+              backgroundPosition: 'center',
+              backgroundSize: 'cover'
+            }" :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
               <p class="pet-title brandFont text-light display-1">Dog</p>
             </div>
+
           </div>
-          <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
-            <div @click="selectPetKind('cat')" class="cat-breed-card"
-              :class="{ 'selected-pet': form.kind === 'cat', 'dimmed-pet': form.kind === 'dog' }" id="cat-breed-card">
+          <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
+            <div @click="selectPetKind('cat')" class="cat-breed-card" :style="{
+              backgroundImage: `url('${catImage}')`,
+              backgroundPosition: 'center',
+              backgroundSize: 'cover'
+            }" :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
               <p class="pet-title brandFont text-light display-1">Cat</p>
             </div>
           </div>
@@ -219,7 +228,8 @@ onMounted( async () => {
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Breed</label>
-              <BreedSelect defaultLabel="Select Breed..." :breedOptions="breedNameList" :isSearchable="true" v-model="form.breed" />
+              <BreedSelect defaultLabel="Select Breed..." :breedOptions="breedNameList" :isSearchable="true"
+                v-model="form.breed" />
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Weight</label>
@@ -231,7 +241,8 @@ onMounted( async () => {
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Selected Meal</label>
-              <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="filteredRecipes" :isSearchable="true" v-model="form.preferred_recipe" />
+              <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="filteredRecipes" :isSearchable="true"
+                v-model="form.preferred_recipe" />
             </div>
 
 
@@ -255,7 +266,7 @@ onMounted( async () => {
             <Button class=" bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm" label="Reset"
               :disabled="petStore.loading">
             </Button>
-            <Button class="bodyFont d-inline mx-2" :label=" petStore.loading ? 'Creating...' : 'Add Pet' " type="submit"
+            <Button class="bodyFont d-inline mx-2" :label="petStore.loading ? 'Creating...' : 'Add Pet'" type="submit"
               :disabled="petStore.loading || !form.name || !form.kind">
               <span v-if="petStore.loading" class="spinner"></span>
             </Button>
@@ -273,116 +284,114 @@ onMounted( async () => {
 }
 
 .dog-breed-card {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 600px;
-    height: 300px;
-    background-image: url("../assets/Pixel Art/dog (1).png");
-    background-position: center;
-    background-size: cover;
-    border: 1px solid white;
-    box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(6px);
-    border-radius: 17px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.5s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    font-weight: bolder;
-    color: black;
-    margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  background-position: center;
+  background-size: cover;
+  border: 1px solid white;
+  box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(6px);
+  border-radius: 17px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.5s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  font-weight: bolder;
+  color: black;
+  margin: 0 auto;
 }
 
 .cat-breed-card {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 600px;
-    height: 300px;
-    background-image: url("../assets/Pixel Art/cat (5).png");
-    background-position: center;
-    background-size: cover;
-    border: 1px solid white;
-    box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(6px);
-    border-radius: 17px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.5s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    font-weight: bolder;
-    color: black;
-    margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  background-position: center;
+  background-size: cover;
+  border: 1px solid white;
+  box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(6px);
+  border-radius: 17px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.5s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  font-weight: bolder;
+  color: black;
+  margin: 0 auto;
 }
 
 /* Responsive heights using Bootstrap breakpoints */
 @media (min-width: 576px) {
 
-    .dog-breed-card,
-    .cat-breed-card {
-        height: 350px;
-    }
+  .dog-breed-card,
+  .cat-breed-card {
+    height: 350px;
+  }
 }
 
 @media (min-width: 768px) {
 
-    .dog-breed-card,
-    .cat-breed-card {
-        height: 400px;
-    }
+  .dog-breed-card,
+  .cat-breed-card {
+    height: 400px;
+  }
 }
 
 @media (min-width: 992px) {
 
-    .dog-breed-card,
-    .cat-breed-card {
-        height: 450px;
-    }
+  .dog-breed-card,
+  .cat-breed-card {
+    height: 450px;
+  }
 }
 
 @media (min-width: 1200px) {
 
-    .dog-breed-card,
-    .cat-breed-card {
-        height: 500px;
-    }
+  .dog-breed-card,
+  .cat-breed-card {
+    height: 500px;
+  }
 }
 
 .dog-breed-card:hover,
 .cat-breed-card:hover {
-    border: 1px solid black;
-    transform: scale(1.05);
+  border: 1px solid black;
+  transform: scale(1.05);
 }
 
 .dog-breed-card:active,
 .cat-breed-card:active {
-    transform: scale(0.95) rotateZ(1.7deg);
+  transform: scale(0.95) rotateZ(1.7deg);
 }
 
 /* Selected pet card styling */
 .selected-pet {
-    border: 5px solid var(--bs-primary) !important;
-    box-shadow: 0 0 30px var(--bs-primary, 0.7)!important;
-    transform: scale(1.03);
-    position: relative;
+  border: 5px solid var(--bs-primary) !important;
+  box-shadow: 0 0 30px var(--bs-primary, 0.7) !important;
+  transform: scale(1.03);
+  position: relative;
 }
 
 /* Dimmed/unselected pet card */
 .dimmed-pet {
-    opacity: 0.5;
-    filter: grayscale(60%);
-    transform: scale(0.97);
+  opacity: 0.5;
+  filter: grayscale(60%);
+  transform: scale(0.97);
 }
 
 .dimmed-pet:hover {
-    opacity: 0.7;
-    filter: grayscale(40%);
-    transform: scale(1);
+  opacity: 0.7;
+  filter: grayscale(40%);
+  transform: scale(1);
 }
 
 
@@ -434,6 +443,7 @@ onMounted( async () => {
   transform: translateY(-1px);
   box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.8);
 }
+
 /* Animation */
 .radio-inputs .radio input:checked+.name {
   animation: select 0.3s cubic-bezier(0.4, 0, 0.2, 1);

@@ -12,7 +12,8 @@ import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelec
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import Button from '@/components/atoms/button.vue';
 import { useToastStore } from '@/stores/toastStore';
-
+import dogImage from '@/assets/Pixel Art/dog (1).png';
+import catImage from '@/assets/Pixel Art/cat (5).png';
 
 const petStore = usePetStore();
 const authStore = useAuthStore();
@@ -147,18 +148,23 @@ onMounted(async () => {
                         <h1 class="headingFont display-3 text-start fw-semibold">Edit Your Pet</h1>
                     </div>
                 </div>
-                <div class="row justify-content-center mt-3 mb-3">
-                    <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
-                        <div @click="selectPetKind('dog')" class="dog-breed-card"
-                            :class="{ 'selected-pet': form.kind === 'dog', 'dimmed-pet': form.kind === 'cat' }"
-                            id="dog-breed-card">
+                <div class="row justify-content-center mt-3 mb-3 g-3">
+                    <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
+                        <div @click="selectPetKind('dog')" class="dog-breed-card" :style="{
+                            backgroundImage: `url('${dogImage}')`,
+                            backgroundPosition: 'center',
+                            backgroundSize: 'cover'
+                        }" :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
                             <p class="pet-title brandFont text-light display-1">Dog</p>
                         </div>
+
                     </div>
-                    <div class="col-12 col-sm-6 col-md-6 col-lg-6 col-xl-4">
-                        <div @click="selectPetKind('cat')" class="cat-breed-card"
-                            :class="{ 'selected-pet': form.kind === 'cat', 'dimmed-pet': form.kind === 'dog' }"
-                            id="cat-breed-card">
+                    <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
+                        <div @click="selectPetKind('cat')" class="cat-breed-card" :style="{
+                            backgroundImage: `url('${catImage}')`,
+                            backgroundPosition: 'center',
+                            backgroundSize: 'cover'
+                        }" :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
                             <p class="pet-title brandFont text-light display-1">Cat</p>
                         </div>
                     </div>
@@ -245,8 +251,9 @@ onMounted(async () => {
 
                         <div class="mb-3 input-group-lg">
                             <label for="" class="form-label headingFont fw-bold h5">Weight (kg)</label>
-                            <input type="number" name="" id="" class="form-control bodyFont" step="0.01" min="0" inputmode="decimal"
-                                :placeholder="form.weight_kg" aria-describedby="helpId" v-model.number="form.weight_kg" />
+                            <input type="number" name="" id="" class="form-control bodyFont" step="0.01" min="0"
+                                inputmode="decimal" :placeholder="form.weight_kg" aria-describedby="helpId"
+                                v-model.number="form.weight_kg" />
                         </div>
 
                         <div class="mb-3 input-group-lg">
@@ -256,7 +263,7 @@ onMounted(async () => {
                         </div>
                         <div class="mb-3">
                             <label class="form-label headingFont fw-bold h5">Selected Meal</label>
-                            <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes "
+                            <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes"
                                 :isSearchable="true" v-model="form.preferred_recipe" />
                         </div>
 
@@ -269,7 +276,8 @@ onMounted(async () => {
                                     <span class="name">Yes</span>
                                 </label>
                                 <label class="radio">
-                                    <input name="neutered" type="radio" :value="false" id="n_no" v-model="form.neutered" />
+                                    <input name="neutered" type="radio" :value="false" id="n_no"
+                                        v-model="form.neutered" />
                                     <span class="name">No</span>
                                 </label>
                             </div>
@@ -295,14 +303,16 @@ onMounted(async () => {
     text-shadow: 1px 5px 5px black;
 }
 
-.dog-breed-card {
+.dog-breed-card,
+.cat-breed-card {
     box-sizing: border-box;
     width: 100%;
     max-width: 600px;
     height: 300px;
-    background-image: url("../assets/Pixel Art/dog (1).png");
     background-position: center;
     background-size: cover;
+    background-attachment: fixed;
+    /* Remove this if it was causing issues */
     border: 1px solid white;
     box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
     backdrop-filter: blur(6px);
@@ -319,29 +329,6 @@ onMounted(async () => {
     margin: 0 auto;
 }
 
-.cat-breed-card {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 600px;
-    height: 300px;
-    background-image: url("../assets/Pixel Art/cat (5).png");
-    background-position: center;
-    background-size: cover;
-    border: 1px solid white;
-    box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(6px);
-    border-radius: 17px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.5s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    font-weight: bolder;
-    color: black;
-    margin: 0 auto;
-}
 
 /* Responsive heights using Bootstrap breakpoints */
 @media (min-width: 576px) {

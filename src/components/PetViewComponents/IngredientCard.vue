@@ -1,4 +1,11 @@
 <script setup>
+import meatImg from '@/assets/Sprite/Food/Meat.png';
+import fruitImg from '@/assets/Sprite/Food/Fruit.png';
+import vegeImg from '@/assets/Sprite/Food/Vegetable.png';
+import grainImg from '@/assets/Sprite/Food/Grain.png';
+import otherImg from '@/assets/Sprite/Food/Others.png';
+
+
 // Using <script setup> for modern Vue syntax
 const props = defineProps({
     name: {
@@ -15,23 +22,23 @@ const props = defineProps({
     },
     meatImg: {
         type: String,
-        default: '/src/assets/Sprite/Food/Meat.png'
+        default: meatImg
     },
     fruitImg: {
         type: String,
-        default: '/src/assets/Sprite/Food/Fruit.png'
+        default: fruitImg
     },
     vegeImg: {
         type: String,
-        default: '/src/assets/Sprite/Food/Vegetable.png'
+        default: vegeImg
     },
     grainImg: {
         type: String,
-        default: '/src/assets/Sprite/Food/Grain.png'
+        default: grainImg
     },
     otherImg: {
         type: String,
-        default: '/src/assets/Sprite/Food/Others.png'
+        default: otherImg
     },
     amount: {
         type: [String, Number],

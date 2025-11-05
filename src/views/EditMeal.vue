@@ -9,7 +9,8 @@ import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastStore } from '@/stores/toastStore';
 import { useUserStore } from '@/stores/userStore';
-
+import dogImage from '@/assets/Pixel Art/dog (1).png';
+import catImage from '@/assets/Pixel Art/cat (5).png';
 import { storeToRefs } from 'pinia';
 import { useRouter, useRoute } from 'vue-router';
 
@@ -275,17 +276,22 @@ onMounted(async () => {
             <h1 class="headingFont display-3 text-start fw-semibold">Edit Meal Plan</h1>
           </div>
         </div>
-        <!-- Cards side-by-side on all viewports -->
         <div class="row justify-content-center mt-3 mb-3 g-3">
           <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
-            <div @click="selectPetKind('dog')" class="dog-breed-card"
-              :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
+            <div @click="selectPetKind('dog')" class="dog-breed-card" :style="{
+              backgroundImage: `url('${dogImage}')`,
+              backgroundPosition: 'center',
+              backgroundSize: 'cover'
+            }" :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
               <p class="pet-title brandFont text-light display-1">Dog</p>
             </div>
           </div>
           <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
-            <div @click="selectPetKind('cat')" class="cat-breed-card"
-              :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
+            <div @click="selectPetKind('cat')" class="cat-breed-card" :style="{
+              backgroundImage: `url('${catImage}')`,
+              backgroundPosition: 'center',
+              backgroundSize: 'cover'
+            }" :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
               <p class="pet-title brandFont text-light display-1">Cat</p>
             </div>
           </div>
@@ -357,7 +363,6 @@ onMounted(async () => {
   width: 100%;
   max-width: 600px;
   height: 300px;
-  background-image: url("../assets/Pixel Art/dog (1).png");
   background-position: center;
   background-size: cover;
   border: 1px solid white;
@@ -381,7 +386,6 @@ onMounted(async () => {
   width: 100%;
   max-width: 600px;
   height: 300px;
-  background-image: url("../assets/Pixel Art/cat (5).png");
   background-position: center;
   background-size: cover;
   border: 1px solid white;
