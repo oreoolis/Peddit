@@ -172,8 +172,8 @@ const handleSubmit = async () => {
   // Add ALL ingredients to shopping list at once as an ARRAY
   if (selectedIngredients.value.length > 0) {
     const formattedIngredients = selectedIngredients.value.map(selIng => ({
-      food_ingredients: selIng.ingredient,
-      quantity_g: selIng.amount
+      food_ingredients: selIng.food_ingredients,
+      quantity_g: selIng.quantity_g
     }));
 
     await userStore.addUnformattedToShoppingList(formattedIngredients);
