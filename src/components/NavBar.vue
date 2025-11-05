@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink } from 'vue-router';
-import personImage from '../assets/person.jpg';
+import personImage from '@/assets/Pixel Art/cat (3).png';
 import { computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/userStore';
 import { useAuthStore } from '@/stores/authStore';
