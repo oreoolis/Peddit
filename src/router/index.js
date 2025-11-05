@@ -142,9 +142,9 @@ const router = createRouter({
     { 
       // Catch-all route for any unmatched paths
       path: '/:pathMatch(.*)*',
-      redirect: '/home' // Redirect to the home page
+      //redirect: '/home', // Redirect to the home page if you wanna
       // Attach 404 Not Found component
-      // component: NotFoundComponent 
+      component: () => import('@/views/NotFoundPage.vue'), 
     }
   ],
 })
