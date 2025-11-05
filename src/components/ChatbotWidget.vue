@@ -119,6 +119,69 @@ const input = ref('')
 const inputEl = ref(/** @type {HTMLTextAreaElement|null} */(null))
 const listEl = ref(/** @type {HTMLDivElement|null} */(null))
 const errorText = ref('')
+
+// Resizable panel state
+const panelEl = ref(/** @type {HTMLDivElement|null} */(null))
+const panelW = ref(0)
+const panelH = ref(0)
+const RESIZE_LS_W = 'peddit_chat_w'
+const RESIZE_LS_H = 'peddit_chat_h'
+const resizing = reactive({ active:false, dir:'', sx:0, sy:0, sw:0, sh:0 })
+
+onMounted(() => {
+  // seed from DOM or localStorage
+  const w = parseInt(localStorage.getItem(RESIZE_LS_W) || '0', 10)
+  const h = parseInt(localStorage.getItem(RESIZE_LS_H) || '0', 10)
+  if (w) panelW.value = w
+  if (h) panelH.value = h
+})
+
+function startResize(dir, e){
+  const el = panelEl.value
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  resizing.active = true
+  resizing.dir = dir
+  resizing.sx = e.clientX
+  resizing.sy = e.clientY
+  resizing.sw = rect.width
+  resizing.sh = rect.height
+  document.body.style.userSelect = 'none'
+  window.addEventListener('mousemove', onResizeMove)
+  window.addEventListener('mouseup', onResizeEnd)
+}
+
+function onResizeMove(e){
+  if (!resizing.active) return
+  const minW = 320, maxW = Math.min(window.innerWidth*0.92, 720)
+  const minH = 280, maxH = Math.min(window.innerHeight*0.9, 1000)
+  const dx = e.clientX - resizing.sx
+  const dy = e.clientY - resizing.sy
+  if (resizing.dir === 'left' || resizing.dir === 'corner-tl'){
+    panelW.value = Math.max(minW, Math.min(maxW, Math.round(resizing.sw - dx)))
+  }
+  if (resizing.dir === 'top' || resizing.dir === 'corner-tl'){
+    panelH.value = Math.max(minH, Math.min(maxH, Math.round(resizing.sh - dy)))
+  }
+}
+
+function onResizeEnd(){
+  if (!resizing.active) return
+  resizing.active = false
+  document.body.style.userSelect = ''
+  window.removeEventListener('mousemove', onResizeMove)
+  window.removeEventListener('mouseup', onResizeEnd)
+  // persist
+  if (panelW.value) localStorage.setItem(RESIZE_LS_W, String(panelW.value))
+  if (panelH.value) localStorage.setItem(RESIZE_LS_H, String(panelH.value))
+}
+
+const panelStyle = computed(() => {
+  return {
+    width: panelW.value ? panelW.value + 'px' : undefined,
+    height: panelH.value ? panelH.value + 'px' : undefined,
+  }
+})
 const controllerRef = ref(/** @type {AbortController|null} */(null))
 
 const histories = ref([]) // legacy top-level branch snapshots (kept for BC)
@@ -191,6 +254,19 @@ watch(() => state.messages.length, async ()=>{ await nextTick(); scrollToBottom(
 function deepClone(x){ return JSON.parse(JSON.stringify(x)) }
 function scrollToBottom(){ const el = listEl.value; if (el) el.scrollTop = el.scrollHeight }
 function autosize(){ const el = inputEl.value; if (!el) return; el.style.height='auto'; el.style.height=el.scrollHeight+'px' }
+function newline(e){
+  const el = inputEl.value
+  if (!el) return
+  const start = el.selectionStart ?? input.value.length
+  const end = el.selectionEnd ?? start
+  const val = input.value
+  input.value = val.slice(0, start) + '\n' + val.slice(end)
+  nextTick(() => {
+    el.selectionStart = el.selectionEnd = start + 1
+    autosize()
+  })
+}
+
 function focusInput(){ nextTick(()=> inputEl.value?.focus()) }
 function toggle(){ if (!CHAT_ENABLED) return; open.value = !open.value; if (open.value){ unread.value = 0; focusInput() } errorText.value='' }
 function useSuggestion(s){ input.value = s; focusInput(); autosize() }
@@ -595,7 +671,7 @@ function clearChat(){
     <!-- Panel -->
       <!-- drop overlay moved below -->
     <transition name="chat-slide">
-      <div v-if="open" class="peddit-chat-panel card" @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
+      <div v-if="open" class="peddit-chat-panel card" ref="panelEl" :style="panelStyle" @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
         <div class="card-header d-flex justify-content-between align-items-center headingFont">
           <strong>Peddit Chat</strong>
           <div class="d-flex gap-2 align-items-center">
@@ -608,28 +684,32 @@ function clearChat(){
         </div>
 
         <div class="drop-overlay" v-if="dragActive">Drop image anywhere to attach</div>
+        <div class="resize-handle left" @mousedown="startResize('left', $event)" aria-label="Resize width"></div>
+        <div class="resize-handle top" @mousedown="startResize('top', $event)" aria-label="Resize height"></div>
+        <div class="resize-handle corner-tl" @mousedown="startResize('corner-tl', $event)" aria-label="Resize panel"></div>
 
         <!-- Body -->
         <div class="card-body p-0 bodyFlex">
           <div class="peddit-chat-list bodyFont" ref="listEl" aria-live="polite">
-            <div v-for="(m, i) in state.messages" :key="i" class="p-3 border-bottom msg-row" :class="m.role">
-              <div class="small text-muted mb-1 d-flex align-items-center gap-2">
+            <div v-for="(m, i) in state.messages" :key="i" class="p-3 msg-row" :class="m.role">
+              <div class="small text-muted mb-1 d-flex align-items-center gap-2 header-row">
                 <span>{{ m.role === 'user' ? 'You' : (m.role === 'assistant' ? 'Peddit' : 'System') }}</span>
                 <span v-if="m.ts" class="text-muted" style="font-size: 11px;">· {{ new Date(m.ts).toLocaleTimeString() }}</span>
               </div>
 
               
-<div class="message-content">
-  <div v-if="m.role === 'user' && (m.imageUrls?.length || m.imageUrl)" class="msg-image">
-    <template v-if="m.imageUrls?.length">
-      <div class="img-grid">
-        <img v-for="(u,ux) in m.imageUrls.slice(0,3)" :key="ux" :src="u" alt="attachment" />
-      </div>
-    </template>
-    <img v-else :src="m.imageUrl" alt="attachment" />
-  </div>
 
-  <template v-if="m.content === '…thinking'">
+<div v-if="m.role === 'user' && (m.imageUrls?.length || m.imageUrl)" class="msg-attachments">
+  <template v-if="m.imageUrls?.length">
+    <div class="img-grid">
+      <img v-for="(u,ux) in m.imageUrls.slice(0,3)" :key="ux" :src="u" alt="attachment" />
+    </div>
+  </template>
+  <img v-else :src="m.imageUrl" alt="attachment" />
+</div>
+
+<div class="message-content">
+<template v-if="m.content === '…thinking'">
     <span class="typing"><span></span><span></span><span></span></span>
   </template>
   <template v-else>
@@ -640,8 +720,8 @@ function clearChat(){
                 @keydown.enter.exact.prevent="confirmEditResend"
                 @keydown.esc.prevent="cancelEdit"></textarea>
       <div class="d-flex gap-2 mt-2">
-        <button class="btn btn-light" @click="cancelEdit" :disabled="sending">Cancel</button>
-        <button class="btn btn-primary" @click="confirmEditResend" :disabled="sending || !editBuffer.trim()">Send</button>
+        <button class="btn btn-secondary" @click="cancelEdit" :disabled="sending">Cancel</button>
+        <button class="btn btn-light" @click="confirmEditResend" :disabled="sending || !editBuffer.trim()">Send</button>
       </div>
     </template>
     <template v-else>
@@ -654,20 +734,20 @@ function clearChat(){
               <div class="msg-actions" :class="m.role">
                 <template v-if="m.role === 'user'">
                   <button class="icon-btn" title="Edit" aria-label="Edit message" @click="startEdit(i)">
-                    <svg width="16" height="30" viewBox="0 0 22 10"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34c-.39-.39-1.03-.39-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34c-.39-.39-1.03-.39-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg>
                   </button>
                   <button class="icon-btn" :class="{ tick: copiedIndex === i }" title="Copy" aria-label="Copy message" @click="copyMessage(i)">
                     <span v-if="copiedIndex === i">✓</span>
-                    <svg v-else width="16" height="30" viewBox="0 0 22 10"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    <svg v-else width="16" height="16" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
                   </button>
                 </template>
                 <template v-else-if="m.role === 'assistant'">
                   <button class="icon-btn" title="Regenerate" aria-label="Regenerate from here" @click="regenerateFrom(i)">
-                    <svg width="16" height="30" viewBox="0 0 22 10"><path d="M12 6V3L8 7l4 4V8c3.31 0 6 2.69 6 6a6 6 0 01-6 6 6 6 0 01-6-6H4a8 8 0 008 8 8 8 0 008-8c0-4.42-3.58-8-8-8z"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 6V3L8 7l4 4V8c3.31 0 6 2.69 6 6a6 6 0 01-6 6 6 6 0 01-6-6H4a8 8 0 008 8 8 8 0 008-8c0-4.42-3.58-8-8-8z"/></svg>
                   </button>
                   <button class="icon-btn" :class="{ tick: copiedIndex === i }" title="Copy" aria-label="Copy message" @click="copyMessage(i)">
                     <span v-if="copiedIndex === i">✓</span>
-                    <svg v-else width="16" height="30" viewBox="0 0 22 10"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    <svg v-else width="16" height="16" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
                   </button>
                 </template>
               </div>
@@ -820,15 +900,35 @@ function clearChat(){
 
 /* Hover actions */
 .msg-row { position: relative; }
-.msg-actions { opacity:0; display:flex; gap:8px; transition:opacity .15s; margin-top:8px; }
-.p-3.border-bottom:hover .msg-actions { opacity:1; }
+.msg-actions {
+  display: flex;
+  gap: 8px;
+  /* collapsed by default */
+  max-height: 0;
+  opacity: 0;
+  visibility: hidden;
+  overflow: hidden;
+  margin-top: 0;
+  transition:
+    opacity .25s ease .18s,
+    max-height .25s ease .18s,
+    margin-top 0s linear .18s,
+    visibility 0s linear .18s;
+}
+.msg-row:hover .msg-actions {
+  visibility: visible;
+  max-height: 40px;
+  opacity: 1;
+  margin-top: 4px;
+  transition-delay: 0s, 0s, 0s, 0s;
+}
 .icon-btn { border:1px solid rgba(0,0,0,.12); background:var(--bs-body-bg, #fff); padding:4px 6px; border-radius:8px; line-height:1; cursor:pointer; font-size:12px; }
 .icon-btn.tick { border-color: #198754; }
 .icon-btn:focus { outline:none; }
 
 /* User history nav (shows on hover of user row) */
 .variant-nav { position:absolute; right:12px; bottom:6px; display:none; align-items:center; gap:6px; font-size:12px; }
-.p-3.border-bottom.user:hover .variant-nav { display:flex; }
+.msg-row.user:hover .variant-nav { display:flex; }
 .vnav-btn { border:1px solid rgba(0,0,0,.12); background:var(--bs-body-bg,#fff); padding:2px 6px; border-radius:6px; cursor:pointer; line-height:1; }
 .vnav-btn:disabled { opacity:.35; cursor:default; }
 .vnav-count { color: rgba(0,0,0,.6); font-weight:600; }
@@ -969,6 +1069,62 @@ function clearChat(){
 .icon-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0; }
 .icon-btn svg { display: block; }
 .attach-btn { width: 36px; height: 36px; border-radius: 8px; overflow: visible; }
+
+/* --- Chat bubble alignment + spacing update --- */
+.msg-row { padding-top: 8px !important; padding-bottom: 30px !important; }
+.msg-row .message-content { 
+  display: inline-block; 
+  max-width: 85%;
+  padding: 10px 12px; 
+  border-radius: 14px;
+  background: #f4f6f8;
+  color: var(--bs-body-color, #141414);
+}
+.msg-row.user { display: flex; flex-direction: column; align-items: flex-end; }
+.msg-row.user .message-content { 
+  background: var(--bs-primary, #247BA0); 
+  color: #fff; 
+  border-top-right-radius: 8px; 
+  border-top-left-radius: 14px; 
+}
+.msg-row.assistant { display: flex; flex-direction: column; align-items: flex-start; }
+.msg-row.assistant .message-content { 
+  background: #f1f3f5;
+  color: var(--bs-body-color, #141414);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 14px;
+}
+
+/* Remove any residual borders that created horizontal lines */
+.msg-row, .msg-row + .msg-row { border-bottom: none !important; }
+
+.header-row { width: 100%; display: flex; }
+.msg-row.user .header-row { justify-content: flex-end; }
+
+/* Role-aware alignment for inline action buttons and tighter spacing */
+.msg-row.user .msg-actions { justify-content: flex-end; }
+.msg-row.assistant .msg-actions { justify-content: flex-start; }
+.msg-actions { margin-top: 4px; }
+
+/* Trim trailing space inside each bubble */
+.msg-row .md > *:last-child { margin-bottom: 0 !important; }
+
+/* Resizers */
+.peddit-chat-panel { position: relative; }
+.resize-handle { position:absolute; z-index:20; }
+.resize-handle.left { top:0; left:0; width:8px; height:100%; cursor: ew-resize; }
+.resize-handle.top { left:0; top:0; width:100%; height:8px; cursor: ns-resize; }
+.resize-handle.corner-tl { left:0; top:0; width:14px; height:14px; cursor: nwse-resize; }
+.resize-handle:hover { background: transparent; } /* invisible grip */
+
+/* Force white text for user bubble content */
+.msg-row.user .md { color: #fff !important; }
+.msg-row.user .md a { color: #fff !important; text-decoration: underline; }
+
+/* Attachments above the user bubble */
+.msg-row.user .msg-attachments { display: flex; justify-content: flex-end; align-self: flex-end; margin-bottom: 6px; }
+.msg-row.user .msg-attachments .img-grid { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+.msg-row.user .msg-attachments img { max-width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; }
 </style>
 
 <style>
