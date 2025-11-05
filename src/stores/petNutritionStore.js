@@ -412,6 +412,7 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
             pet_kind,
             pet_breed,
             created_at,
+            total_cost_cents,
             recipe_ingredients (
               id,
               quantity_g,
@@ -476,9 +477,9 @@ export const usePetNutritionStore = defineStore('petNutrition', () => {
         .select(`
           *,
           profiles:author_id (
-            username,
-            display_name,
-            avatar_url
+                        username,
+                        display_name,
+                        avatar_url
           ),
           recipe_ingredients (
             id,
