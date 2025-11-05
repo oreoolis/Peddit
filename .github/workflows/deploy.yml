@@ -35,6 +35,7 @@ jobs:
           VITE_CHAT_MODEL: ${{ secrets.VITE_CHAT_MODEL }}
           VITE_CHAT_SIMPLE_MODEL: ${{ secrets.VITE_CHAT_SIMPLE_MODEL }}
           VITE_CHAT_THINKING_MODEL: ${{ secrets.VITE_CHAT_THINKING_MODEL }}
+          BASE_URL: '/Peddit/'
         run: npm run build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

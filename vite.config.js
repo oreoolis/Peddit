@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
       vue(),
       vueDevTools(), // same as before
     ],
-    base,
+    base: process.env.BASE_URL || '/',
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)), // same as before
