@@ -3,7 +3,7 @@ import AddIngredientModal from '@/components/PetViewComponents/AddIngredientModa
 import IngredientCard from '@/components/PetViewComponents/IngredientCard.vue';
 import { ref, onMounted, watch, computed } from 'vue';
 import searchBar from '@/components/atoms/searchBar.vue';
-import Button from '@/components/atoms/Button.vue';
+import Button from '@/components/atoms/button.vue';
 import NutritionalOutputCard from '@/components/molecules/NutritionalOutputCard.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -195,35 +195,33 @@ const handleSubmit = async () => {
 }
 
 // existing pet Kind
-const computeExistingInformation = async () => {
-  const res = await nutritionStore.getNutritionProfile(
+const computeExistingInformation = () => {
+  if (!petKind.value) return;
+  const profile = nutritionStore.getNutritionProfile(
     petKind.value,
     'adult_maintenance'
-  )
-  if (res.success) {
-    petNutritionProfile.value = res.data;
-
+  );
+  if (profile) {
+    petNutritionProfile.value = profile;
   } else {
-    console.error('Failed to load nutrition profile:', res.error);
+    console.error('Failed to load nutrition profile for', petKind.value);
   }
 };
 
 
 // changing petKind
-const selectPetKind = async (kind) => {
+const selectPetKind = (kind) => {
   petKind.value = kind;
   // Fetch nutrition profile immediately after selection
-  const result = await nutritionStore.getNutritionProfile(
+  const profile = nutritionStore.getNutritionProfile(
     kind,
-    //set adult as default
+    // set adult as default
     'adult_maintenance'
   );
-
-  if (result.success) {
-    petNutritionProfile.value = result.data;
-
+  if (profile) {
+    petNutritionProfile.value = profile;
   } else {
-    console.error('Failed to load nutrition profile:', result.error);
+    console.error('Failed to load nutrition profile for', kind);
   }
 }
 
@@ -242,7 +240,12 @@ const nutrientMaxValues = computed(() => {
 });
 
 onMounted(async () => {
-  await nutritionStore.fetchIngredients();
+  // Ensure required data is loaded
+  await Promise.all([
+    nutritionStore.fetchNutritionProfiles(),
+    nutritionStore.fetchIngredients()
+  ]);
+
   // Await recipe data
   const result = await nutritionStore.getRecipe(recId);
 
@@ -257,7 +260,7 @@ onMounted(async () => {
     selectedIngredients.value = result.data.recipe_ingredients || [];
   }
 
-  await computeExistingInformation();
+  computeExistingInformation();
 })
 
 </script>
