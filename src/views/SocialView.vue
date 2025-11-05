@@ -6,6 +6,6 @@ import Social from '../components/Social.vue';
 <template>
     <main>     
         <!-- <Social /> -->
-         <Social></social>
+         <Social></Social>
     </main>
 </template>
