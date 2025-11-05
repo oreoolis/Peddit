@@ -7,12 +7,12 @@ import HomeView from '../views/HomeView.vue';
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView,
-	  meta: { requiresAuth: true } 
-    },
+    // {
+    //   path: '/',
+    //   name: 'home',
+    //   component: HomeView,
+	  // meta: { requiresAuth: true } 
+    // },
     {
       path: '/home',
       name: 'home',
@@ -20,7 +20,7 @@ const router = createRouter({
 	  meta: { requiresAuth: true } 
     },
     {
-      path: '/about',
+      path: '/',
       name: 'about',
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
