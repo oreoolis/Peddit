@@ -53,6 +53,7 @@ const getSizeValue = () => {
 .base-stat-number {
   display: inline-flex;
   align-items: baseline;
+  justify-content: center;
   gap: 0.25rem;
   font-weight: 700;
 }

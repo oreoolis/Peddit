@@ -61,11 +61,15 @@ const valueSize = computed(() => {
 <style scoped>
 .info-detail {
   background-color: #f8f9fa;
-  padding: 0.75rem 1rem;
+  padding: 0.9rem 1rem;
   border-radius: 8px;
   border-left: 3px solid #667eea;
   transition: all 0.2s ease;
   height: 100%;
+  text-align: center;               
+  display: flex;                   
+  flex-direction: column;
+  align-items: center;              
 }
 
 .info-detail:hover {
@@ -76,7 +80,7 @@ const valueSize = computed(() => {
 
 .info-label {
   display: block;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;            
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -89,6 +93,7 @@ const valueSize = computed(() => {
 @media (max-width: 576px) {
   .info-detail {
     padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem; /* maintain vertical spacing on mobile */
   }
 }
 </style>

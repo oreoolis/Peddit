@@ -48,14 +48,14 @@ const handleFindVet = () => {
     <!-- Stats Grid -->
     <div class="stats-section mb-4">
       <div class="row g-3">
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-3 mb-3">
           <StatCard
             label="Birthdate"
             :value="formattedBirthdate"
             size="sm"
           />
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-3 mb-3">
           <StatCard
             label="Weight"
             :value="pet.weight_kg || 'N/A'"
@@ -87,7 +87,7 @@ const handleFindVet = () => {
     <!-- Info Details Grid -->
     <div class="details-section mb-4">
       <div class="row g-3">
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-6 mb-3">
           <InfoDetail
             label="Allergies"
             :value="pet.allergies || 'None recorded'"

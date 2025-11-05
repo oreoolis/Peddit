@@ -10,6 +10,7 @@
         :src="src"
         :alt="alt"
         :size="avatarSize"
+        :pixel-size="innerImageSizePx"
         :fallback="fallback"
       />
     </BaseProgressRing>
@@ -89,6 +90,14 @@ const ringColor = computed(() => {
   if (g === 'female') return '#ff5c8a';
   if (g === 'male') return 'var(--bs-primary)';
   return '#6c757d';
+});
+
+// Ensure the avatar fills the ring's inner diameter with a small cushion
+const innerImageSizePx = computed(() => {
+  const cushion = 8; // keeps a small gap from the ring stroke
+  // Inner diameter available inside the stroke ≈ size - strokeWidth
+  const inner = ringSize.value - strokeWidth.value;
+  return Math.max(24, inner - cushion);
 });
 </script>
 
