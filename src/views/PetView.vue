@@ -31,10 +31,6 @@ watch(() => authStore.userId, (newUserId) => {
     }
 }, { immediate: true });
 
-// const showShoppingList = ref(false);
-// const openShoppingList = () => {
-//     showShoppingList.value = true;
-// }
 
 // display pet modal
 const selectedPetData = ref(null);
@@ -105,7 +101,6 @@ onMounted(async () => {
 
         console.log("Fetched shopping list:", shoppingList.value);
         console.log("Recipes: ", recipes.value);
-        //await userStore.addMultipleToShoppingList();
     } catch (err) {
         console.error("Error fetching shopping list:", err);
     }
@@ -211,11 +206,6 @@ onMounted(async () => {
                                     @checked="handleChecked"/>
                             </div>
                         </div>
-                        <!-- <div class="text-end px-1 py-1">
-                            <Button label="+ Edit" color="primary" class="button-edit-list fw-bold bodyFont"
-                                @click="openShoppingList">
-                            </Button>
-                        </div> -->
                     </div>
                 </div>
             </div>
