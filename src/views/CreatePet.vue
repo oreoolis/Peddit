@@ -645,9 +645,6 @@ onMounted( async () => {
   }
 }
 
-
-
-
 .image-preview-container {
   text-align: center;
   padding: 1rem;

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps, computed, onMounted } from 'vue';
+import { ref, defineProps, computed, onMounted, toRef, watch } from 'vue';
 import Button from '@/components/atoms/button.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 
@@ -26,14 +26,29 @@ const handleOpenPetInfo = () => {
     });
 }
 
+const recipeId = toRef(props, 'recipe_id');
 
-onMounted(async () => {
-    if(!props.recipe_id) return; //Stops the bug
-    const res = await nutritionStore.getRecipe(props.recipe_id);
-    if (res.success){
+watch(recipeId, async (id) => {
+    if (!id) {
+        recipeDetails.value = null;
+        return;
+    }
+    const res = await nutritionStore.getRecipe(id);
+    if (res.success) {
         recipeDetails.value = res.data;
     }
-})
+    },
+    { immediate: false }
+)
+
+
+// onMounted(async () => {
+//     if(!props.recipe_id) return; //Stops the bug
+//     const res = await nutritionStore.getRecipe(props.recipe_id);
+//     if (res.success){
+//         recipeDetails.value = res.data;
+//     }
+// })
 
 </script>
 <template>

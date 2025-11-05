@@ -1,7 +1,7 @@
 <template>
   <div class="quick-stats" ref="rootEl" :class="{ compact: isCompact }">
     <!-- use an internal grid wrapper so the component can control wrapping based on its own width -->
-    <div class="grid">
+    <div class="">
       <div class="grid-item" v-for="stat in stats" :key="stat.label">
         <HealthStatBox 
           :icon="stat.icon"

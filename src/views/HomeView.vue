@@ -123,12 +123,32 @@ const handleShareRecipe = async (postData) => {
     return;
   }
   
-  await petNutritionStore.createRecipePost(authStore.user.id, { 
-    recipeId: postData.recipeId,
-    title: postData.title ?? "Heelo, check out this SICK recipe!",
-    content: postData.content
-  });
-  showCreatePostModal.value = false;
+  try {
+    const res = await petNutritionStore.createRecipePost(authStore.user.id, { 
+      recipeId: postData.recipeId,
+      title: postData.title ?? "Heelo, check out this SICK recipe!",
+      content: postData.content
+    });
+
+    // If creation failed, log and bail
+    if (!res || res.success === false) {
+      console.error('Failed to create recipe post:', res?.error || res);
+      return;
+    }
+
+    // Refresh the recipe posts list so Latest Recipes updates immediately
+    try {
+      await petNutritionStore.fetchAllRecipePost();
+    } catch (fetchErr) {
+      // non-fatal: log and continue
+      console.warn('Recipe post created but failed to refresh latest recipes:', fetchErr);
+    }
+
+    // Close the share modal
+    showShareRecipePostModal.value = false;
+  } catch (err) {
+    console.error('Error sharing recipe:', err);
+  }
 }
 
 function goToHealthDashboard(){

@@ -18,13 +18,14 @@ import { sendChat } from '@/lib/chatApi';
 import { useToastStore } from '@/stores/toastStore';
 import DeletePetModal from '@/components/PetViewComponents/DeletePetModal.vue';
 import DeleteRecipeModal from '@/components/PetViewComponents/DeleteRecipeModal.vue';
+import { usePetInfoApi } from '@/composables/usePetInfoApi';
+import { watchDebounced } from '@vueuse/core';
 
 const petStore = usePetStore();
 const toastStore = useToastStore();
 const authStore = useAuthStore();
 const nutritionStore = usePetNutritionStore();
 const { recipes } = storeToRefs(nutritionStore);
-
 
 // Auto Recommend UI state
 const showAutoModal = ref(false)
@@ -63,17 +64,41 @@ const breedOptions = computed(()=> {
 })
 const breedMenuOpen = ref(false)
 const breedMenuRef = ref(null)
-const filteredBreedOptions = computed(() => {
-  const q = (form.breedName || '').toLowerCase().trim()
-  const list = Array.isArray(breedOptions.value) ? breedOptions.value : []
-  if (!q) return list.slice(0, 12)
-  return list.filter(b => String(b.name || '').toLowerCase().includes(q)).slice(0, 20)
-})
+// const filteredBreedOptions = computed(() => {
+//   const q = (form.breedName || '').toLowerCase().trim()
+//   const list = Array.isArray(breedOptions.value) ? breedOptions.value : []
+//   if (!q) return list.slice(0, 12)
+//   return list.filter(b => String(b.name || '').toLowerCase().includes(q)).slice(0, 20)
+// })
+
+
+const petKind = ref('cat'); // default value
+
+// Breed stuff 
+const { breedNames, error: breedError, isFetching: isFetchingBreeds } = usePetInfoApi(petKind);
+
+// dynamically update breed list
+const filteredBreedOptions = ref([]);
+const breedQuery = ref('');
+
+watchDebounced([breedQuery, petKind, isFetchingBreeds], () => {
+  if (isFetchingBreeds.value) return;
+  
+  if (!breedQuery.value) {
+    filteredBreedOptions.value = breedNames.value;
+    return;
+  }
+  
+  filteredBreedOptions.value = breedNames.value.filter(breed =>
+    breed.toLowerCase().includes(breedQuery.value.toLowerCase())
+  );
+}, { debounce: 300, immediate: true });
+
 function openBreedMenu(){ breedMenuOpen.value = true }
 function closeBreedMenu(){ breedMenuOpen.value = false }
 function selectBreedName(name){
-  form.breedName = name
-  closeBreedMenu()
+  breedQuery.value = name;
+  closeBreedMenu();
 }
 onMounted(()=>{
   // simple outside click handler for the breed menu
@@ -103,6 +128,7 @@ function onSelectPet(){
   const p = (petStore?.pets || []).find(x => x.id === form.petId)
   if(!p) return
   form.kind = (p.kind || '').toLowerCase()
+  breedQuery.value = p.breed || '';
   form.breedName = p.breed || ''
   // Prefer provided age_years; otherwise compute from birthday-like fields
   const dob = p.birthday || p.birthdate || p.date_of_birth || p.dob || null
@@ -454,7 +480,7 @@ onMounted(async () => {
         <div class="row g-3">
           <div class="col-md-4">
             <label class="form-label">Species</label>
-            <select class="form-select" v-model="form.kind" @change="onKindChange">
+            <select class="form-select" v-model="petKind" > 
               <option value="dog">Dog</option>
               <option value="cat">Cat</option>
             </select>
@@ -463,11 +489,11 @@ onMounted(async () => {
           <div class="col-md-8">
             <label class="form-label">Breed</label>
             <div class="breed-combobox" ref="breedMenuRef">
-              <input class="form-control" v-model="form.breedName" placeholder="Type to search…" 
+              <input class="form-control" v-model="breedQuery" placeholder="Type to search…" 
                      @focus="openBreedMenu" @input="openBreedMenu">
               <ul v-if="breedMenuOpen" class="breed-menu">
                 <li v-for="b in filteredBreedOptions" :key="b.id || b.name">
-                  <button type="button" class="breed-item" @click="selectBreedName(b.name)">{{ b.name }}</button>
+                  <button type="button" class="breed-item" @click="selectBreedName(b)">{{ b }}</button>
                 </li>
                 <li v-if="filteredBreedOptions.length === 0" class="px-2 py-1 text-muted small">No matches</li>
               </ul>

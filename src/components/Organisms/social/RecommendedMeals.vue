@@ -26,15 +26,22 @@ const normalizedPlans = computed(() => {
   }));
 });
 
+
+const truncateText = (v, max = 500) => {
+  if (v === null || typeof v === 'undefined') return '';
+  const s = String(v);
+  if (s.length <= max) return s;
+  return s.slice(0, max).trimEnd() + '…';
+};
 </script>
 
 <template>
      <section class="mx-auto">
         <h1 class="text-center headingFont bg-primary text-white py-2 ">What Others Are Feeding</h1>
        <div class=" py-4 row recommend-grid row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 d-flex justify-content-center">
-         <div v-for="r in normalizedPlans" :key="r.id" class=" col">
+         <div v-for="r in normalizedPlans" :key="r?.id" class=" col">
            <div class="card-wrapper w-100 justify-content-center">
-             <MealPlanCard :name="r.name" :rec_id="r.id" :desc="r.desc" :petKind="r.petKind" class="w-100" :editable="false" @open-meal-info="$emit('open-meal-info', $event)"/>
+             <MealPlanCard :name="r?.name" :rec_id="r?.id" :desc="truncateText(r?.desc, 100)" :petKind="r?.petKind" class="w-100" :editable="false" @open-meal-info="$emit('open-meal-info', $event)"/>
            </div>
          </div>
        </div>

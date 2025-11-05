@@ -245,8 +245,8 @@ onMounted(async () => {
 
                         <div class="mb-3 input-group-lg">
                             <label for="" class="form-label headingFont fw-bold h5">Weight (kg)</label>
-                            <input type="number" name="" id="" class="form-control bodyFont"
-                                :placeholder="form.weight_kg" aria-describedby="helpId" v-model="form.weight_kg" />
+                            <input type="number" name="" id="" class="form-control bodyFont" step="0.01" min="0" inputmode="decimal"
+                                :placeholder="form.weight_kg" aria-describedby="helpId" v-model.number="form.weight_kg" />
                         </div>
 
                         <div class="mb-3 input-group-lg">
