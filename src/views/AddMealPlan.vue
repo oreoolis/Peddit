@@ -190,18 +190,21 @@ const handleSubmit = async () => {
 
 const selectPetKind = async (kind) => {
   petKind.value = kind;
-  // Fetch nutrition profile immediately after selection
-  const result = await nutritionStore.getNutritionProfile(
+  // Ensure nutrition profiles are loaded before accessing
+  if (!nutritionStore.nutritionProfiles?.length && nutritionStore.fetchNutritionProfiles) {
+    await nutritionStore.fetchNutritionProfiles();
+  }
+  // Fetch nutrition profile immediately after selection (returns row or null)
+  const profile = nutritionStore.getNutritionProfile(
     kind,
-    //set adult as default
+    // set adult as default (mapped to 'adult_maintenance' in store)
     'adult'
   );
 
-  if (result.success) {
-    petNutritionProfile.value = result.data;
-
+  if (profile) {
+    petNutritionProfile.value = profile;
   } else {
-    console.error('Failed to load nutrition profile:', result.error);
+    console.error('Failed to load nutrition profile for', kind);
   }
 }
 
@@ -221,7 +224,11 @@ const nutrientMaxValues = computed(() => {
 
 
 onMounted(async () => {
-  await nutritionStore.fetchIngredients();
+  // Ensure required data is loaded
+  await Promise.all([
+    nutritionStore.fetchNutritionProfiles(),
+    nutritionStore.fetchIngredients()
+  ]);
 })
 
 </script>
