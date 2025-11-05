@@ -39,7 +39,7 @@
             <div class="position-relative" @mousemove="handleMouseMove">
               <div class="hero-blur"></div>
               <div class="pets-container d-flex gap-4 justify-content-center align-items-center">
-                <!-- Interactive Dog -->
+                 <!-- Interactive Dog -->
                 <div class="pet-wrapper">
                   <svg width="300" height="300" viewBox="0 0 200 200" class="interactive-pet">
                     <!-- Dog head -->
@@ -125,7 +125,7 @@
           <div 
             v-for="(feature, index) in features"
             :key="index"
-            class="col-md-6 col-lg-4 col-xl-3"
+            class="col-md-6 col-lg-4 col-xl-3 mb-4"
           >
             <div class="card h-100 border-0 shadow-sm feature-card">
               <div class="card-body p-4">
@@ -148,8 +148,8 @@
         </div>
 
         <div class="row g-4 justify-content-center">
-          <div v-for="step in steps" :key="step.number" class="col-md-6 col-lg-3 col-xl-2 text-center">
-            <div class="step-number mb-4">{{ step.number }}</div>
+          <div v-for="step in steps" :key="step.number" class="col-md-6 col-lg-3 text-center">
+            <div class="step-number mb-4 mx-auto">{{ step.number }}</div>
             <h3 class="h5 fw-bold mb-3">{{ step.title }}</h3>
             <p class="text-muted">{{ step.description }}</p>
           </div>
