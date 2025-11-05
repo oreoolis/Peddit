@@ -242,7 +242,15 @@ const nutritionArray = computed(() => {
 
 // --- helpers used elsewhere in template ---
 const defaultAvatar = props.User_Image || 'https://picsum.photos/seed/defaultpet/120/120';
-const combinedShareText = computed(() => `${props.Recipe_Name} — ${props.Recipe_Desc}\n\nCheck this recipe on Peddit!`);
+const combinedShareText = computed(() => {
+  // Prefer the loaded post's recipe data; fall back to props or a generic message
+  const title = currentPost.value?.recipes?.recipe_name || props.Recipe_Name || 'A Recipe on Peddit';
+  const rawDesc = currentPost.value?.recipes?.description || currentPost.value?.content || props.Recipe_Desc || '';
+  const desc = stripHtml(String(rawDesc || '')).trim();
+  const url = (typeof window !== 'undefined' && window.location) ? window.location.href : '';
+  const body = desc ? `${title} — ${desc}` : title;
+  return `${body}\n\nCheck this recipe on Peddit!${url ? `\n${url}` : ''}`;
+});
 function formatCurrency(v){ return typeof v === 'number' ? `$ ${v.toFixed(2)}` : v; }
 function formatDate(d){
   if (!d) return '';
