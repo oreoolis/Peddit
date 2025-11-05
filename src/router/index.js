@@ -96,6 +96,7 @@ const router = createRouter({
       path: '/add-meal-plan',
       name: 'add-meal-plan',
       component: () => import('@/views/AddMealPlan.vue'),
+      meta: { requiresAuth: true }
     },
      {
       path: '/temp',
@@ -138,6 +139,13 @@ const router = createRouter({
     //   // which is lazy-loaded when the route is visited.
     //   component: () => import('../views/AboutView.vue'),
     // },
+    { 
+      // Catch-all route for any unmatched paths
+      path: '/:pathMatch(.*)*',
+      //redirect: '/home', // Redirect to the home page if you wanna
+      // Attach 404 Not Found component
+      component: () => import('@/views/NotFoundPage.vue'), 
+    }
   ],
 })
 

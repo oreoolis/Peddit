@@ -82,7 +82,10 @@ const toggleBreedSelector = () => {
 
 const handleFindVet = (payload) => {
   // Push using query params?
-  router.push('/map');
+   router.push({ path: '/map', query: { 
+      type: 'vetclinic',
+      limit: '1'}
+    });
 };
 
 const handleBreedClick = (breedName) => {

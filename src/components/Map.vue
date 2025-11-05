@@ -1,4 +1,3 @@
-
 <template>
   <div class="container-fluid map-page">
     <h1 class="mt-3 mb-3">Pet Stores & Clinics Near You</h1>
@@ -35,26 +34,28 @@
         <label class="mb-2"><strong>Place Types:</strong></label>
         <div class="category-pills">
           <ButtonTogglable
-            :initialState="selectedCategories.petStores"
-            labelOFF="Pet Stores"
-            labelON="Pet Stores"
-            colorOFF="secondary"
-            colorON="primary"
-            iconLinkON="bi-basket-fill"
-            iconLinkOFF="bi-basket"
-            @toggle="(v) => (selectedCategories.petStores = v, searchPlaces())"
-          />
+          :key="`petstore-${selectedCategories.petStores}`"
+          :initialState="selectedCategories.petStores"
+          labelOFF="Pet Stores"
+          labelON="Pet Stores"
+          colorOFF="secondary"
+          colorON="primary"
+          iconLinkON="bi-basket-fill"
+          iconLinkOFF="bi-basket"
+          @toggle="(v) => (selectedCategories.petStores = v, searchPlaces())"
+        />
 
-          <ButtonTogglable
-            :initialState="selectedCategories.vetClinics"
-            labelOFF="Vet Clinics"
-            labelON="Vet Clinics"
-            colorOFF="secondary"
-            colorON="danger"
-            iconLinkON="bi-hospital-fill"
-            iconLinkOFF="bi-hospital"            
-            @toggle="(v) => (selectedCategories.vetClinics = v, searchPlaces())"
-          />
+        <ButtonTogglable
+          :key="`vetclinic-${selectedCategories.vetClinics}`"
+          :initialState="selectedCategories.vetClinics"
+          labelOFF="Vet Clinics"
+          labelON="Vet Clinics"
+          colorOFF="secondary"
+          colorON="danger"
+          iconLinkON="bi-hospital-fill"
+          iconLinkOFF="bi-hospital"            
+          @toggle="(v) => (selectedCategories.vetClinics = v, searchPlaces())"
+        />
         </div>
       </div>
 
@@ -100,45 +101,56 @@
       </p>
     </div>
 
-    <!-- Results filter (appears only if there are >10 results) -->
-    <div v-else-if="allPlaces.length > 10" class="results-filter mt-3">
-      <div class="d-flex align-items-center justify-content-center gap-3">
-        <label><strong>Sort by:</strong></label>
-        <div class="btn-group" role="group" aria-label="Sort filter">
-          <Button
-            :class="sortMode === 'rating' ? 'btn-primary' : 'btn-outline-primary'"
-            @click="setSortMode('rating')"
-            label="⭐ Top Rated"
-          >
-            
-          </Button>
-          <Button
-            class="btn btn-sm ms-1"
-            :class="sortMode === 'distance' ? 'btn-primary' : 'btn-outline-primary'"
-            @click="setSortMode('distance')"
-            label="📍 Nearest"
-          >
-            
-          </Button>
-        </div>
-        <div class="btn-group ms-3" role="group" aria-label="Result filter">
-          <Button
-            :class="showMode === 'top10' ? 'btn-success' : 'btn-outline-success'"
-            @click="setShowMode('top10')"
-            label="Show top 10"
-          >
-          </Button>
-          <Button
-            class="ms-1"
-            :class="showMode === 'all' ? 'btn-success' : 'btn-outline-success'"
-            @click="setShowMode('all')"
-            :label="'Show All (' + allPlaces.length + ')'"
-          >
-            
-          </Button>
-        </div>
+    <!-- Results filter (appears if there are results) -->
+<div v-if="!loading && allPlaces.length > 0" class="results-filter mt-4 mb-3">
+  <div class="filter-container">
+    <!-- Sort Options -->
+    <div class="filter-section">
+      <label class="filter-label"><strong>Sort by:</strong></label>
+      <div class="btn-group" role="group">
+        <Button
+              :class="sortMode === 'rating' ? 'btn-primary sort-active' : 'btn-outline-primary'"
+              @click="setSortMode('rating')"
+              label="⭐ Top Rated"
+            />
+        <Button
+              class="ms-1"
+              :class="sortMode === 'distance' ? 'btn-primary sort-active' : 'btn-outline-primary'"
+              @click="setSortMode('distance')"
+              label="📍 Nearest"
+            />
+        <Button
+              class="ms-1"
+              :class="sortMode === 'open' ? 'btn-primary sort-active' : 'btn-outline-primary'"
+              @click="setSortMode('open')"
+              label="🟢 Open Now"
+        />
       </div>
     </div>
+
+    <!-- Results Limit -->
+    <div class="filter-section">
+      <label class="filter-label"><strong>Show results:</strong></label>
+      <div class="results-limit-controls">
+        <input
+          type="number"
+          class="form-control results-input"
+          v-model.number="resultsLimit"
+          min="1"
+          :max="allPlaces.length"
+          @input="validateResultsLimit"
+        />
+        <span class="results-text">of {{ allPlaces.length }}</span>
+        <Button
+          @click="showAllResults"
+          label="Show All"
+          :color="resultsLimit >= allPlaces.length ? 'success' : 'outline-success'"
+          class="show-all-btn"
+        />
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- Cards container -->
     <div v-if="!loading && allPlaces.length > 0" class="cards-container mt-4">
@@ -199,9 +211,10 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import Button from './atoms/button.vue'
-import searchBar from './atoms/searchBar.vue'
 import ButtonTogglable from './atoms/buttonTogglable.vue'
+const route = useRoute()
 const searchInput = ref(null)
 const searchLocation = ref('')
 const selectedCategories = ref({
@@ -213,7 +226,8 @@ const loading = ref(false)
 const searchAttempted = ref(false)
 const allPlaces = ref([])
 const showMode = ref('all')
-const sortMode = ref('rating') // 'rating' or 'distance'
+const sortMode = ref('rating') // 'rating', 'distance', or 'open'
+const resultsLimit = ref(10) // Number of results to show
 const favorites = ref([]) // Array of favorite place IDs
 
 const filteredPlaces = computed(() => {
@@ -224,16 +238,37 @@ const filteredPlaces = computed(() => {
     sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0))
   } else if (sortMode.value === 'distance') {
     sorted.sort((a, b) => (a.distance || 0) - (b.distance || 0))
+  } else if (sortMode.value === 'open') {
+    // Sort by open status first, then by rating
+    sorted.sort((a, b) => {
+      const aOpen = a.opening_hours?.open_now ? 1 : 0
+      const bOpen = b.opening_hours?.open_now ? 1 : 0
+      if (bOpen !== aOpen) return bOpen - aOpen
+      return (b.rating || 0) - (a.rating || 0)
+    })
   }
   
-  // Return top 10 or all based on showMode
-  return showMode.value === 'top10' ? sorted.slice(0, 10) : sorted
+  // Return limited results
+  return sorted.slice(0, resultsLimit.value)
 })
+
+watch(() => route.query.type, (newType) => {
+  if (newType === 'petstore') {
+    selectedCategories.value.petStores = true
+    selectedCategories.value.vetClinics = false
+    searchPlaces()
+  } else if (newType === 'clinic' || newType === 'vetclinic') {
+    selectedCategories.value.petStores = false
+    selectedCategories.value.vetClinics = true
+    searchPlaces()
+  }
+}, { immediate: false })
 
 let map = null
 let service = null
 let infowindow = null
 let currentCircle = null
+let currentLocationMarker = null;
 let markers = []
 let currentLocation = { lat: 1.3521, lng: 103.8198 }
 let markerIcons = {}
@@ -244,6 +279,8 @@ onMounted(() => {
   if (savedFavorites) {
     favorites.value = JSON.parse(savedFavorites)
   }
+
+  initializeCategoriesFromQuery()
 
   const script = document.createElement('script')
   script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places,geometry`
@@ -279,6 +316,18 @@ onMounted(() => {
     getCurrentLocation()
   }
 })
+function initializeCategoriesFromQuery() {
+  const type = route.query.type
+  
+  if (type === 'petstore') {
+    selectedCategories.value.petStores = true
+    selectedCategories.value.vetClinics = false
+  } else if (type === 'clinic' || type === 'vetclinic') {
+    selectedCategories.value.petStores = false
+    selectedCategories.value.vetClinics = true
+  }
+  // If no query param or invalid, keep default (both true)
+}
 
 function initializeMap() {
   map = new google.maps.Map(document.getElementById("map"), {
@@ -306,6 +355,7 @@ function initializeMap() {
         : place.formatted_address
       searchLocation.value = displayText
       map.setCenter(currentLocation)
+      updateCurrentLocationMarker() // ← Add this line
       searchPlaces()
     }
   })
@@ -321,7 +371,7 @@ function getCurrentLocation() {
           lng: position.coords.longitude
         }
         map.setCenter(currentLocation)
-        
+          updateCurrentLocationMarker()
         const geocoder = new google.maps.Geocoder()
         geocoder.geocode({ location: currentLocation }, (results, status) => {
           if (status === 'OK' && results[0]) {
@@ -341,6 +391,31 @@ function getCurrentLocation() {
   } else {
     searchPlaces()
   }
+}
+
+function updateCurrentLocationMarker() {
+  if (currentLocationMarker) {
+    currentLocationMarker.setMap(null);
+  }
+
+  const currentLocationIcon = {
+    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="48" viewBox="0 0 32 48">
+        <path fill="#EA4335" stroke="white" stroke-width="2" d="M16 0C7.2 0 0 7.2 0 16c0 8.8 16 32 16 32s16-23.2 16-32C32 7.2 24.8 0 16 0z"/>
+        <circle cx="16" cy="16" r="6" fill="white"/>
+      </svg>
+    `),
+    scaledSize: new google.maps.Size(32, 48),
+    anchor: new google.maps.Point(16, 48) // Bottom point of pin
+  };
+
+  currentLocationMarker = new google.maps.Marker({
+    map: map,
+    position: currentLocation,
+    title: 'Your Location',
+    icon: currentLocationIcon,
+    zIndex: 9999
+  });
 }
 
 function updateRadius() {
@@ -430,6 +505,7 @@ function searchPlaces() {
       if (pending === 0) {
         // Only update allPlaces once all requests are complete
         allPlaces.value = tempPlaces
+        resultsLimit.value = Math.min(10, allPlaces.value.length)
         loading.value = false
         renderMarkers()
       }      
@@ -502,12 +578,21 @@ function clearLocation() {
   searchInput.value.focus()
 }
 
-function setShowMode(mode) {
-  showMode.value = mode
-}
-
 function setSortMode(mode) {
   sortMode.value = mode
+}
+
+function validateResultsLimit() {
+  if (resultsLimit.value < 1) {
+    resultsLimit.value = 1
+  }
+  if (resultsLimit.value > allPlaces.length) {
+    resultsLimit.value = allPlaces.length
+  }
+}
+
+function showAllResults() {
+  resultsLimit.value = allPlaces.value.length
 }
 
 function getTodayHours(weekdayText) {
@@ -687,4 +772,93 @@ watch(filteredPlaces, () => {
   opacity: 0.8;
 }
 
+.map-page {
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.map-page h1 {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 700; /* Changed from 600 to 700 for bolder */
+  font-size: 2.5rem; /* Make it larger */
+  letter-spacing: -1px; /* Tighter letter spacing */
+  color: #000; /* Pure black */
+}
+
+/* Make labels bolder */
+.controls-container label strong {
+  font-weight: 700;
+}
+
+/* Card improvements */
+.card-title {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 700; /* Bolder */
+  font-size: 1.1rem;
+  color: #000;
+}
+
+.card-text {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.results-filter {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.filter-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-label {
+  margin: 0;
+  color: #495057;
+}
+
+.results-limit-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.results-input {
+  width: 100px; /* Wider input */
+  text-align: center;
+  font-weight: 600;
+}
+
+.results-text {
+  color: #6c757d;
+  font-size: 1rem;
+  font-weight: 500;
+  min-width: 50px; /* Prevent text jumping */
+}
+
+.show-all-btn {
+  min-width: 100px; /* Consistent button width */
+}
+
+@media (min-width: 768px) {
+  .filter-container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  
+  .filter-section {
+    flex: 1;
+  }
+}
 </style>

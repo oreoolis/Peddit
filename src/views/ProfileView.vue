@@ -6,6 +6,7 @@ import BaseButton from '@/components/atomic/BaseButton.vue';
 import ImageUploadModal from '@/components/ImageUploadModal.vue';
 import EditProfileModal from '@/components/molecules/profile/EditProfileModal.vue';
 import ProfileBio from '@/components/atoms/profile/ProfileBio.vue';
+import DefaultImage from '@/assets/Pixel Art/cat (3).png';
 
 // Stores
 import { storeToRefs } from 'pinia';
@@ -117,7 +118,7 @@ onMounted(async () => {
       <!-- Header -->
       <ProfileHeaderSection
         class="d-flex justify-content-center"
-        :avatar-url="avatarUrl || ''"
+        :avatar-url="avatarUrl || DefaultImage"
         :username="profileUsername"
         :stats="profileStats"
         :message="actionMessage"
