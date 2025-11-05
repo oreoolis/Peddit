@@ -3,7 +3,7 @@ import ItemsChecklist from '@/components/PetViewComponents/ItemsChecklist.vue';
 import MealPlanCard from '@/components/PetViewComponents/MealPlanCard.vue';
 import PetCards from '@/components/molecules/create-edit-pet/PetCard.vue';
 import { RouterLink, useRoute } from 'vue-router';
-import { ref, watch, onMounted } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import ShoppingListModal from '@/components/PetViewComponents/ShoppingListModal.vue';
 import PetInfoModal from '@/components/Organisms/PetInfoModal.vue';
 import MealInfoModal from '@/components/PetViewComponents/MealInfoModal.vue';
@@ -14,6 +14,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
+import { sendChat } from '@/lib/chatApi';
 import { useToastStore } from '@/stores/toastStore';
 import DeletePetModal from '@/components/PetViewComponents/DeletePetModal.vue';
 import DeleteRecipeModal from '@/components/PetViewComponents/DeleteRecipeModal.vue';
@@ -24,6 +25,194 @@ const authStore = useAuthStore();
 const nutritionStore = usePetNutritionStore();
 const { recipes } = storeToRefs(nutritionStore);
 
+
+// Auto Recommend UI state
+const showAutoModal = ref(false)
+const form = reactive({
+  petId: null,
+  kind: 'dog',
+  breedName: '',
+  ageYears: null,
+  gender: '',
+  weightKg: null,
+  allergies: '',
+  extraNotes: ''
+})
+
+// Local fallback breeds if DB lookup fails
+const LOCAL_BREEDS = {
+  dog: [
+    { name:'Standard Poodle' }, { name:'Miniature Poodle' }, { name:'Toy Poodle' }, { name:'Medium Poodle' },
+    { name:'Labrador Retriever' }, { name:'Golden Retriever' }, { name:'German Shepherd' },
+    { name:'French Bulldog' }, { name:'Bulldog' }, { name:'Pomeranian' }, { name:'Shiba Inu' },
+    { name:'Siberian Husky' }, { name:'Corgi' }, { name:'Beagle' }, { name:'Rottweiler' },
+    { name:'Chihuahua' }, { name:'Maltese' }
+  ],
+  cat: [
+    { name:'Domestic Shorthair' }, { name:'Domestic Longhair' }, { name:'Persian' }, { name:'Maine Coon' },
+    { name:'Siamese' }, { name:'Ragdoll' }, { name:'British Shorthair' }, { name:'Bengal' }
+  ]
+}
+const petOptions = computed(()=> (petStore?.pets || []))
+
+const breedOptions = computed(()=> {
+  const list = Array.isArray(nutritionStore?.breeds) && nutritionStore.breeds.length
+    ? nutritionStore.breeds
+    : (LOCAL_BREEDS[form.kind] || [])
+  return list
+})
+const breedMenuOpen = ref(false)
+const breedMenuRef = ref(null)
+const filteredBreedOptions = computed(() => {
+  const q = (form.breedName || '').toLowerCase().trim()
+  const list = Array.isArray(breedOptions.value) ? breedOptions.value : []
+  if (!q) return list.slice(0, 12)
+  return list.filter(b => String(b.name || '').toLowerCase().includes(q)).slice(0, 20)
+})
+function openBreedMenu(){ breedMenuOpen.value = true }
+function closeBreedMenu(){ breedMenuOpen.value = false }
+function selectBreedName(name){
+  form.breedName = name
+  closeBreedMenu()
+}
+onMounted(()=>{
+  // simple outside click handler for the breed menu
+  document.addEventListener('click', (e)=>{
+    const el = breedMenuRef.value
+    if (!el) return
+    if (!el.contains(e.target)) closeBreedMenu()
+  })
+})
+
+
+function openAutoModal(){
+  showAutoModal.value = true
+  if(!nutritionStore.ingredients?.length && nutritionStore.fetchIngredients) nutritionStore.fetchIngredients()
+  if(!nutritionStore.nutritionProfiles?.length && nutritionStore.fetchNutritionProfiles) nutritionStore.fetchNutritionProfiles()
+  if(!petStore.pets?.length && petStore.fetchPets && authStore.userId) petStore.fetchPets(authStore.userId)
+  if(nutritionStore.fetchBreeds) nutritionStore.fetchBreeds(form.kind).catch(()=>{})
+  showAutoMenu.value = false
+}
+function closeAutoModal(){ showAutoModal.value = false }
+function onKindChange(){
+  if(nutritionStore.fetchBreeds) nutritionStore.fetchBreeds(form.kind).catch(()=>{})
+  form.breedName = ''
+}
+
+function onSelectPet(){
+  const p = (petStore?.pets || []).find(x => x.id === form.petId)
+  if(!p) return
+  form.kind = (p.kind || '').toLowerCase()
+  form.breedName = p.breed || ''
+  // Prefer provided age_years; otherwise compute from birthday-like fields
+  const dob = p.birthday || p.birthdate || p.date_of_birth || p.dob || null
+  if (p.age_years != null && p.age_years !== undefined) {
+    form.ageYears = p.age_years
+  } else if (p.age != null && p.age !== undefined) {
+    form.ageYears = p.age
+  } else if (dob) {
+    const d = new Date(dob)
+    if (!isNaN(d)) {
+      const now = new Date()
+      const years = (now - d) / (365.25 * 24 * 60 * 60 * 1000)
+      form.ageYears = Number(years.toFixed(1))
+    } else {
+      form.ageYears = null
+    }
+  } else {
+    form.ageYears = null
+  }
+  form.gender = (p.gender || '').toLowerCase()
+  form.weightKg = p.weight_kg ?? p.weight ?? null
+  form.allergies = p.allergies || ''
+}
+async function submitAutoModal(){
+  const chosenKind = form.kind || 'dog'
+  await handleAutoRecommend(chosenKind, { ...form })
+  closeAutoModal()
+}
+
+const showAutoMenu = ref(false)
+const isGenerating = ref(false)
+function toggleAutoMenu(){ if(!isGenerating.value) showAutoMenu.value = !showAutoMenu.value }
+function closeAutoMenu(){ showAutoMenu.value = false }
+
+async function handleAutoRecommend(kind, details = {}){
+  const ns = nutritionStore
+  const ps = petStore
+  const uid = authStore.userId
+  try{
+    isGenerating.value = true
+    showAutoMenu.value = false
+
+    // ensure data
+    if(!ns.ingredients?.length && ns.fetchIngredients) await ns.fetchIngredients()
+    if(!ns.nutritionProfiles?.length && ns.fetchNutritionProfiles) await ns.fetchNutritionProfiles()
+    if(!ps.pets?.length && ps.fetchPets && uid) await ps.fetchPets(uid)
+
+    const pet = (ps.pets||[]).find(p=>String(p.kind||'').toLowerCase()===kind) || null
+    let profile = null;
+    try { profile = ns.getNutritionProfile ? ns.getNutritionProfile(kind, 'adult') : null } catch(_) { profile = null }
+    const catalog = (ns.ingredients||[]).slice(0,60).map(i=>({ id:i.id, name:i.name }))
+
+    const system = `You design ${kind} recipes. Output strict JSON only. No markdown. No commentary. Return why and steps fields.`
+    const user = {
+  objective: `Build a tailored ${kind} recipe using available catalog. Avoid allergens. Match profile stage where possible.`,
+  pet_profile: {
+    kind,
+    breed: details.breedName || (pet?.breed || null),
+    age_years: Number(details.ageYears ?? 0) || null,
+    gender: details.gender || null,
+    weight_kg: Number(details.weightKg ?? 0) || null,
+    allergies: details.allergies || null
+  },
+  notes: details.extraNotes || null,
+  catalog: catalog,
+  requirements: profile || null,
+  output_schema: { recipe_name:'string', why:'string', description:'string', steps:'string[]|string', calories:'number|null',
+                   ingredients:[{ ingredient_id:'number', quantity_g:'number'}] },
+  rules: ['Only JSON','Use ingredient_id from catalog','Quantities in grams','Avoid allergens listed','description must explain suitability; steps must be actionable, numbered']
+}
+const resp = await sendChat([{role:'system', content:system},{role:'user', content:JSON.stringify(user)}], { temperature:0.2, max_tokens:700 , model:'openai/gpt-4o-mini'})
+    const text = (typeof resp === 'string' ? resp : (resp?.content ?? resp?.choices?.[0]?.message?.content ?? resp?.data?.choices?.[0]?.message?.content ?? ''))
+    console.debug('[AutoReco] raw LLM text:', text);
+    if(!text || !text.trim()){ throw new Error('LLM returned empty response') }
+
+    const m = text.match(/```json\s*([\s\S]*?)```/i) || text.match(/```\s*([\s\S]*?)```/i)
+    const jsonText = (m?m[1]:text).trim()
+    let payload
+    try{ payload = JSON.parse(jsonText) } catch(e){
+      const a=jsonText.indexOf('{'), b=jsonText.lastIndexOf('}')
+      if(a>=0 && b>a) payload=JSON.parse(jsonText.slice(a,b+1)); else { console.error('[AutoReco] JSON parse failed:', e); throw e }
+    }
+    console.debug('[AutoReco] parsed payload:', payload)
+
+    const header = {
+      recipe_name: payload.recipe_name || `${kind} Auto Recipe`,
+      description: payload.why || payload.description || 'Auto-generated rationale for fit',
+      notes: Array.isArray(payload.steps) ? payload.steps.map((s,i)=>`${i+1}. ${s}`).join('\n') : (payload.steps || payload.notes || null),
+      pet_kind: kind,
+      pet_breed: (details?.breedName || pet?.breed) || null,
+      author_id: uid || null
+    }
+
+    const __created = await ns.createRecipe(header)
+    const created = __created?.id ? __created : (__created?.data || null)
+    if(!created?.id) throw new Error('createRecipe returned no id')
+
+    const items = Array.isArray(payload.ingredients)?payload.ingredients:[]
+    for(const it of items){ const iid=Number(it.ingredient_id); const q=Math.round(Number(it.quantity_g||0)); if(iid && q>0) await ns.addIngredientToRecipe(created.id, iid, q) }
+
+    await ns.fetchRecipes(uid)
+  }catch(e){
+    console.error('[AutoReco] failure:', e)
+    window?.alert?.('Auto recommend failed. Open DevTools console and Network tab for details.')
+  } finally {
+    isGenerating.value = false
+  }
+}
+
+
 watch(() => authStore.userId, (newUserId) => {
     if (newUserId) {
         petStore.fetchPets(newUserId);
@@ -31,6 +220,10 @@ watch(() => authStore.userId, (newUserId) => {
     }
 }, { immediate: true });
 
+// const showShoppingList = ref(false);
+// const openShoppingList = () => {
+//     showShoppingList.value = true;
+// }
 
 // display pet modal
 const selectedPetData = ref(null);
@@ -101,6 +294,7 @@ onMounted(async () => {
 
         console.log("Fetched shopping list:", shoppingList.value);
         console.log("Recipes: ", recipes.value);
+        //await userStore.addMultipleToShoppingList();
     } catch (err) {
         console.error("Error fetching shopping list:", err);
     }
@@ -206,6 +400,11 @@ onMounted(async () => {
                                     @checked="handleChecked"/>
                             </div>
                         </div>
+                        <!-- <div class="text-end px-1 py-1">
+                            <Button label="+ Edit" color="primary" class="button-edit-list fw-bold bodyFont"
+                                @click="openShoppingList">
+                            </Button>
+                        </div> -->
                     </div>
                 </div>
             </div>
@@ -224,13 +423,99 @@ onMounted(async () => {
                                     <div class="btn-txt">New Plan</div>
                                 </button>
                             </router-link>
-                            <button class="button-recommend bodyFont shadow-sm">
-                                Auto Recommend
-                            </button>
+                            <div class="auto-reco-wrap" @keydown.escape="closeAutoMenu">
+  <button class="button-recommend bodyFont shadow-sm" :disabled="isGenerating" @click="openAutoModal">
+    <span v-if="!isGenerating">Auto Recommend</span>
+    <span v-else>Generating…</span>
+  </button>
+</div>
                         </div>
                     </div>
 
-                    <!-- Meal Plan Cards Section -->
+                    
+<!-- Auto Recommend Modal -->
+<transition name="fade">
+  <div v-if="showAutoModal" class="peddit-modal-backdrop" @click="closeAutoModal">
+    <div class="peddit-modal" @click.stop>
+      <div class="modal-header d-flex justify-content-between align-items-center">
+        <h5 class="m-0">Auto‑Recommend Meal</h5>
+        <button class="btn-close" aria-label="Close" @click="closeAutoModal">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Use existing pet</label>
+          <select class="form-select" v-model="form.petId" @change="onSelectPet">
+            <option :value="null">— None —</option>
+            <option v-for="p in petOptions" :key="p.id" :value="p.id">
+              {{ p.name || ('Pet #' + p.id) }} — {{ p.kind }} {{ p.breed ? '• ' + p.breed : '' }}
+            </option>
+          </select>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Species</label>
+            <select class="form-select" v-model="form.kind" @change="onKindChange">
+              <option value="dog">Dog</option>
+              <option value="cat">Cat</option>
+            </select>
+          </div>
+          
+          <div class="col-md-8">
+            <label class="form-label">Breed</label>
+            <div class="breed-combobox" ref="breedMenuRef">
+              <input class="form-control" v-model="form.breedName" placeholder="Type to search…" 
+                     @focus="openBreedMenu" @input="openBreedMenu">
+              <ul v-if="breedMenuOpen" class="breed-menu">
+                <li v-for="b in filteredBreedOptions" :key="b.id || b.name">
+                  <button type="button" class="breed-item" @click="selectBreedName(b.name)">{{ b.name }}</button>
+                </li>
+                <li v-if="filteredBreedOptions.length === 0" class="px-2 py-1 text-muted small">No matches</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-md-4">
+
+            <label class="form-label">Age (years)</label>
+            <input type="number" min="0" step="0.1" class="form-control" v-model.number="form.ageYears">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Gender</label>
+            <select class="form-select" v-model="form.gender">
+              <option value="">—</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="neutered">Neutered</option>
+              <option value="spayed">Spayed</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Weight (kg)</label>
+            <input type="number" min="0" step="0.1" class="form-control" v-model.number="form.weightKg">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Known Allergies</label>
+            <input type="text" class="form-control" v-model="form.allergies" placeholder="e.g., chicken, wheat, soy">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Extra context for the meal</label>
+            <textarea rows="3" class="form-control" v-model="form.extraNotes" placeholder="Health conditions, preferences, feeding schedule, etc."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <div class="text-muted small">The generator will avoid allergens and tailor to the profile stage.</div>
+        <div>
+          <button class="btn btn-outline-secondary me-2" @click="closeAutoModal">Cancel</button>
+          <button class="btn btn-primary" :disabled="isGenerating" @click="submitAutoModal">
+            <span v-if="!isGenerating">Generate</span>
+            <span v-else>Generating…</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</transition>
+<!-- Meal Plan Cards Section -->
                     <div class="meal-plan-cards container-fluid px-0">
                         <!-- Loading State -->
                         <div v-if="nutritionStore?.loading" class="loading-container">
@@ -621,4 +906,29 @@ onMounted(async () => {
         text-align: center;
     }
 }
+
+/* === Auto Recommend pop menu === */
+.auto-reco-wrap{ position:relative; display:inline-block; }
+.auto-reco-menu{ position:absolute; right:0; margin-top:6px; width:160px; background:#fff; border-radius:12px; box-shadow:0 12px 24px rgba(0,0,0,.16); padding:8px; z-index:50; }
+.auto-reco-item{ width:100%; text-align:left; border:0; background:transparent; padding:10px 12px; border-radius:10px; cursor:pointer; }
+.auto-reco-item:hover{ background:rgba(0,0,0,.06); }
+.fade-enter-active,.fade-leave-active{ transition:opacity .12s ease; }
+.fade-enter-from,.fade-leave-to{ opacity:0; }
+
+
+/* === Peddit modal === */
+.peddit-modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:1000; }
+.peddit-modal{ width:min(840px, 92vw); background:#fff; border-radius:16px; box-shadow:0 24px 56px rgba(0,0,0,.25); overflow:hidden; }
+.peddit-modal .modal-header{ padding:14px 16px; border-bottom:1px solid rgba(0,0,0,.08); }
+.peddit-modal .modal-body{ padding:16px; }
+.peddit-modal .modal-footer{ padding:12px 16px; border-top:1px solid rgba(0,0,0,.08); }
+.btn-close{ border:0; background:transparent; width:32px; height:32px; font-size:20px; line-height:1; }
+
+/* Breed combobox */
+.breed-combobox{ position:relative; }
+.breed-menu{ position:absolute; left:0; right:0; top: calc(100% + 4px);
+  max-height: 240px; overflow:auto; background:#fff; border:1px solid rgba(0,0,0,.12);
+  border-radius:10px; padding:4px; box-shadow:0 12px 24px rgba(0,0,0,.16); z-index:1100; list-style:none; margin:0; }
+.breed-item{ display:block; width:100%; text-align:left; padding:8px 10px; border:0; background:transparent; cursor:pointer; border-radius:8px; }
+.breed-item:hover{ background:rgba(0,0,0,.06); }
 </style>
