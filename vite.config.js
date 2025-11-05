@@ -33,6 +33,7 @@ export default defineConfig(({ mode }) => {
       vue(),
       vueDevTools(), // same as before
     ],
+    base: '/Peddit/',
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)), // same as before

@@ -3,7 +3,7 @@ import AddIngredientModal from '@/components/PetViewComponents/AddIngredientModa
 import IngredientCard from '@/components/PetViewComponents/IngredientCard.vue';
 import { ref, onMounted, watch, computed } from 'vue';
 import searchBar from '@/components/atoms/searchBar.vue';
-import Button from '@/components/atoms/Button.vue';
+import button from '@/components/atoms/button.vue';
 import NutritionalOutputCard from '@/components/molecules/NutritionalOutputCard.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -191,7 +191,7 @@ const selectPetKind = async (kind) => {
   const result = await nutritionStore.getNutritionProfile(
     kind,
     //set adult as default
-    'adult_maintenance'
+    'adult'
   );
 
   if (result.success) {
@@ -289,10 +289,10 @@ onMounted(async () => {
 
             <!-- Form Actions -->
             <div class="form-actions d-flex justify-content-center mt-3">
-              <Button class="bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm" label="Reset">
-              </Button>
-              <Button class="bodyFont d-inline mx-2" label="Create Meal Plan" type="submit">
-              </Button>
+              <button class="bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm" label="Reset">
+              </button>
+              <button class="bodyFont d-inline mx-2" label="Create Meal Plan" type="submit">
+              </button>
             </div>
           </div>
         </div>
