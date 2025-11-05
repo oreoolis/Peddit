@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 
 const props = defineProps({
     link: {
@@ -38,8 +39,11 @@ const props = defineProps({
     }
 })
 
+const router = useRouter();
+
 const redir = (postId) => {
-    location.href = "/viewpost/" + props.link;
+    //location.href = "/viewpost/" + props.link;
+    router.push({ path: '/viewpost/' + props.link});
 };
 
 // Parse and format created_at
