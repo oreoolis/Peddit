@@ -191,7 +191,7 @@ const selectPetKind = async (kind) => {
   const result = await nutritionStore.getNutritionProfile(
     kind,
     //set adult as default
-    'adult_maintenance'
+    'adult'
   );
 
   if (result.success) {

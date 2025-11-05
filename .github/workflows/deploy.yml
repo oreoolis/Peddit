@@ -1,0 +1,48 @@
+name: Peddit Deployment
+
+on:
+  push:
+    branches:
+      - feature/dwayne-petcreation
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Build with environment variables
+        env:
+          VITE_SUPABASE_URL= ${{secrets.VITE_SUPABASE_URL}}
+          VITE_SUPABASE_PUBLISHABLE_KEY= ${{secrets.VITE_SUPABASE_PUBLISHABLE_KEY}}
+          VITE_GOOGLE_MAPS_API_KEY= ${{secrets.VITE_GOOGLE_MAPS_API_KEY}}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET= ${{secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET}}
+          USDA_FOOD_CENTRAL= ${{secrets.USDA_FOOD_CENTRAL}}
+          OPENROUTER_API_KEY= ${{secrets.OPENROUTER_API_KEY}} 
+
+          VITE_CHATBOT_ENABLED= ${{secrets.VITE_CHATBOT_ENABLED}}
+          VITE_CHAT_PROXY_URL= ${{secrets.VITE_CHAT_PROXY_URL}}
+
+          VITE_CHAT_MODEL= ${{secrets.VITE_CHAT_MODEL}}
+          VITE_CHAT_SIMPLE_MODEL= ${{secrets.VITE_CHAT_SIMPLE_MODEL}}
+          VITE_CHAT_THINKING_MODEL= ${{secrets.VITE_CHAT_THINKING_MODEL}}
+        run: npm run build
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: 'dist'
+      
+      - name: Peddit Deployment
+        id: deployment
+        uses: actions/deploy-pages@v2
