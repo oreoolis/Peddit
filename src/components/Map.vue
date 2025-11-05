@@ -196,19 +196,6 @@
         :label="place.opening_hours.open_now ? '🟢 Open Now' : '🔴 Closed'"
       />
       
-      <!-- Favorite Button -->
-      <Button
-      class="w-100 favorite-button"
-      :class="isFavorite(place.place_id) ? 'btn-warning favorited' : 'btn-outline-warning'"
-      @click="toggleFavorite(place)"
-    >
-      <span v-if="isFavorite(place.place_id)">
-        <span class="heart-icon">❤️</span> Remove from Favorites
-      </span>
-      <span v-else>
-        <span class="heart-icon">❤️</span> Add to Favorites
-      </span>
-    </Button>
     </div>
   </div>
 </div>
@@ -234,7 +221,6 @@ const allPlaces = ref([])
 const showMode = ref('all')
 const sortMode = ref('rating') // 'rating', 'distance', or 'open'
 const resultsLimit = ref(10) // Number of results to show
-const favorites = ref([]) // Array of favorite place IDs
 
 const filteredPlaces = computed(() => {
   let sorted = [...allPlaces.value]
@@ -279,12 +265,6 @@ let markers = []
 let currentLocation = { lat: 1.3521, lng: 103.8198 }
 let markerIcons = {}
 
-onMounted(() => {
-  // Load favorites from localStorage
-  const savedFavorites = localStorage.getItem('petStoreFavorites')
-  if (savedFavorites) {
-    favorites.value = JSON.parse(savedFavorites)
-  }
 
   initializeCategoriesFromQuery()
 
@@ -317,11 +297,10 @@ onMounted(() => {
         anchor: new google.maps.Point(20, 20)
       }
     }
-    
     initializeMap()
     getCurrentLocation()
   }
-})
+
 function initializeCategoriesFromQuery() {
   const type = route.query.type
   
@@ -564,11 +543,6 @@ function getCategoryLabel(place) {
   return ''
 }
 
-function toggleCategory(category) {
-  selectedCategories.value[category] = !selectedCategories.value[category]
-  searchPlaces()
-}
-
 function getSelectedCategoriesText() {
   const selected = []
   if (selectedCategories.value.petStores) selected.push('pet stores')
@@ -613,29 +587,6 @@ function getTodayHours(weekdayText) {
     return todayHours.replace(todayName + ': ', '')
   }
   return 'Hours not available'
-}
-
-function isFavorite(placeId) {
-  return favorites.value.includes(placeId)
-}
-
-function toggleFavorite(place) {
-  const placeId = place.place_id
-  const index = favorites.value.indexOf(placeId)
-  
-  if (index > -1) {
-    // Remove from favorites
-    favorites.value.splice(index, 1)
-  } else {
-    // Add to favorites
-    favorites.value.push(placeId)
-  }
-  
-  // Save to localStorage
-  localStorage.setItem('petStoreFavorites', JSON.stringify(favorites.value))
-  
-  // TODO: Later you can also save to backend/user profile
-
 }
 
 // Watch for changes in filtered places and update markers
@@ -840,19 +791,6 @@ watch(filteredPlaces, () => {
   .filter-section {
     flex: 1;
   }
-}
-
-.favorite-button {
-  color: white !important;
-}
-
-.favorite-button .heart-icon {
-  filter: hue-rotate(0deg) brightness(1.2);
-}
-
-/* Keep text white even on hover */
-.favorite-button:hover {
-  color: white !important;
 }
 
 </style>
