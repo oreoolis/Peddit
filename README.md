@@ -71,6 +71,17 @@ Peddit is a full-stack web app for pet owners to:
 - Compact summary cards for a pet's key stats and recent activity.
 ![](src/assets/readmepics/pet%20summary.jpg)
 
+### Auto‑Generate Meal Plans
+- Generate meal plans automatically based on selected inputs and constraints.
+![](src/assets/readmepics/Auto%20Generate%20Meal%20GIF.gif)
+
+### Nearby Pet Shops & Vet Clinics
+- Explore nearby places with filters, sorting (top rated/nearest/open now), and radius controls.
+![](src/assets/readmepics/nearby%20vet%20and%20pet%20store%20map%20search.jpg)
+![](src/assets/readmepics/nearby%20vet%20and%20pet%20store%20map%20search%202.jpg)
+![](src/assets/readmepics/nearby%20vet%20and%20pet%20store%20map%20search%203.jpg)
+![](src/assets/readmepics/nearby%20vet%20and%20pet%20store%20map%20search%20full.jpg)
+
 ## Architecture
 ```mermaid
 flowchart LR
