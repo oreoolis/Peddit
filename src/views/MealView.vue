@@ -100,13 +100,12 @@ onMounted(async () => {
               <!-- LEFT: feature panel -->
               <div class="feature-panel p-5 mb-3  text-center text-md-start">
                 <StatCard 
-                :label="f.recipe_name ?? ''" 
+                :label="truncateText(f.recipe_name ?? '', 40)" 
                 value="" 
                 :unit="truncateText(f?.notes, 40)" 
                 size="sm" highlight />
                 <div class="mt-3">
                   <InfoDetail label="Pet Type and Breed" :value="(f.pet_kind || '') + (f.pet_breed ? ' - ' + f.pet_breed : '')"/>
-                  <InfoDetail label="Likes" :value="f.likes ?? 0"/>
                 </div>
                 <p class="text-muted mt-2 fs-5">Created by @{{ f.profiles.display_name }}
                     <base-avatar
@@ -121,7 +120,7 @@ onMounted(async () => {
               <div class="carousel-card d-flex" style="max-width:420px;">
                 <MealPlanCard 
                 :editable="false" 
-                :name="f.recipe_name"
+                :name="truncateText(f.recipe_name ?? '', 40)"
                 :rec_id="f.id" 
                 :desc="truncateText(f?.description, 100)" 
                 :petKind="f.pet_kind" 

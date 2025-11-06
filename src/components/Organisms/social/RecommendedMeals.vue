@@ -41,7 +41,13 @@ const truncateText = (v, max = 500) => {
        <div class=" py-4 row recommend-grid row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 d-flex justify-content-center">
          <div v-for="r in normalizedPlans" :key="r?.id" class=" col">
            <div class="card-wrapper w-100 justify-content-center">
-             <MealPlanCard :name="r?.name" :rec_id="r?.id" :desc="truncateText(r?.desc, 100)" :petKind="r?.petKind" class="w-100" :editable="false" @open-meal-info="$emit('open-meal-info', $event)"/>
+             <MealPlanCard 
+             :name="truncateText(r?.name, 40)" 
+             :rec_id="r?.id" 
+             :desc="truncateText(r?.desc, 100)" 
+             :petKind="r?.petKind" class="w-100" 
+             :editable="false" 
+             @open-meal-info="$emit('open-meal-info', $event)"/>
            </div>
          </div>
        </div>

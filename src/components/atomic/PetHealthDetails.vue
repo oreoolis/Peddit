@@ -93,7 +93,7 @@ const handleFindVet = () => {
             :value="pet.allergies || 'None recorded'"
           />
         </div>
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-6 mb-3">
           <InfoDetail
             label="Last Updated"
             :value="formattedUpdatedAt"
