@@ -14,6 +14,8 @@ import Button from '@/components/atoms/button.vue';
 import { useToastStore } from '@/stores/toastStore';
 import dogImage from '@/assets/Pixel Art/dog (1).png';
 import catImage from '@/assets/Pixel Art/cat (5).png';
+import ToastStatus from '@/components/molecules/ToastStatus.vue';
+
 
 const petStore = usePetStore();
 const authStore = useAuthStore();
@@ -80,15 +82,14 @@ const handleSubmit = async () => {
         return
     }
 
-    const result = await petStore.updatePet(route.query.id, { ...form.value, photo_url: null })
+    const result = await petStore.updatePet(route.query.id, { ...form.value, photo_url: currentPet.photo_url })
 
     if (result.success) {
 
-        // If image was selected, upload it
         if (imageFile.value) {
-            const imageResult = await petStore.uploadPetImage(authStore.userId, route.query.id, imageFile.value);
-            if (!imageResult.success) {
-                console.error('Failed to upload image:', imageResult.error);
+            const newImageResult = await petStore.uploadPetImage(authStore.userId, route.query.id, imageFile.value);
+            if (!newImageResult.success) {
+                console.error('Failed to upload image:', newImageResult.error);
             }
         }
 
@@ -103,7 +104,10 @@ const handleSubmit = async () => {
         setTimeout(() => {
             showSuccess.value = false
         }, 3000)
-    }
+    } else if (result.error.code === '22003') {
+    toastStore.showToast("Error creating pet!", 5000);
+    showSuccess.value = false;
+  }
 }
 
 const resetForm = () => {
@@ -141,6 +145,7 @@ onMounted(async () => {
 
 <template>
     <div class="container-fluid">
+        <ToastStatus :showOpSuccess="toastStore.showOpSuccess" :message="toastStore.message" />
         <form @submit.prevent="handleSubmit" class="pet-form">
             <div class="pet-selector mt-4 mb-5">
                 <div class="row d-flex justify-content-evenly">
@@ -154,7 +159,8 @@ onMounted(async () => {
                             backgroundImage: `url('${dogImage}')`,
                             backgroundPosition: 'center',
                             backgroundSize: 'cover'
-                        }" :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
+                        }" :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }"
+                            id="dog-breed-card">
                             <p class="pet-title brandFont text-light display-1">Dog</p>
                         </div>
 
@@ -164,7 +170,8 @@ onMounted(async () => {
                             backgroundImage: `url('${catImage}')`,
                             backgroundPosition: 'center',
                             backgroundSize: 'cover'
-                        }" :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
+                        }" :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }"
+                            id="cat-breed-card">
                             <p class="pet-title brandFont text-light display-1">Cat</p>
                         </div>
                     </div>

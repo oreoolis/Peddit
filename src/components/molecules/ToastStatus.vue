@@ -17,9 +17,10 @@ const toastElement = ref('');
 
 onMounted(() => {
     if (props.showOpSuccess && toastElement.value){
-        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement.value, {autohide: true, delay: 5000});
+        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement.value, {autohide: true, delay: 3000});
         toastBootstrap.show()
     }
+        
 })
 
 </script>

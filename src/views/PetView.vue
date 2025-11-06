@@ -64,12 +64,6 @@ const breedOptions = computed(()=> {
 })
 const breedMenuOpen = ref(false)
 const breedMenuRef = ref(null)
-// const filteredBreedOptions = computed(() => {
-//   const q = (form.breedName || '').toLowerCase().trim()
-//   const list = Array.isArray(breedOptions.value) ? breedOptions.value : []
-//   if (!q) return list.slice(0, 12)
-//   return list.filter(b => String(b.name || '').toLowerCase().includes(q)).slice(0, 20)
-// })
 
 
 const petKind = ref('cat'); // default value
@@ -246,10 +240,6 @@ watch(() => authStore.userId, (newUserId) => {
     }
 }, { immediate: true });
 
-// const showShoppingList = ref(false);
-// const openShoppingList = () => {
-//     showShoppingList.value = true;
-// }
 
 // display pet modal
 const selectedPetData = ref(null);
@@ -320,7 +310,6 @@ onMounted(async () => {
 
         console.log("Fetched shopping list:", shoppingList.value);
         console.log("Recipes: ", recipes.value);
-        //await userStore.addMultipleToShoppingList();
     } catch (err) {
         console.error("Error fetching shopping list:", err);
     }
