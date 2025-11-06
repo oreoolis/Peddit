@@ -13,6 +13,13 @@ Peddit is a full-stack web app for pet owners to:
 - Find nearby pet stores and clinics with Google Maps
 - Get AI assistance via an integrated chatbot
 
+## Contributors
+- [Bernard Chua Kim Swee](https://github.com/Bernardcks) — Supabase, Authentication, Profiles and Pet Health
+- [Dwayne Arnold Aniban Otero](https://github.com/oreoolis) — Pet, Recipe, Shopping List Business Logic and Live Deployment
+- [Jereme Tan Jing Min](https://github.com/jerememetan) — UI Designer, Social Media Business Logic
+- [Than Wei Lin](https://github.com/than-wl) — AI Chatbot, AI Wrapper Implementation
+- [Nicholas Xie](https://github.com/RayleighCN) — Pet Store Location Recommendation and Landing Page
+
 ## Key Features
 - Authentication: Email Magic Link + Google OAuth (Supabase)
 - Social: Posts with media, votes, profiles, public profile pages
@@ -125,10 +132,3 @@ Security note: Never commit real secrets. Rotate any accidentally committed keys
 - Public: `/`, `/login` (hidden when authed), `/social`, `/meal`, `/chatbot`, `/map`, `/profile/:username`, `/viewpost/:postId`, `/view-recipe-post/:postId`
 - Private: `/home`, `/health`, `/profile`, `/pet`, `/create-pet`, `/add-meal-plan`, `/edit-pet`, `/edit-meal`
 - Guard: Supabase session validation via `src/stores/authStore.js`
-
-## Contributors
-- [Bernard Chua Kim Swee](https://github.com/Bernardcks) — Supabase, Authentication, Profiles and Pet Health
-- [Dwayne Arnold Aniban Otero](https://github.com/oreoolis) — Pet, Recipe, Shopping List Business Logic and Live Deployment
-- [Jereme Tan Jing Min](https://github.com/jerememetan) — UI Designer, Social Media Business Logic
-- [Than Wei Lin](https://github.com/than-wl) — AI Chatbot, AI Wrapper Implementation
-- [Nicholas Xie](https://github.com/RayleighCN) — Pet Store Location Recommendation and Landing Page
