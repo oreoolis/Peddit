@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "predeploy": "npm run build && node -e \"require('fs').copyFileSync('dist/index.html','dist/404.html')\"",
-    "deploy": "cd dist && cp index.html 404.html && cd .. && gh-pages -d dist",
+    "deploy": "cd dist && cp index.html 404.html",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -20,6 +20,7 @@
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
     "dompurify": "^3.2.7",
+    "gh-pages": "^6.3.0",
     "markdown-it": "^14.1.0",
     "motion-v": "^1.7.4",
     "pinia": "^3.0.3",
