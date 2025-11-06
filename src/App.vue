@@ -17,6 +17,9 @@ import { useUserStore } from './stores/userStore';
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const route = useRoute();
+// import decorative assets so Vite rewrites URLs correctly for different deploy bases
+import logoPaw from '@/assets/logo-paw.png';
+import mainLogo from '@/assets/Main_Logo.png';
 
 onMounted(async () => {
   await authStore.initAuth();
@@ -44,7 +47,7 @@ watch(() => authStore.userId, async (userId) => {
 <template>
   <!-- give the root an app-bg class so styles are scoped to the app container -->
   <NavBar />
-  <div class="app-bg min-vh-100 d-flex flex-column ">
+  <div class="app-bg min-vh-100 d-flex flex-column " :style="{ '--logo-paw': `url(${logoPaw}) center/contain no-repeat`, '--main-logo': `url(${mainLogo})` }">
     <div class="router-view flex-grow-1 pb-4 pb-sm-5 mb-5">
       <AnimatePresence mode="wait">
         <RouterView v-slot="{ Component }" :key="route.path">
@@ -83,7 +86,7 @@ watch(() => authStore.userId, async (userId) => {
   height: auto;
   aspect-ratio: 1;
   transform: translateX(-50%);
-  background: url('/src/assets/logo-paw.png') center/contain no-repeat;
+  background: var(--logo-paw);
   opacity: 0.07;
   filter: saturate(0.9) blur(0.6px);
   animation: pulseScale 8s ease-in-out infinite;
@@ -96,7 +99,7 @@ watch(() => authStore.userId, async (userId) => {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url('/src/assets/Main_Logo.png');
+  background-image: var(--main-logo);
   background-repeat: repeat;
   background-size: 220px;
   opacity: 0.06;
