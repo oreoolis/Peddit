@@ -2,30 +2,30 @@
 
 Your pet social network and nutrition dashboard.
 
-[Live App](https://peddit-coral.vercel.app/) • Vercel CD • Vue 3 + Vite + Pinia • Supabase
+[Live App](https://peddit-coral.vercel.app/) | Vercel CD | Vue 3 + Vite + Pinia | Supabase
 
 ![Vue](https://img.shields.io/badge/Vue-3.x-42b883?logo=vue.js&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?logo=vite&logoColor=white) ![Pinia](https://img.shields.io/badge/Pinia-3.x-f7d336) ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.x-7952B3?logo=bootstrap&logoColor=white) ![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20DB-3FCF8E?logo=supabase&logoColor=white) ![Vercel](https://img.shields.io/badge/Vercel-Edge%20Functions-000000?logo=vercel) ![Node](https://img.shields.io/badge/Node-%E2%89%A520-339933?logo=node.js&logoColor=white)
 
 Peddit is a full-stack web app for pet owners to:
-- Create pet profiles, track health, and analyze nutrition
+- Create pet profiles, track health, and analyse nutrition
 - Build and share recipes and meals
 - Post socially and interact with the community
-- Find nearby pet stores and clinics with Google Maps
+- Find nearby pet shops and clinics with Google Maps
 - Get AI assistance via an integrated chatbot
 
 ## Contributors
-- [Bernard Chua Kim Swee](https://github.com/Bernardcks) — Supabase, Authentication, Profiles and Pet Health
-- [Dwayne Arnold Aniban Otero](https://github.com/oreoolis) — Pet, Recipe, Shopping List Business Logic and Live Deployment
-- [Jereme Tan Jing Min](https://github.com/jerememetan) — UI Designer, Social Media Business Logic
-- [Than Wei Lin](https://github.com/than-wl) — AI Chatbot, AI Wrapper Implementation
-- [Nicholas Xie](https://github.com/RayleighCN) — Pet Store Location Recommendation and Landing Page
+- [Bernard Chua Kim Swee](https://github.com/Bernardcks) - Supabase, Authentication, Profiles and Pet Health
+- [Dwayne Arnold Aniban Otero](https://github.com/oreoolis) - Pet, Recipe, Shopping List Business Logic and Live Deployment
+- [Jereme Tan Jing Min](https://github.com/jerememetan) - UI Designer, Social features
+- [Than Wei Lin](https://github.com/than-wl) - AI Chatbot, AI Wrapper Implementation
+- [Nicholas Xie](https://github.com/RayleighCN) - Pet Store Location Recommendation and Landing Page
 
 ## Key Features
 - Authentication: Email Magic Link + Google OAuth (Supabase)
 - Social: Posts with media, votes, profiles, public profile pages
 - Pet Health: Dashboard, nutrient breakdowns, requirements, targets
 - Recipes & Meals: Creation, editing, shopping list helpers
-- Maps: Nearby pet stores and vet clinics with sorting/filters
+- Maps: Nearby pet shops and vet clinics with sorting/filters
 - AI Chatbot: OpenRouter proxy via Vercel Edge function, streaming replies
 
 ## Screenshots
@@ -35,10 +35,6 @@ Peddit is a full-stack web app for pet owners to:
 - Social: `src/assets/social.png`
 - Maps: `src/assets/location.png`
 - Chatbot: `src/assets/chatbot.png`
-
-Example embeds:
-
-![](src/assets/dashboard.png)
 
 ## Feature Highlights
 
@@ -56,6 +52,33 @@ Example embeds:
 ![](src/assets/readmepics/pet%20health%20dashboard%20closed.png)
 ![](src/assets/readmepics/Pet%20health%20dashboard.png)
 
+### Pet Creation
+- Create pets with breeds sourced from external APIs; quick overview cards.
+![](src/assets/readmepics/Pet%20creation.jpg)
+![](src/assets/readmepics/pet%20creation%202.jpg)
+
+### Recipe Creation
+- Build recipes and view nutrition summaries before saving or sharing.
+![](src/assets/readmepics/recipe%20creation.jpg)
+![](src/assets/readmepics/recipe%20creation%202.jpg)
+![](src/assets/readmepics/recipe%20creation%20nutrition%20summary.jpg)
+
+### Social
+- Create posts, search, comment, and share recipes to the feed.
+![](src/assets/readmepics/social%20post.jpg)
+![](src/assets/readmepics/social%20comments.jpg)
+![](src/assets/readmepics/social%20search.jpg)
+![](src/assets/readmepics/Share%20recipes.jpg)
+![](src/assets/readmepics/recipe%20post%20share.jpg)
+
+### Shopping List
+- Auto-generate shopping lists from selected recipes and meals.
+![](src/assets/readmepics/shopping%20list.jpg)
+
+### Pet Summary
+- Compact summary cards for a pet's key stats and recent activity.
+![](src/assets/readmepics/pet%20summary.jpg)
+
 ## Architecture
 ```mermaid
 flowchart LR
@@ -70,13 +93,13 @@ flowchart LR
   %% External integrations
   A --> C[Vercel Edge /api/chat]
   C --> D[OpenRouter API]
-  D --> E[(Model Providers: OpenAI • Llama • Others)]
+  D --> E[(Model Providers: OpenAI, Llama, Others)]
   A --> F[Google Maps JS API]
-  A --> G[External APIs: Dog API • TheCatAPI]
+  A --> G[External APIs: Dog API, TheCatAPI]
 ```
 
 ## Tech Stack
-- Frontend: Vue 3, Pinia, VueUse, Bootstrap 5, UIVerse components, Motion‑V (Framer Motion for Vue)
+- Frontend: Vue 3, Pinia, VueUse, Bootstrap 5, UIVerse components, Motion-V (Framer Motion for Vue)
 - Backend: Supabase (Auth + Database)
 - Edge API: Vercel Edge Function proxy for OpenRouter (`api/chat.js`)
 - Build/Tooling: Vite, vite-plugin-vue-devtools, dotenv
@@ -99,21 +122,19 @@ flowchart LR
 
 ## Environment Variables
 Frontend (`.env.local`):
-- `VITE_SUPABASE_URL` — Supabase Project URL
-- `VITE_SUPABASE_PUBLISHABLE_KEY` — Supabase anon/publishable key
-- `VITE_GOOGLE_MAPS_API_KEY` — Google Maps JS API key
-- `VITE_CHATBOT_ENABLED` — `'true'` to show chatbot UI
-- `VITE_CHAT_PROXY_URL` — Chat proxy URL (e.g., `/api/chat`)
-- `VITE_CHAT_MODEL` — Default model (e.g., `openrouter/auto`)
-- `VITE_CHAT_SIMPLE_MODEL` — Simple/fast model
-- `VITE_CHAT_THINKING_MODEL` — Reasoning‑capable model
+- `VITE_SUPABASE_URL`: Supabase project URL
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: Supabase anon/publishable key
+- `VITE_GOOGLE_MAPS_API_KEY`: Google Maps JS API key
+- `VITE_CHATBOT_ENABLED`: `true` to show the chatbot UI
+- `VITE_CHAT_PROXY_URL`: Chat proxy URL (for example, `/api/chat`)
+- `VITE_CHAT_MODEL`: Default model (for example, `openrouter/auto`)
+- `VITE_CHAT_SIMPLE_MODEL`: Simple/fast model
+- `VITE_CHAT_THINKING_MODEL`: Reasoning-capable model
 
-Edge/Server (Vercel Project Settings → Environment Variables):
-- `OPENROUTER_API_KEY` — OpenRouter API key (used by `api/chat.js`)
+Edge/Server (Vercel project settings → Environment Variables):
+- `OPENROUTER_API_KEY`: OpenRouter API key (used by `api/chat.js`)
 
-Example: see `.env.example` and populate missing keys for local dev.
-
-Security note: Never commit real secrets. Rotate any accidentally committed keys.
+Security note: never commit real secrets. Rotate any accidentally committed keys.
 
 ## Local Development
 - Node: `>=20.19` (see `package.json`)
@@ -123,10 +144,10 @@ Security note: Never commit real secrets. Rotate any accidentally committed keys
 - Preview: `npm run preview`
 
 ## Scripts
-- `dev` — Vite dev server
-- `build` — Production build to `dist/`
-- `preview` — Preview build
-- `predeploy`/`deploy` — Static deploy helpers (GitHub Pages fallback)
+- `dev` - Vite dev server
+- `build` - Production build to `dist/`
+- `preview` - Preview build
+- `predeploy`/`deploy` - Static deploy helpers (GitHub Pages fallback)
 
 ## Deployment
 - Vercel
@@ -136,7 +157,7 @@ Security note: Never commit real secrets. Rotate any accidentally committed keys
   - Add `OPENROUTER_API_KEY` in Project Env for chat proxy
 - GitHub Pages (optional)
   - Workflow present: `.github/workflows/deploy.yml`
-  - Uploads `dist` as Pages artifact after `npm run build`
+  - Uploads `dist` as Pages artefact after `npm run build`
 
 ## Edge Chat Proxy
 - `api/chat.js` exposes a CORS-enabled POST endpoint at `/api/chat`
@@ -145,6 +166,7 @@ Security note: Never commit real secrets. Rotate any accidentally committed keys
 - Frontend calls are defined in `src/lib/chatApi.js` (JSON and streaming modes)
 
 ## Routing & Guards
-- Public: `/`, `/login` (hidden when authed), `/social`, `/meal`, `/chatbot`, `/map`, `/profile/:username`, `/viewpost/:postId`, `/view-recipe-post/:postId`
+- Public: `/`, `/login` (hidden when authenticated), `/social`, `/meal`, `/chatbot`, `/map`, `/profile/:username`, `/viewpost/:postId`, `/view-recipe-post/:postId`
 - Private: `/home`, `/health`, `/profile`, `/pet`, `/create-pet`, `/add-meal-plan`, `/edit-pet`, `/edit-meal`
 - Guard: Supabase session validation via `src/stores/authStore.js`
+
