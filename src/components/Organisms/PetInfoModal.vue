@@ -6,6 +6,8 @@ import PetInfoCard from '../molecules/PetInfoCard.vue';
 import buttonTogglable from '../atoms/buttonTogglable.vue';
 import { usePetStore } from '@/stores/petStore';
 import { useRouter } from 'vue-router';
+import Logo from '@/assets/Main_Logo.png';
+
 
 const petStore = usePetStore();
 const router = useRouter();
@@ -125,7 +127,8 @@ const closeModal = () => {
                     <div class="row g-3 align-items-start">
                         <!-- Image (full width on small, left on md+) -->
                         <div class="col-12 col-md-8">
-                            <img :src="photo_url" class="img-fluid w-100 rounded-3 shadow" alt="...">
+                            <img v-if="photo_url" :src="photo_url" class="img-fluid w-100 rounded-3 shadow" alt="...">
+                            <img v-else :src="Logo" class="img-fluid w-100 rounded-3 shadow" alt="..."></img>
                         </div>
 
                         <!-- Pet info (stacked under image on small screens) -->
