@@ -13,11 +13,14 @@
             <p class="lead text-muted mb-4">
               Join the ultimate social platform for pet owners. Manage health, discover recipes, and connect with a community that cares.
             </p>
-            <button @click="navigateToAuth" class="btn btn-gradient btn-lg w-100 mb-4">
+            <button @click="navigateToAuth" class="btn btn-gradient btn-lg w-100 mb-3">
               Get Started Here!
               <svg width="20" height="20">
                 <!-- SVG icon -->
               </svg>
+            </button>
+            <button @click="navigateToMap" class="btn btn-outline-primary btn-lg w-100 mb-4">
+              📍 Find Pet Stores & Clinics Near Me
             </button>
             <div class="d-flex flex-row justify-content-center gap-5 pt-3">
               <div>
@@ -126,7 +129,8 @@
           <div 
             v-for="(feature, index) in features"
             :key="index"
-            class="col-md-6 col-lg-4 col-xl-3 mb-4"
+            class="col-sm-6 col-lg-4 mb-4"
+            style="max-width: 350px;"
           >
             <div class="card h-100 border-0 shadow-sm feature-card">
               <div class="card-body p-4">
@@ -144,8 +148,8 @@
     <section id="how-it-works" class="py-5">
       <div class="container-fluid px-4 px-lg-5">
         <div class="text-center mb-5">
-          <h2 class="display-4 fw-bold mb-3">Getting Started is Easy</h2>
-          <p class="lead text-muted">Four simple steps to better pet care</p>
+          <h2 class="display-4 fw-bold mb-3">Using Peddit is Easy</h2>
+          <p class="lead text-muted">Just follow these 4 steps to take care of your pets.</p>
         </div>
 
         <div class="row g-4 justify-content-center">
@@ -163,7 +167,7 @@
       <div class="container-fluid px-4 px-lg-5">
         <div class="text-center mb-5">
           <h2 class="display-4 fw-bold mb-3">See Peddit in Action</h2>
-          <p class="lead text-muted">Real features, real results for your pets</p>
+          <p class="lead text-muted">Real features, real results for your pets!</p>
         </div>
 
         <div class="carousel-container position-relative">
@@ -229,16 +233,19 @@
       <div class="container-fluid px-4 px-lg-5">
         <div class="text-center mb-5">
           <h2 class="display-4 fw-bold mb-3">Join Our Growing Community</h2>
-          <p class="lead">Thousands of pet parents sharing their journey</p>
+          <p class="lead">Thousands of pet parents sharing their journey with Peddit</p>
         </div>
 
         <!-- Community Carousel -->
-        <div class="carousel-container position-relative mb-5">
+        <div 
+          class="carousel-container position-relative mb-5"
+          @mouseenter="pauseAutoScroll"
+          @mouseleave="resumeAutoScroll"
+        >
           <!-- Carousel Navigation -->
           <button 
             @click="previousCommunity" 
             class="carousel-btn carousel-btn-left carousel-btn-community"
-            :disabled="communityIndex === 0"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
               <polyline points="15 18 9 12 15 6"></polyline>
@@ -253,10 +260,22 @@
                   <div class="col-10 col-sm-8 col-md-6 col-lg-5 col-xl-4">
                     <div class="pixel-art-card">
                       <img 
-                        :src="pixelArts[communityIndex]" 
-                        :alt="`Community member ${communityIndex + 1}`" 
+                        :src="PetList[communityIndex].image" 
+                        :alt="`${PetList[communityIndex].petName} - ${PetList[communityIndex].breed}`" 
                         class="img-fluid rounded-3"
                       >
+                      <div class="pet-caption mt-3 text-center">
+                        <h5 class="mb-2">{{ PetList[communityIndex].petName }}</h5>
+                        <p class="mb-1">
+                          <strong>Owner:</strong> {{ PetList[communityIndex].ownerName }}
+                        </p>
+                        <p class="mb-1">
+                          <strong>Breed:</strong> {{ PetList[communityIndex].breed }}
+                        </p>
+                        <p class="mb-0">
+                          <strong>Age:</strong> {{ PetList[communityIndex].age }}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -267,7 +286,6 @@
           <button 
             @click="nextCommunity" 
             class="carousel-btn carousel-btn-right carousel-btn-community"
-            :disabled="communityIndex === pixelArts.length - 1"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
               <polyline points="9 18 15 12 9 6"></polyline>
@@ -277,16 +295,16 @@
           <!-- Carousel Indicators -->
           <div class="carousel-indicators">
             <button
-              v-for="(art, index) in pixelArts"
+              v-for="(art, index) in PetList"
               :key="index"
-              @click="communityIndex = index"
+              @click="goToCommunitySlide(index)"
               :class="['indicator-dot', 'indicator-dot-white', { active: index === communityIndex }]"
             ></button>
           </div>
         </div>
 
         <div class="text-center">
-          <button @click="navigateToAuth" class="btn btn-light btn-lg px-5 py-3">Join the Community Today</button>
+          <button @click="navigateToAuth" class="btn btn-light btn-lg px-5 py-3">Join the Community Today!</button>
         </div>
       </div>
     </section>
@@ -309,6 +327,7 @@ export default {
       catRightPupilY: 100,
       screenshotIndex: 0,
       communityIndex: 0,
+      autoScrollInterval: null,
       features: [
         {
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>`,
@@ -395,15 +414,57 @@ export default {
           description: "Check your pets' daily nutrition targets in detail to ensure that they are happy and healthy."
         }
       ],
-      pixelArts: [
-        "https://i.postimg.cc/KY3fNdXF/cat-sushi.png",
-        "https://i.postimg.cc/y8H9VDzP/cat-chill.png",
-        "https://i.postimg.cc/CKbBx9KT/cat-coffee.png",
-        "https://i.postimg.cc/Y2Nn6Tz9/cat-sleep.png",
-        "https://i.postimg.cc/13Ywjxyq/cat-relax.png",
-        "https://i.postimg.cc/QxL1mVhJ/shiba-stars.png"
+      PetList: [
+        {
+          image: "../src/assets/toastie.jpg",
+          ownerName: "Bernard Lo",
+          petName: "Toastie",
+          breed: "Persian Cat",
+          age: "3 years old"
+        },
+        {
+          image: "../src/assets/butter.jpg",
+          ownerName: "Mok Heng Ngee",
+          petName: "Butter",
+          breed: "Ragdoll",
+          age: "2 years old"
+        },
+        {
+          image: "../src/assets/pitbull.jpg",
+          ownerName: "Lawrence Wong",
+          petName: "Bubbles",
+          breed: "Pitbull",
+          age: "5 years old"
+        },
+        {
+          image: "../src/assets/ruffles.jpg",
+          ownerName: "Kyong Jim Shim",
+          petName: "Demon Slayer",
+          breed: "Golden Retriever",
+          age: "4 years old"
+        },
+        {
+          image: "../src/assets/siamese.jpg",
+          ownerName: "Amala Ratna",
+          petName: "Doja",
+          breed: "Siamese Cat",
+          age: "1 year old"
+        },
+        {
+          image: "../src/assets/doge.jpg",
+          ownerName: "Atsuko Sato",
+          petName: "Kabosu (Doge)",
+          breed: "Shiba Inu",
+          age: "18 years old"
+        }
       ]
     }
+  },
+  mounted() {
+    this.startAutoScroll()
+  },
+  beforeUnmount() {
+    this.stopAutoScroll()
   },
   methods: {
     handleMouseMove(e) {
@@ -437,6 +498,9 @@ export default {
     navigateToAuth() {
       this.$router.push({ name: 'login' });
     },
+    navigateToMap() {
+      this.$router.push({ name: 'map' });
+    },
     nextScreenshot() {
       if (this.screenshotIndex < this.screenshots.length - 1) {
         this.screenshotIndex++
@@ -448,14 +512,33 @@ export default {
       }
     },
     nextCommunity() {
-      if (this.communityIndex < this.pixelArts.length - 1) {
-        this.communityIndex++
-      }
+      this.communityIndex = (this.communityIndex + 1) % this.PetList.length
     },
     previousCommunity() {
-      if (this.communityIndex > 0) {
-        this.communityIndex--
+      this.communityIndex = (this.communityIndex - 1 + this.PetList.length) % this.PetList.length
+    },
+    goToCommunitySlide(index) {
+      this.communityIndex = index
+      // Reset the timer when manually clicking
+      this.stopAutoScroll()
+      this.startAutoScroll()
+    },
+    startAutoScroll() {
+      this.autoScrollInterval = setInterval(() => {
+        this.nextCommunity()
+      }, 3000) // 3 seconds
+    },
+    stopAutoScroll() {
+      if (this.autoScrollInterval) {
+        clearInterval(this.autoScrollInterval)
+        this.autoScrollInterval = null
       }
+    },
+    pauseAutoScroll() {
+      this.stopAutoScroll()
+    },
+    resumeAutoScroll() {
+      this.startAutoScroll()
     }
   }
 }
@@ -749,6 +832,32 @@ section.community-section {
   transform: scale(1.05);
 }
 
+.pixel-art-card img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.pet-caption {
+  color: white;
+}
+
+.pet-caption h5 {
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.pet-caption p {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.pet-caption strong {
+  font-weight: 600;
+}
+
 .cta-content {
   max-width: 800px;
   margin: 0 auto;
@@ -784,6 +893,10 @@ section.community-section {
     width: 20px;
     height: 20px;
   }
+  
+  .pixel-art-card img {
+    height: 300px;
+  }
 }
 
 @media (max-width: 576px) {
@@ -794,6 +907,10 @@ section.community-section {
   .carousel-btn {
     width: 35px;
     height: 35px;
+  }
+  
+  .pixel-art-card img {
+    height: 250px;
   }
 }
 </style>
