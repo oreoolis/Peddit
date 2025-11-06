@@ -32,7 +32,7 @@ onMounted(async () => {
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow d-none d-lg-flex">
       <div class="container-fluid">
         <RouterLink  v-if="isAuthenticated" to="/home" class="navbar-brand fw-bold text-white pe-4">Peddit</RouterLink>
-        <RouterLink  v-else to="/about" class="navbar-brand fw-bold text-white pe-4">Peddit</RouterLink>
+        <RouterLink  v-else to="/" class="navbar-brand fw-bold text-white pe-4">Peddit</RouterLink>
         <div class="collapse navbar-collapse">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <!-- <li class="nav-item"><RouterLink class="nav-link" to="/about">About (TODO)</RouterLink></li> -->
