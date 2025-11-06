@@ -112,11 +112,11 @@ const openDeleteModal = () => {
                 <div class="container-fluid">
                     <h3 class="headingFont fw-bold">Recipe Description</h3>
                     <div class="recipe-description container bodyFont py-3">
-                        <p>{{ recipeInfo?.description }}</p>
+                        <p style="white-space: pre-wrap;">{{ recipeInfo?.description }}</p>
                     </div>
                     <h3 class="headingFont fw-bold">Notes</h3>
                     <div class="recipe-description container bodyFont py-3">
-                        <p>{{ recipeInfo?.notes }}</p>
+                        <p style="white-space: pre-wrap;"> {{ recipeInfo?.notes }}</p>
                     </div>
                     <h3 class="headingFont fw-bold">Ingredients</h3>
                     <div class="row d-flex justify-content-center g-2">
