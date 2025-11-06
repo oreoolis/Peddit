@@ -22,6 +22,11 @@ export const useAuthStore = defineStore('auth', () => {
     const userId = computed(() => user.value?.id ?? null);
     const userEmail = computed(() => user.value?.email ?? null);
 
+    const appBase =
+    (import.meta?.env?.BASE_URL) 
+    ? import.meta.env.BASE_URL
+    : (window.__APP_BASE__ || "/Peddit/"); // fallback 
+
     // Private: Auth state change subscription
     let authSubscription = null;
 
@@ -219,10 +224,10 @@ export const useAuthStore = defineStore('auth', () => {
         }
     };
 
-    const clearProfile = () => { 
-        profile.value = null; 
-        error.value = null; 
-    };
+    // const clearProfile = () => { 
+    //     profile.value = null; 
+    //     error.value = null; 
+    // };
 
     return {
         // State
@@ -242,7 +247,6 @@ export const useAuthStore = defineStore('auth', () => {
         signInWithEmail,
         signInWithOAuth,
         signOut,
-        clearProfile,
         cleanup
     };
 });

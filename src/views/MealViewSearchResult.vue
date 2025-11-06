@@ -76,6 +76,28 @@ function goToSearchResults(submittedValue) {
   // also trigger an immediate search so results populate fast
   if (term) recipePostQuery.value = term;
 }
+
+function aggregateNutritionFromRecipe(recipe) {
+  if (!recipe?.recipe_ingredients) return {};
+  const totals = {};
+  recipe.recipe_ingredients.forEach(ri => {
+    const qty = Number(ri.quantity_g || 0);
+    const factor = qty / 100; // nutrition values are per-100g
+    const nut = ri.food_ingredients?.nutrition || {};
+    Object.entries(nut).forEach(([key, info]) => {
+      if (!info) return;
+      const v = (Number(info.value) || 0) * factor;
+      const unit = info.unit || '';
+      if (!totals[key]) totals[key] = { value: 0, unit };
+      totals[key].value += v;
+    });
+  });
+  // round results
+  Object.keys(totals).forEach(k => {
+    totals[k].value = Math.round((totals[k].value + Number.EPSILON) * 100) / 100;
+  });
+  return totals; // shape: { fat: {unit:'g', value: 1.23}, iron: {unit:'mg', value: 0.7}, ... }
+}
 </script>
 
 <template>
@@ -107,7 +129,7 @@ function goToSearchResults(submittedValue) {
       :Animal_Type="post.recipes.pet_kind"
       :Animal_Breed="post.recipes.pet_breed"
       :Cost_Per_Week="post.recipes.price_per_week"
-      :Recipe_Nutrition_Stats="post.Recipe_Nutrition_Stats"
+      :Recipe_Nutrition_Stats="aggregateNutritionFromRecipe(post.recipes)"
     > 
     </RecipeSearch>
     <div v-if="loading" class="skeleton-list">

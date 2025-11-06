@@ -1,11 +1,14 @@
 <script setup>
 import { computed } from 'vue';
+import personImg from '@/assets/person.jpg';
+import goldenImg from '@/assets/golden.jpg';
+import persianImg from '@/assets/persian.jpg';
 
 const props = defineProps({
   data: { type: Array, default: () => [
-      { url: '/src/assets/person.jpg' },
-      { url: '/src/assets/golden.jpg' },
-      { url: '/src/assets/persian.jpg' }
+      { url: personImg },
+      { url: goldenImg },
+      { url: persianImg }
   ] },
   format: { type: String, default: 'facebook' } // reserved for future variants
 });

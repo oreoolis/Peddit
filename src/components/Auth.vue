@@ -70,7 +70,7 @@ const handleForgetPW = async () => {
                             <span class="hror position-absolute top-50 start-50 translate-middle px-2 text-muted">OR</span>
                         </div>
 
-                        <!-- TODO: implement OAuth -->
+                        <!-- implement OAuth -->
                         <button @click="handleOAuthLogin"
                             class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center">
                             <img src="https://www.google.com/favicon.ico" alt="Google" class="me-2"
@@ -79,7 +79,7 @@ const handleForgetPW = async () => {
                         </button>
 
                         <div class="text-center mt-3">
-                            <!-- TODO: implement forget password stuff if doing normal login or send email by username -->
+                            <!-- implement forget password stuff if doing normal login or send email by username -->
                             <a @click="handleForgetPW" class="text-decoration-none small">Forgot account?</a>
                         </div>
                     </div>

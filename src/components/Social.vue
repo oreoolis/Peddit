@@ -14,6 +14,7 @@ import { computed, onMounted, ref } from "vue"
 import CreatePostModal from "./Organisms/social/CreatePostModal.vue"
 import { useDebounce, useDebounceFn } from "@vueuse/core"
 import ShareRecipePostModal from "./Organisms/social/ShareRecipePostModal.vue"
+import personImg from '@/assets/person.jpg';
 
 const postStore = usePostStore();
 const { posts, query: postQuery, filteredPosts } = storeToRefs(postStore);
@@ -157,7 +158,7 @@ onMounted(async () => {
                 :link="post?.id ?? post?.link"
                 :title="post?.title"
                 :Name="post?.profiles?.display_name || post?.profile?.display_name || post?.author_name || 'Unknown'"
-                :Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
+                :Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || personImg"
                 :CommentCount="post?.comment_count"
                 :VoteScore="post?.vote_score"
                 :created_at="post?.created_at"

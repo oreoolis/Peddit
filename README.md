@@ -4,12 +4,22 @@ Peddit is a full-stack web application developed for IS216 Web Application Devel
 
 This project aims to provide a centralized solution for pet owners to track the health of their pets via personalized feeds and dashboards of their pet health. Users are also able to share recommended recipes with other users, as well as find nearby pet stores and veterinary clinics.
 
+## Key Features
+| Feature | Description |
+|:--|:--|
+| Register & Login | Seamless email login and Google Authentication | 
+| Social Features | Pet and meal creation, with the ability to share it with other users |
+| AI Chatbot & Wrapper | Built-in AI helper, specialized in assisting Pet-related information and meal recommendation |
+| Pet Health Dashboard | View detailed nutritional information of each individual pet |
+| Pet Store Locations (Google Maps Integration) | Find nearby pet amenities |
+
+
 ## Project Members & Contributions
-- [Bernard](https://github.com/Bernardcks): Supabase, Authentication and Pet Health
-- [Dwayne](https://github.com/oreoolis): Pet, Recipe and Shopping List Business Logic
-- [Jereme](https://github.com/jerememetan): UI Designer, Social Media Business Logic
-- [Wei Lin](https://github.com/than-wl): AI Chatbot, AI Wrapper Implementation
-- [Nicholas](https://github.com/RayleighCN): Pet Store Location Recommendation
+- [Bernard Chua Kim Swee:](https://github.com/Bernardcks) Supabase, Authentication and Pet Health
+- [Dwayne Arnold Aniban Otero:](https://github.com/oreoolis) Pet, Recipe and Shopping List Business Logic
+- [Jereme Tan Jing Min:](https://github.com/jerememetan) UI Designer, Social Media Business Logic
+- [Than Wei Lin:](https://github.com/than-wl) AI Chatbot, AI Wrapper Implementation
+- [Nicholas Xie:](https://github.com/RayleighCN) Pet Store Location Recommendation
 
 ## Technology Stack
 - Vue.JS
@@ -25,6 +35,17 @@ Ensure that you have the following installed before cloning and running the appl
 
 ```bash
 npm -v
+```
+
+## Predeploy to Live Commands
+
+```bash
+npm run predeploy
+
+npm run deploy
+
+npm run build
+
 ```
 
 ## Running the Project (localhost)

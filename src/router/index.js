@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 
 // meta tags requiresAuth for route protection
@@ -7,12 +7,12 @@ import HomeView from '../views/HomeView.vue';
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView,
-	  meta: { requiresAuth: true } 
-    },
+    // {
+    //   path: '/',
+    //   name: 'home',
+    //   component: HomeView,
+	  // meta: { requiresAuth: true } 
+    // },
     {
       path: '/home',
       name: 'home',
@@ -20,7 +20,7 @@ const router = createRouter({
 	  meta: { requiresAuth: true } 
     },
     {
-      path: '/about',
+      path: '/',
       name: 'about',
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
@@ -96,6 +96,7 @@ const router = createRouter({
       path: '/add-meal-plan',
       name: 'add-meal-plan',
       component: () => import('@/views/AddMealPlan.vue'),
+      meta: { requiresAuth: true }
     },
      {
       path: '/temp',
@@ -138,6 +139,13 @@ const router = createRouter({
     //   // which is lazy-loaded when the route is visited.
     //   component: () => import('../views/AboutView.vue'),
     // },
+    { 
+      // Catch-all route for any unmatched paths
+      path: '/:pathMatch(.*)*',
+      //redirect: '/home', // Redirect to the home page if you wanna
+      // Attach 404 Not Found component
+      component: () => import('@/views/NotFoundPage.vue'), 
+    }
   ],
 })
 

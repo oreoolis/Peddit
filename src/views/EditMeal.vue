@@ -3,13 +3,14 @@ import AddIngredientModal from '@/components/PetViewComponents/AddIngredientModa
 import IngredientCard from '@/components/PetViewComponents/IngredientCard.vue';
 import { ref, onMounted, watch, computed } from 'vue';
 import searchBar from '@/components/atoms/searchBar.vue';
-import Button from '@/components/atoms/Button.vue';
+import button from '@/components/atoms/button.vue';
 import NutritionalOutputCard from '@/components/molecules/NutritionalOutputCard.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastStore } from '@/stores/toastStore';
 import { useUserStore } from '@/stores/userStore';
-
+import dogImage from '@/assets/Pixel Art/dog (1).png';
+import catImage from '@/assets/Pixel Art/cat (5).png';
 import { storeToRefs } from 'pinia';
 import { useRouter, useRoute } from 'vue-router';
 
@@ -172,8 +173,8 @@ const handleSubmit = async () => {
   // Add ALL ingredients to shopping list at once as an ARRAY
   if (selectedIngredients.value.length > 0) {
     const formattedIngredients = selectedIngredients.value.map(selIng => ({
-      food_ingredients: selIng.ingredient,
-      quantity_g: selIng.amount
+      food_ingredients: selIng.food_ingredients,
+      quantity_g: selIng.quantity_g
     }));
 
     await userStore.addUnformattedToShoppingList(formattedIngredients);
@@ -195,35 +196,33 @@ const handleSubmit = async () => {
 }
 
 // existing pet Kind
-const computeExistingInformation = async () => {
-  const res = await nutritionStore.getNutritionProfile(
+const computeExistingInformation = () => {
+  if (!petKind.value) return;
+  const profile = nutritionStore.getNutritionProfile(
     petKind.value,
     'adult_maintenance'
-  )
-  if (res.success) {
-    petNutritionProfile.value = res.data;
-
+  );
+  if (profile) {
+    petNutritionProfile.value = profile;
   } else {
-    console.error('Failed to load nutrition profile:', res.error);
+    console.error('Failed to load nutrition profile for', petKind.value);
   }
 };
 
 
 // changing petKind
-const selectPetKind = async (kind) => {
+const selectPetKind = (kind) => {
   petKind.value = kind;
   // Fetch nutrition profile immediately after selection
-  const result = await nutritionStore.getNutritionProfile(
+  const profile = nutritionStore.getNutritionProfile(
     kind,
-    //set adult as default
+    // set adult as default
     'adult_maintenance'
   );
-
-  if (result.success) {
-    petNutritionProfile.value = result.data;
-
+  if (profile) {
+    petNutritionProfile.value = profile;
   } else {
-    console.error('Failed to load nutrition profile:', result.error);
+    console.error('Failed to load nutrition profile for', kind);
   }
 }
 
@@ -242,7 +241,12 @@ const nutrientMaxValues = computed(() => {
 });
 
 onMounted(async () => {
-  await nutritionStore.fetchIngredients();
+  // Ensure required data is loaded
+  await Promise.all([
+    nutritionStore.fetchNutritionProfiles(),
+    nutritionStore.fetchIngredients()
+  ]);
+
   // Await recipe data
   const result = await nutritionStore.getRecipe(recId);
 
@@ -257,7 +261,7 @@ onMounted(async () => {
     selectedIngredients.value = result.data.recipe_ingredients || [];
   }
 
-  await computeExistingInformation();
+  computeExistingInformation();
 })
 
 </script>
@@ -272,17 +276,22 @@ onMounted(async () => {
             <h1 class="headingFont display-3 text-start fw-semibold">Edit Meal Plan</h1>
           </div>
         </div>
-        <!-- Cards side-by-side on all viewports -->
         <div class="row justify-content-center mt-3 mb-3 g-3">
           <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
-            <div @click="selectPetKind('dog')" class="dog-breed-card"
-              :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
+            <div @click="selectPetKind('dog')" class="dog-breed-card" :style="{
+              backgroundImage: `url('${dogImage}')`,
+              backgroundPosition: 'center',
+              backgroundSize: 'cover'
+            }" :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
               <p class="pet-title brandFont text-light display-1">Dog</p>
             </div>
           </div>
           <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
-            <div @click="selectPetKind('cat')" class="cat-breed-card"
-              :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
+            <div @click="selectPetKind('cat')" class="cat-breed-card" :style="{
+              backgroundImage: `url('${catImage}')`,
+              backgroundPosition: 'center',
+              backgroundSize: 'cover'
+            }" :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
               <p class="pet-title brandFont text-light display-1">Cat</p>
             </div>
           </div>
@@ -330,10 +339,10 @@ onMounted(async () => {
 
             <!-- Form Actions -->
             <div class="form-actions d-flex justify-content-center mt-3">
-              <Button class="bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm" label="Reset">
-              </Button>
-              <Button class="bodyFont d-inline mx-2" label="Save Meal Plan" type="submit">
-              </Button>
+              <button class="bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm" label="Reset">
+              </button>
+              <button class="bodyFont d-inline mx-2" label="Save Meal Plan" type="submit">
+              </button>
             </div>
           </div>
         </div>
@@ -354,7 +363,6 @@ onMounted(async () => {
   width: 100%;
   max-width: 600px;
   height: 300px;
-  background-image: url("../assets/Pixel Art/dog (1).png");
   background-position: center;
   background-size: cover;
   border: 1px solid white;
@@ -378,7 +386,6 @@ onMounted(async () => {
   width: 100%;
   max-width: 600px;
   height: 300px;
-  background-image: url("../assets/Pixel Art/cat (5).png");
   background-position: center;
   background-size: cover;
   border: 1px solid white;

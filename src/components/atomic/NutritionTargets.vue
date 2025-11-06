@@ -93,6 +93,7 @@ const formatValue = (v) => {
   border-radius: 12px;
   padding: 1rem 1.25rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  text-align: center; 
 }
 
 .energy-value {
@@ -109,5 +110,10 @@ const formatValue = (v) => {
 .nutrient-grid :deep(.stat-card) {
   margin-top: 0.5rem;    
   margin-bottom: 0.75rem;
+}
+
+/* Center the energy value row */
+.energy-card :deep(.d-flex.align-items-baseline) {
+  justify-content: center;
 }
 </style>

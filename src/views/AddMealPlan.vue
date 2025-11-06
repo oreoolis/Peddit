@@ -3,7 +3,7 @@ import AddIngredientModal from '@/components/PetViewComponents/AddIngredientModa
 import IngredientCard from '@/components/PetViewComponents/IngredientCard.vue';
 import { ref, onMounted, watch, computed } from 'vue';
 import searchBar from '@/components/atoms/searchBar.vue';
-import Button from '@/components/atoms/Button.vue';
+import button from '@/components/atoms/button.vue';
 import NutritionalOutputCard from '@/components/molecules/NutritionalOutputCard.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -11,6 +11,9 @@ import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { useToastStore } from '@/stores/toastStore';
 import { useUserStore } from '@/stores/userStore';
+import dogImage from '@/assets/Pixel Art/dog (1).png';
+import catImage from '@/assets/Pixel Art/cat (5).png';
+
 
 // stores
 const nutritionStore = usePetNutritionStore();
@@ -115,7 +118,7 @@ const removeIngredient = (id) => {
 
 
 const resetForm = () => {
-  petKind.value = '';
+  petKind.value = 'dog';
   recipeName.value = '';
   recipeDescription.value = '';
   notes.value = '';
@@ -187,18 +190,21 @@ const handleSubmit = async () => {
 
 const selectPetKind = async (kind) => {
   petKind.value = kind;
-  // Fetch nutrition profile immediately after selection
-  const result = await nutritionStore.getNutritionProfile(
+  // Ensure nutrition profiles are loaded before accessing
+  if (!nutritionStore.nutritionProfiles?.length && nutritionStore.fetchNutritionProfiles) {
+    await nutritionStore.fetchNutritionProfiles();
+  }
+  // Fetch nutrition profile immediately after selection (returns row or null)
+  const profile = nutritionStore.getNutritionProfile(
     kind,
-    //set adult as default
-    'adult_maintenance'
+    // set adult as default (mapped to 'adult_maintenance' in store)
+    'adult'
   );
 
-  if (result.success) {
-    petNutritionProfile.value = result.data;
-
+  if (profile) {
+    petNutritionProfile.value = profile;
   } else {
-    console.error('Failed to load nutrition profile:', result.error);
+    console.error('Failed to load nutrition profile for', kind);
   }
 }
 
@@ -218,7 +224,12 @@ const nutrientMaxValues = computed(() => {
 
 
 onMounted(async () => {
-  await nutritionStore.fetchIngredients();
+  selectPetKind('dog');
+  // Ensure required data is loaded
+  await Promise.all([
+    nutritionStore.fetchNutritionProfiles(),
+    nutritionStore.fetchIngredients()
+  ]);
 })
 
 </script>
@@ -235,20 +246,27 @@ onMounted(async () => {
         </div>
         <div class="row justify-content-center mt-3 mb-3 g-3">
           <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
-            <div @click="selectPetKind('dog')" class="dog-breed-card"
-              :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }" id="dog-breed-card">
+            <div @click="selectPetKind('dog')" class="dog-breed-card" :style="{
+              backgroundImage: `url('${dogImage}')`,
+              backgroundPosition: 'center',
+              backgroundSize: 'cover'
+            }" :class="{ 'selected-pet': petKind === 'dog', 'dimmed-pet': petKind === 'cat' }"
+              id="dog-breed-card">
               <p class="pet-title brandFont text-light display-1">Dog</p>
             </div>
           </div>
           <div class="col-12 col-sm-6 col-md-5 col-lg-4 d-flex justify-content-center">
-            <div @click="selectPetKind('cat')" class="cat-breed-card"
-              :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }" id="cat-breed-card">
+            <div @click="selectPetKind('cat')" class="cat-breed-card" :style="{
+              backgroundImage: `url('${catImage}')`,
+              backgroundPosition: 'center',
+              backgroundSize: 'cover'
+            }" :class="{ 'selected-pet': petKind === 'cat', 'dimmed-pet': petKind === 'dog' }"
+              id="cat-breed-card">
               <p class="pet-title brandFont text-light display-1">Cat</p>
             </div>
           </div>
         </div>
       </div>
-
       <!-- Form Inputs -->
       <div class="input-forms container-fluid">
         <div class="row justify-content-center">
@@ -289,10 +307,10 @@ onMounted(async () => {
 
             <!-- Form Actions -->
             <div class="form-actions d-flex justify-content-center mt-3">
-              <Button class="bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm" label="Reset">
-              </Button>
-              <Button class="bodyFont d-inline mx-2" label="Create Meal Plan" type="submit">
-              </Button>
+              <button class="bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm" label="Reset">
+              </button>
+              <button class="bodyFont d-inline mx-2" label="Create Meal Plan" type="submit">
+              </button>
             </div>
           </div>
         </div>
@@ -312,7 +330,6 @@ onMounted(async () => {
   box-sizing: border-box;
   width: 100%;
   height: 300px;
-  background-image: url("../assets/Pixel Art/dog (1).png");
   background-position: center;
   background-size: cover;
   border: 1px solid white;
@@ -334,7 +351,6 @@ onMounted(async () => {
   box-sizing: border-box;
   width: 100%;
   height: 300px;
-  background-image: url("../assets/Pixel Art/cat (5).png");
   background-position: center;
   background-size: cover;
   border: 1px solid white;

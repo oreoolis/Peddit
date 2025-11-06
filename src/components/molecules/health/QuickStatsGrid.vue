@@ -1,19 +1,3 @@
-<template>
-  <div class="quick-stats" ref="rootEl" :class="{ compact: isCompact }">
-    <!-- use an internal grid wrapper so the component can control wrapping based on its own width -->
-    <div class="grid">
-      <div class="grid-item" v-for="stat in stats" :key="stat.label">
-        <HealthStatBox 
-          :icon="stat.icon"
-          :value="stat.value"
-          :label="stat.label"
-          :variant="stat.variant"
-        />
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import HealthStatBox from '../../atoms/health/HealthStatBox.vue';
@@ -59,6 +43,22 @@ onBeforeUnmount(() => {
   if (ro && ro.disconnect) ro.disconnect();
 });
 </script>
+
+<template>
+  <div class="quick-stats" ref="rootEl" :class="{ compact: isCompact }">
+    <!-- internal grid wrapper controls wrapping; use CSS gap instead of margins -->
+    <div class="grid">
+      <div class="grid-item" v-for="stat in stats" :key="stat.label">
+        <HealthStatBox 
+          :icon="stat.icon"
+          :value="stat.value"
+          :label="stat.label"
+          :variant="stat.variant"
+        />
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .quick-stats {

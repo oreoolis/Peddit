@@ -20,7 +20,7 @@ const props = defineProps({
     name: {
         type: String,
         required: true,
-        default: ''
+        default: 'hello'
         
     },
     kind: {
@@ -139,7 +139,8 @@ const closeModal = () => {
                         <h2 class="headingFont fw-semibold">Preferred Meal</h2>
                         <div class="row d-flex justify-content-center">
                             <div v-if="props.recipeDetails" class="col-12 col-lg-6 mt-3 mt-md-5">
-                                <MealPlanCard :rec_id="props.recipeDetails?.id" 
+                                <MealPlanCard 
+                                :rec_id="props.recipeDetails?.id" 
                                 :name="props.recipeDetails?.recipe_name" 
                                 :desc="props.recipeDetails?.description"
                                 :petKind="props.recipeDetails?.pet_kind ?? props.kind"

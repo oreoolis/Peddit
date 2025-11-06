@@ -671,7 +671,7 @@ function clearChat(){
     <!-- Panel -->
       <!-- drop overlay moved below -->
     <transition name="chat-slide">
-      <div v-if="open" class="peddit-chat-panel card" ref="panelEl" :style="panelStyle" @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
+      <div v-if="open" class="peddit-chat-panel  mx-auto card" ref="panelEl" :style="panelStyle" @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
         <div class="card-header d-flex justify-content-between align-items-center headingFont">
           <strong>Peddit Chat</strong>
           <div class="d-flex gap-2 align-items-center">
@@ -800,7 +800,7 @@ function clearChat(){
 <div class="input-bottom" role="group" aria-label="Chat controls">
   <!-- Paperclip -->
   <button type="button" class="icon-btn attach-btn" title="Attach image" aria-label="Attach image" @click="fileInput?.click()">
-    <svg width="18" height="18" viewBox="0 0 25 18" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 26 18" aria-hidden="true">
       <path d="M8.5 6.5l7.07-7.07a5 5 0 117.07 7.07l-9.9 9.9a7 7 0 11-9.9-9.9l9.19-9.19" fill="none" stroke="currentColor" stroke-width="2"/>
     </svg>
   </button>

@@ -7,6 +7,11 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '') // loads .env*, incl. .env.development.local
 
+  const isProd = mode === 'production'
+
+  // Use '/' locally, '/Peddit/' only in production (GitHub Pages)
+  const base = '/';
+
   // Only enable the proxy if you (locally) have a key
   const proxyRoutes = {}
   if (env.OPENROUTER_API_KEY) {
@@ -29,15 +34,24 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [
-      vue(),
-      vueDevTools(), // same as before
-    ],
-    resolve: {
-      alias: {
-        '@': fileURLToPath(new URL('./src', import.meta.url)), // same as before
-      },
+    plugins: [vue(), vueDevTools()],
+    base,
+     build: {
+      outDir: 'dist' // Ensure this matches Vercel's output directory
     },
-    server: { proxy: proxyRoutes },
+    resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+    server: {
+      proxy: proxyRoutes,
+      middlewares: [
+        (req, res, next) => {
+          // Allow external connections
+          res.setHeader('Access-Control-Allow-Origin', '*')
+          res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+          res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+          res.setHeader('Content-Security-Policy', "connect-src 'self' https://openrouter.ai data:")
+          next()
+        },
+      ],
+    },
   }
 })

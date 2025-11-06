@@ -26,6 +26,10 @@ const props = defineProps({
     default: 'md',
     validator: (value) => ['xs', 'sm', 'md', 'lg', 'xl'].includes(value)
   },
+  pixelSize: {
+    type: [Number, String],
+    default: null
+  },
   fallback: {
     type: String,
     default: 'https://picsum.photos/seed/defaultpet/200/200.jpg'
@@ -36,9 +40,13 @@ const emit = defineEmits(['error']);
 
 const sizeClass = computed(() => `avatar-${props.size}`);
 
-const customStyle = computed(() => ({
-  '--avatar-size': getSizeValue()
-}));
+const customStyle = computed(() => {
+  if (props.pixelSize != null) {
+    const v = typeof props.pixelSize === 'number' ? `${props.pixelSize}px` : String(props.pixelSize);
+    return { '--avatar-size': v };
+  }
+  return { '--avatar-size': getSizeValue() };
+});
 
 const getSizeValue = () => {
   const sizes = {
@@ -74,10 +82,10 @@ const handleError = (event) => {
 }
 
 @media (max-width: 576px) {
-  .avatar-xl { --avatar-size: 80px; }
-  .avatar-lg { --avatar-size: 70px; }
-  .avatar-md { --avatar-size: 60px; }
-  .avatar-sm { --avatar-size: 50px; }
-  .avatar-xs { --avatar-size: 35px; }
+  .avatar-xl { --avatar-size: 120px; }
+  .avatar-lg { --avatar-size: 100px; }
+  .avatar-md { --avatar-size: 80px; }
+  .avatar-sm { --avatar-size: 60px; }
+  .avatar-xs { --avatar-size: 40px; }
 }
 </style>

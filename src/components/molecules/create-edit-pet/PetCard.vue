@@ -1,12 +1,13 @@
 <script setup>
-import { ref, defineProps, computed, onMounted } from 'vue';
+import { ref, defineProps, computed, onMounted, toRef, watch } from 'vue';
 import Button from '@/components/atoms/button.vue';
 import { usePetNutritionStore } from '@/stores/petNutritionStore';
+import Logo from '@/assets/Main_Logo.png';
 
 
 const props = defineProps(['id', 'name', 'kind', 'gender', 'breed', 'birthday', 'weight', 'allergies', 'neutered', 'photo_url', 'recipe_id'])
 const nutritionStore = usePetNutritionStore();
-const recipeDetails = ref({});
+const recipeDetails = ref(null);
 const emit = defineEmits(['open-pet-info']);
 
 const handleOpenPetInfo = () => {
@@ -22,18 +23,23 @@ const handleOpenPetInfo = () => {
         neutered: props.neutered,
         photo_url: props.photo_url,
         recipeDetails: recipeDetails.value
-        
+
     });
 }
 
+const recipeId = toRef(props, 'recipe_id');
 
-onMounted(async () => {
-    if(!props.recipe_id) return; //Stops the bug
-    const res = await nutritionStore.getRecipe(props.recipe_id);
-    if (res.success){
+watch(recipeId, async (id) => {
+    if (!id) {
+        recipeDetails.value = null;
+        return;
+    }
+    const res = await nutritionStore.getRecipe(id);
+    if (res.success) {
         recipeDetails.value = res.data;
     }
-})
+}, { immediate: true });
+
 
 </script>
 <template>
@@ -59,17 +65,24 @@ onMounted(async () => {
                         </svg>
                     </div>
                     <div v-if="props.gender == 'unknown'">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 64 64" 
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 64 64"
                             fill="purple">
                             <g fill-rule="evenodd">
-                            <path d="M30.2 2.1Q12.8 3.3 12 21.3h11.7c.1-4.1 2.5-7.2 6.7-7.7s8.2.6 9.4 3.4c1.3 3.1-1.6 6.7-3 8.2-2.6 2.8-6.8 4.9-8.9 7.9s-2.5 6.9-2.7 11.7h10.3c.1-3.1.3-6 1.7-7.9 2.3-3.1 5.7-4.5 8.5-7 2.7-2.3 5.6-5.1 6-9.5 1.6-12.9-9-19.1-21.5-18.3" />
-                            <ellipse cx="30.515" cy="55.567" rx="6.532" ry="6.433"/></g></svg>
+                                <path
+                                    d="M30.2 2.1Q12.8 3.3 12 21.3h11.7c.1-4.1 2.5-7.2 6.7-7.7s8.2.6 9.4 3.4c1.3 3.1-1.6 6.7-3 8.2-2.6 2.8-6.8 4.9-8.9 7.9s-2.5 6.9-2.7 11.7h10.3c.1-3.1.3-6 1.7-7.9 2.3-3.1 5.7-4.5 8.5-7 2.7-2.3 5.6-5.1 6-9.5 1.6-12.9-9-19.1-21.5-18.3" />
+                                <ellipse cx="30.515" cy="55.567" rx="6.532" ry="6.433" />
+                            </g>
+                        </svg>
                     </div>
                 </div>
             </div>
         </div>
-         <div class="ratio mb-3" style="--bs-aspect-ratio: 75%;">
-            <img :src="props.photo_url" class="w-100 h-100 rounded-5 object-fit-cover" alt="pet photo">
+        <div class="ratio mb-3" style="--bs-aspect-ratio: 75%;">
+            <img v-if="props.photo_url" :src="props.photo_url" class="w-100 h-100 rounded-5 object-fit-cover"
+                alt="pet photo">
+            <img v-else :src="Logo" class="w-100 h-100 rounded-5 object-fit-cover"
+                alt="pet photo">
+
         </div>
         <div class="ratio mb-3 image-area">
             <img :src="props.photo_url" class="w-100 h-100 rounded-5 object-fit-cover" alt="pet photo">
@@ -79,9 +92,8 @@ onMounted(async () => {
             <div class="card-text py-1">
                 <section class="pet-info headingFont ">
 
-                    <h4 class="fw-bold d-flex align-items-center" >Current Diet: 
-                        <Button v-if="recipeDetails.recipe_name" class="h-75 mx-1" :label="recipeDetails.recipe_name"
-                        >
+                    <h4 class="fw-bold d-flex align-items-center">Current Diet:
+                        <Button v-if="recipeDetails?.recipe_name" class="h-75 mx-1" :label="recipeDetails?.recipe_name">
                         </Button>
                         <Button v-else class="h-75 mx-1" label="None">
                         </Button>
@@ -94,7 +106,7 @@ onMounted(async () => {
                     Summary
                 </div>
             </div>
-        </div>       
+        </div>
     </div>
 
 </template>
@@ -161,6 +173,7 @@ onMounted(async () => {
         font-size: 1rem;
     }
 }
+
 .summary-container {
     cursor: pointer;
 }
@@ -183,6 +196,7 @@ onMounted(async () => {
     opacity: 1;
     transform: scale(1);
 }
+
 @media (max-width: 480px) {
     .pet-card h4 {
         font-size: 0.9rem;

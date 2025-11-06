@@ -106,11 +106,13 @@ const valueSize = computed(() => {
   display: block;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-bottom: 0.5rem; 
 }
 
 @media (max-width: 576px) {
   .stat-card {
     padding: 0.75rem;
+    margin-bottom: 0.5rem;
   }
 }
 </style>
