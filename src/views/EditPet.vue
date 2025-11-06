@@ -137,6 +137,11 @@ onMounted(async () => {
     }
 })
 
+watch(() => petKind.value, (newKind) => {
+    // This forces the computed property to recalculate
+    console.log('petKind changed to:', newKind);
+}, { immediate: false })
+
 </script>
 
 <template>
@@ -263,7 +268,7 @@ onMounted(async () => {
                         </div>
                         <div class="mb-3">
                             <label class="form-label headingFont fw-bold h5">Selected Meal</label>
-                            <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes"
+                            <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="recipes" :kind="petKind"
                                 :isSearchable="true" v-model="form.preferred_recipe" />
                         </div>
 
