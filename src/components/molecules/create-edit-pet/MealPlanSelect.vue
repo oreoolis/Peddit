@@ -84,7 +84,7 @@ const toggleDropdown = () => {
     <searchBar 
       v-model="searchQuery" 
       type="text" 
-      :placeholder="isOpen ? 'Search Breed...' : selectedLabel" 
+      :placeholder="isOpen ? 'Select Option...' : selectedLabel" 
       @click="toggleDropdown" 
     />
     <div class="options">
