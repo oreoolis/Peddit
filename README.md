@@ -19,7 +19,7 @@ This project aims to provide a centralized solution for pet owners to track the 
 - [Dwayne Arnold Aniban Otero:](https://github.com/oreoolis) Pet, Recipe and Shopping List Business Logic
 - [Jereme Tan Jing Min:](https://github.com/jerememetan) UI Designer, Social Media Business Logic
 - [Than Wei Lin:](https://github.com/than-wl) AI Chatbot, AI Wrapper Implementation
-- [Nicholas Xie:](https://github.com/RayleighCN) Pet Store Location Recommendation
+- [Nicholas Xie:](https://github.com/RayleighCN) Pet Store Location Recommendation and Landing Page
 
 ## Technology Stack
 - Vue.JS
