@@ -125,12 +125,10 @@ export const useAuthStore = defineStore('auth', () => {
             loading.value = true;
             error.value = null;
 
-            const redirectLink = new URL(appBase, window.location.origin).toString();
-
             const { error: signInError } = await supabase.auth.signInWithOtp({
                 email,
                 options: {
-                    emailRedirectTo: redirectLink,
+                    emailRedirectTo: window.location.origin,
                     ...options
                 }
             });
@@ -159,13 +157,11 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             loading.value = true;
             error.value = null;
-            
-            const redirectLink = new URL(appBase, window.location.origin).toString();
 
             const { error: oAuthError } = await supabase.auth.signInWithOAuth({
                 provider,
                 options: {
-                    redirectTo: redirectLink,
+                    redirectTo: window.location.origin,
                     ...options
                 }
             });
