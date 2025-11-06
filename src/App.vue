@@ -18,7 +18,7 @@ const authStore = useAuthStore();
 const userStore = useUserStore();
 const route = useRoute();
 // import decorative assets so Vite rewrites URLs correctly for different deploy bases
-import logoPaw from '@/assets/logo-paw.png';
+import logoPaw from '@/assets/Main_Logo.png';
 import mainLogo from '@/assets/Main_Logo.png';
 
 onMounted(async () => {
