@@ -312,6 +312,19 @@
 </template>
 
 <script>
+import dashboard from "@/assets/dashboard.png";
+import recipe from "@/assets/recipe.png";
+import social from "@/assets/social.png";
+import chatbot from "@/assets/chatbot.png";
+import location from "@/assets/location.png";
+import nutrition from "@/assets/nutrition.png";
+import toastie from "@/assets/toastie.jpg";
+import butter from "@/assets/butter.jpg";
+import pitbull from "@/assets/pitbull.jpg";
+import ruffles from "@/assets/ruffles.jpg";
+import siamese from "@/assets/siamese.jpg";
+import doge from "@/assets/doge.jpg";
+
 export default {
   name: 'AboutView',
   data() {
@@ -385,73 +398,73 @@ export default {
       screenshots: [
         {
           title: "Pet Health Dashboard",
-          image: "../src/assets/dashboard.png",
+          image: dashboard,
           description: "Track detailed nutrition metrics and health data for all your pets in one beautiful interface."
         },
         {
           title: "Recipe Finding",
-          image: "../src/assets/recipe.png",
+          image: recipe,
           description: "Find trending recipes for dogs and cats, created by pet owners."
         },
         {
           title: "Social Community",
-          image: "../src/assets/social.png",
+          image: social,
           description: "Engage with the pet community, discover recipes, and share your pet's special moments."
         },
         {
           title: "Smart Chatbot",
-          image: "../src/assets/chatbot.png",
+          image: chatbot,
           description: "Get instant, personalized meal plans and nutrition advice from our smart chatbot."
         },
         {
           title: "Location Finding",
-          image: "../src/assets/location.png",
+          image: location,
           description: "Find pet stores and vet clinics near you, sorted by rating, distance and opening hours."
         },
         {
           title: "Nutrition Tracking",
-          image: "../src/assets/nutrition.png",
+          image: nutrition,
           description: "Check your pets' daily nutrition targets in detail to ensure that they are happy and healthy."
         }
       ],
       PetList: [
         {
-          image: "../src/assets/toastie.jpg",
+          image: toastie,
           ownerName: "Bernard Lo",
           petName: "Toastie",
           breed: "Persian Cat",
           age: "3 years old"
         },
         {
-          image: "../src/assets/butter.jpg",
+          image: butter,
           ownerName: "Mok Heng Ngee",
           petName: "Butter",
           breed: "Ragdoll",
           age: "2 years old"
         },
         {
-          image: "../src/assets/pitbull.jpg",
+          image: pitbull,
           ownerName: "Lawrence Wong",
           petName: "Bubbles",
           breed: "Pitbull",
           age: "5 years old"
         },
         {
-          image: "../src/assets/ruffles.jpg",
+          image: ruffles,
           ownerName: "Kyong Jim Shim",
           petName: "Demon Slayer",
           breed: "Golden Retriever",
           age: "4 years old"
         },
         {
-          image: "../src/assets/siamese.jpg",
+          image: siamese,
           ownerName: "Amala Ratna",
           petName: "Doja",
           breed: "Siamese Cat",
           age: "1 year old"
         },
         {
-          image: "../src/assets/doge.jpg",
+          image: doge,
           ownerName: "Atsuko Sato",
           petName: "Kabosu (Doge)",
           breed: "Shiba Inu",
@@ -461,11 +474,14 @@ export default {
     }
   },
   mounted() {
-    this.startAutoScroll()
-  },
-  beforeUnmount() {
-    this.stopAutoScroll()
-  },
+  document.querySelector('.app-bg')?.classList.add('no-paws');
+  this.startAutoScroll();
+},
+beforeUnmount() {
+  document.querySelector('.app-bg')?.classList.remove('no-paws');
+  this.stopAutoScroll();
+},
+
   methods: {
     handleMouseMove(e) {
       // Get the pet container's position for proper eye tracking
@@ -546,7 +562,22 @@ export default {
 
 <style scoped>
 .landing-page {
-  padding-top: 70px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate; /* new stacking context */
+  background: #fff;          /* ensures white behind the page */
+  background-image: none;
+}
+
+/* White underlay behind all content of the landing page */
+.landing-page::before {
+  content: "";
+  position: absolute;   /* covers the whole landing page area */
+  inset: 0;
+  background: #fff;     /* or a subtle gradient if you want */
+  z-index: -1;
 }
 
 .pets-container {
@@ -604,38 +635,43 @@ export default {
 }
 
 /* SECTION BACKGROUNDS - Transparent with clear distinction */
-/* Important: Using higher specificity to override Bootstrap */
-section.hero-section {
-  background: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  padding-top: 5rem;
-  padding-bottom: 5rem;
-}
-
-section#features {
-  background: rgba(240, 249, 255, 0.7) !important; /* Light blue with transparency */
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-}
-
-section#how-it-works {
-  background: rgba(255, 255, 255, 0.7) !important; /* White with transparency */
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-}
-
+section.hero-section,
+section#features,
+section#how-it-works,
 section.screenshots-section {
-  background: rgba(250, 250, 250, 0.7) !important; /* Light gray with transparency */
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  background: #ffffff !important;  
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
+/* COMMUNITY: gradient lives on a positioned pseudo-element */
 section.community-section {
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.85) 0%, rgba(37, 99, 235, 0.85) 100%) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  position: relative;
+  background: transparent !important;     /* move gradient off the element */
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+
+  /* keep your layout hints */
+  flex: 1 0 auto;
+  display: flow-root;
+  min-height: calc(100vh - var(--nav-bottom-height, 56px));
+  overflow: visible;
 }
+
+/* gradient layer that starts at top:0 and extends below the section */
+section.community-section::before {
+  content: "";
+  position: absolute;
+  top: 0;                /* << requested: top:0 */
+  left: 0;
+  right: 0;
+  /* extend beyond the bottom to paint under the reserved navbar space */
+  bottom: calc(-1 * (var(--nav-bottom-height, 56px) + 16px));
+  background: linear-gradient(135deg, #14b8a6 0%, #2563eb 100%);
+  z-index: -1;           /* sit behind all section content */
+  pointer-events: none;
+}
+
 
 .hero-blur {
   position: absolute;
