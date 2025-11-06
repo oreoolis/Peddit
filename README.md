@@ -36,8 +36,15 @@ Example embeds:
 ## Architecture
 ```mermaid
 flowchart LR
-  A[Vue 3 + Vite App] -- Pinia + VueUse --> A
-  A --> B[Supabase Auth + DB]
+  A[Peddit]
+  P[Pinia]
+  B[(Supabase DB)]
+
+  %% Cyclical data flow
+  A --> P --> B
+  B --> P --> A
+
+  %% External integrations
   A --> C[Vercel Edge /api/chat]
   C --> D[OpenRouter API]
   D --> E[(Model Providers: OpenAI • Llama • Others)]
