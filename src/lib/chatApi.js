@@ -79,18 +79,28 @@ export async function sendChatStream(messages, opts = {}) {
   const decoder = new TextDecoder('utf-8');
   let full = '';
   let done = false;
+  let buffer = '';
 
   while (!done) {
     const { value, done: readerDone } = await reader.read();
     done = readerDone;
     if (value) {
-      const chunk = decoder.decode(value, { stream: true });
-      // SSE lines are like: "data: {...}\n"
-      const lines = chunk.split(/\r?\n/);
-      for (const line of lines) {
+      buffer += decoder.decode(value, { stream: true });
+
+      // Process only complete lines; keep last partial in buffer
+      let lastNewline = buffer.lastIndexOf('\n');
+      if (lastNewline === -1) continue;
+      const complete = buffer.slice(0, lastNewline);
+      buffer = buffer.slice(lastNewline + 1);
+
+      const lines = complete.split('\n');
+      for (let line of lines) {
+        if (!line) continue;
+        if (line.endsWith('\r')) line = line.slice(0, -1);
         const trimmed = line.trim();
-        if (!trimmed || !trimmed.startsWith('data:')) continue;
-        const dataStr = trimmed.slice(5).trim(); // after "data:"
+        if (!trimmed.startsWith('data:')) continue;
+        const dataStr = trimmed.slice(5).trimStart();
+        if (!dataStr) continue;
         if (dataStr === '[DONE]') {
           done = true;
           break;
@@ -103,10 +113,24 @@ export async function sendChatStream(messages, opts = {}) {
             if (typeof opts.onToken === 'function') opts.onToken(delta);
           }
         } catch {
-          // ignore malformed JSON chunks
+          // Ignore until we receive a full JSON line
         }
       }
     }
+  }
+
+  // Process any trailing complete line left in buffer
+  const tail = buffer.trim();
+  if (tail && tail.startsWith('data:')) {
+    const dataStr = tail.slice(5).trimStart();
+    try {
+      const json = JSON.parse(dataStr);
+      const delta = json?.choices?.[0]?.delta?.content ?? '';
+      if (delta) {
+        full += delta;
+        if (typeof opts.onToken === 'function') opts.onToken(delta);
+      }
+    } catch {}
   }
 
   return full;
