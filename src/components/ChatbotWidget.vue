@@ -671,7 +671,7 @@ function clearChat(){
     <!-- Panel -->
       <!-- drop overlay moved below -->
     <transition name="chat-slide">
-      <div v-if="open" class="peddit-chat-panel card" ref="panelEl" :style="panelStyle" @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
+      <div v-if="open" class="peddit-chat-panel modal card" ref="panelEl" :style="panelStyle" @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
         <div class="card-header d-flex justify-content-between align-items-center headingFont">
           <strong>Peddit Chat</strong>
           <div class="d-flex gap-2 align-items-center">
