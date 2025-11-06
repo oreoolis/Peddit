@@ -158,4 +158,20 @@ watch(() => authStore.userId, async (userId) => {
 .router-view {
   padding-bottom: calc(var(--nav-bottom-height, 56px) + 0.5rem);
 }
+
+/* Hide paw layers when disabled */
+.app-bg.no-paws::before,
+.app-bg.no-paws::after,
+body.no-paws .app-bg::before,
+body.no-paws .app-bg::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Solid background when paws are off */
+.app-bg.no-paws,
+body.no-paws .app-bg {
+  background: #fff !important;
+}
+
 </style>
