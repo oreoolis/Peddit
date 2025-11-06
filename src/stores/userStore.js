@@ -127,7 +127,7 @@ export const useUserStore = defineStore('user', () => {
             validateImageFile(file);
 
             // Delete old profile image if exists
-            if (profile.value?.avatar_url) {
+            if (profile.value?.avatar_url && !profile.value?.avatar_url.contains("defaultimage")) {
                 await deleteImage('avatars', profile.value.avatar_url);
             }
 
