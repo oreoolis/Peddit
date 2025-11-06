@@ -4,7 +4,7 @@ Peddit is a full-stack web application developed for IS216 Web Application Devel
 
 This project aims to provide a centralized solution for pet owners to track the health of their pets via personalized feeds and dashboards of their pet health. Users are also able to share recommended recipes with other users, as well as find nearby pet stores and veterinary clinics.
 
-View the live application on: [Peddit](https://peddit-coral.vercel.app/)
+View the live application on: [Peddit](https://peddit-coral.vercel.app/) (Hosted on Vercel)
 
 ## Key Features
 | Feature | Description |
