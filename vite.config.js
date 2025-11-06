@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
   const isProd = mode === 'production'
 
   // Use '/' locally, '/Peddit/' only in production (GitHub Pages)
-  const base = isProd ? '/Peddit/' : '/'
+  const base = '/';
 
   // Only enable the proxy if you (locally) have a key
   const proxyRoutes = {}
@@ -36,6 +36,9 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [vue(), vueDevTools()],
     base,
+     build: {
+      outDir: 'dist' // Ensure this matches Vercel's output directory
+    },
     resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
     server: {
       proxy: proxyRoutes,
