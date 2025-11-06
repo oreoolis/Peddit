@@ -27,6 +27,15 @@ Ensure that you have the following installed before cloning and running the appl
 npm -v
 ```
 
+## Predeploy to Live Commands
+
+```bash
+npm run predeploy
+
+npm run deploy
+
+```
+
 ## Running the Project (localhost)
 
 ```bash
