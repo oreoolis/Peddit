@@ -106,7 +106,6 @@ onMounted(async () => {
                 size="sm" highlight />
                 <div class="mt-3">
                   <InfoDetail label="Pet Type and Breed" :value="(f.pet_kind || '') + (f.pet_breed ? ' - ' + f.pet_breed : '')"/>
-                  <InfoDetail label="Likes" :value="f.likes ?? 0"/>
                 </div>
                 <p class="text-muted mt-2 fs-5">Created by @{{ f.profiles.display_name }}
                     <base-avatar
