@@ -11,6 +11,10 @@ const props = defineProps({
   defaultLabel: {
     type: String,
     default: 'Select an option'
+  },
+  kind: {
+    type: String,
+    default: ''
   }
 });
 
@@ -26,11 +30,15 @@ const normalizedOptions = computed(() => {
 
   // Check if first item is a string
   if (typeof props.mealOptions[0] === 'string') {
-    // Convert strings to objects with value and label
-    return props.mealOptions.map(item => ({
-      value: item,
-      label: item,
-    }));
+    return props.mealOptions
+      .filter(item => !props.kind || item.kind === props.kind)
+      .map(item => ({
+        value: item.id,
+        label: item.recipe_name,
+        id: item.id,
+        recipe_name: item.recipe_name,
+        
+      }));
   }
 
   // return as desconstructed object to loop through
@@ -47,9 +55,9 @@ const filteredOptions = computed(() => {
   if (!searchQuery.value.trim()) {
     return normalizedOptions.value;
   }
-  
+
   const query = searchQuery.value.toLowerCase().trim();
-  return normalizedOptions.value.filter(option => 
+  return normalizedOptions.value.filter(option =>
     option.label.toLowerCase().includes(query)
   );
 });
@@ -81,27 +89,14 @@ const toggleDropdown = () => {
 
 <template>
   <div class="select" :class="{ 'is-open': isOpen, 'my-3': true }">
-    <searchBar 
-      v-model="searchQuery" 
-      type="text" 
-      :placeholder="isOpen ? 'Select Option...' : selectedLabel" 
-      @click="toggleDropdown" 
-    />
+    <searchBar v-model="searchQuery" type="text" :placeholder="isOpen ? 'Select Option...' : selectedLabel"
+      @click="toggleDropdown" />
     <div class="options">
-      <div 
-        v-if="filteredOptions.length === 0" 
-        class="no-results"
-      >
+      <div v-if="filteredOptions.length === 0" class="no-results">
         No meals found
       </div>
-      <div 
-        v-for="(option, index) in filteredOptions" 
-        :key="option.id" 
-        :title="option.recipe_name" 
-        class="option"
-        :style="{ 'transition-delay': `${index * 40}ms` }" 
-        @click="selectOption(option.value)"
-      >
+      <div v-for="(option, index) in filteredOptions" :key="option.id" :title="option.recipe_name" class="option"
+        :style="{ 'transition-delay': `${index * 40}ms` }" @click="selectOption(option.value)">
         {{ option.recipe_name }}
       </div>
     </div>
@@ -136,7 +131,7 @@ const toggleDropdown = () => {
   overflow-x: hidden;
 }
 
-.select.is-open > .options {
+.select.is-open>.options {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;

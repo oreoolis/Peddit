@@ -246,7 +246,7 @@ onMounted(async () => {
             </div>
             <div class="mb-3">
               <label class="form-label headingFont fw-bold h5">Selected Meal</label>
-              <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="filteredRecipes" :isSearchable="true"
+              <MealPlanSelect defaultLabel="Select Meal Plan..." :mealOptions="filteredRecipes" :isSearchable="true" :kind="petKind"
                 v-model="form.preferred_recipe" />
             </div>
 
