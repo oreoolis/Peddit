@@ -1,10 +1,11 @@
 <template>
-  <div class="landing-page">
+  <div class="landing-page" @mousemove="handleMouseMove">
     <!-- Hero Section with Interactive Dog -->
     <section class="hero-section py-5">
       <div class="container-fluid px-4 px-lg-5">
         <div class="row align-items-center g-5 justify-content-center">
-          <div class="col-lg-5 col-xl-4">
+          <div class="col-lg-5 col-xl-4 order-2 order-lg-1">
+         <div class="hero-text-container mx-auto" style="max-width: 550px; text-align: left;">
             <h1 class="display-3 fw-bold mb-4">
               <span class="gradient-text">Peddit: </span>
               Your Pet's Health & Happiness, All in One Place
@@ -12,15 +13,13 @@
             <p class="lead text-muted mb-4">
               Join the ultimate social platform for pet owners. Manage health, discover recipes, and connect with a community that cares.
             </p>
-            <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
-              <button @click="navigateToAuth" class="btn btn-gradient btn-lg">
-                Get Started Here!
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ms-2">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                </svg>
-              </button>
-            </div>
-            <div class="d-flex gap-5 pt-3">
+            <button @click="navigateToAuth" class="btn btn-gradient btn-lg w-100 mb-4">
+              Get Started Here!
+              <svg width="20" height="20">
+                <!-- SVG icon -->
+              </svg>
+            </button>
+            <div class="d-flex flex-row justify-content-center gap-5 pt-3">
               <div>
                 <div class="fs-2 fw-bold">100+</div>
                 <div class="text-muted">Active Users</div>
@@ -32,11 +31,13 @@
               <div>
                 <div class="fs-2 fw-bold">300+</div>
                 <div class="text-muted">Healthy Pets</div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="col-lg-5 col-xl-4">
-            <div class="position-relative" @mousemove="handleMouseMove">
+
+          <div class="col-lg-5 col-xl-4 order-1 order-lg-2">
+            <div class="position-relative">
               <div class="hero-blur"></div>
               <div class="pets-container d-flex gap-4 justify-content-center align-items-center">
                  <!-- Interactive Dog -->
@@ -140,7 +141,7 @@
     </section>
 
     <!-- How It Works -->
-    <section id="how-it-works" class="py-5 bg-white">
+    <section id="how-it-works" class="py-5">
       <div class="container-fluid px-4 px-lg-5">
         <div class="text-center mb-5">
           <h2 class="display-4 fw-bold mb-3">Getting Started is Easy</h2>
@@ -157,29 +158,73 @@
       </div>
     </section>
 
-    <!-- App Screenshots -->
-    <section class="py-5 bg-light">
+    <!-- App Screenshots Carousel -->
+    <section class="py-5 screenshots-section">
       <div class="container-fluid px-4 px-lg-5">
         <div class="text-center mb-5">
           <h2 class="display-4 fw-bold mb-3">See Peddit in Action</h2>
           <p class="lead text-muted">Real features, real results for your pets</p>
         </div>
 
-        <div class="row g-4 justify-content-center">
-          <div v-for="screenshot in screenshots" :key="screenshot.title" class="col-md-6 col-lg-4 col-xl-3">
-            <div class="card border-0 shadow screenshot-card h-100">
-              <img :src="screenshot.image" :alt="screenshot.title" class="card-img-top">
-              <div class="card-body">
-                <h3 class="h4 fw-bold mb-2">{{ screenshot.title }}</h3>
-                <p class="text-muted">{{ screenshot.description }}</p>
+        <div class="carousel-container position-relative">
+          <!-- Carousel Navigation -->
+          <button 
+            @click="previousScreenshot" 
+            class="carousel-btn carousel-btn-left"
+            :disabled="screenshotIndex === 0"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+
+          <!-- Carousel Content -->
+          <div class="carousel-content">
+            <transition name="slide" mode="out-in">
+              <div :key="screenshotIndex" class="screenshot-slide">
+                <div class="row justify-content-center">
+                  <div class="col-md-8 col-lg-6 col-xl-5">
+                    <div class="card border-0 shadow screenshot-card">
+                      <img 
+                        :src="screenshots[screenshotIndex].image" 
+                        :alt="screenshots[screenshotIndex].title" 
+                        class="card-img-top"
+                      >
+                      <div class="card-body text-center p-4">
+                        <h3 class="h4 fw-bold mb-3">{{ screenshots[screenshotIndex].title }}</h3>
+                        <p class="text-muted">{{ screenshots[screenshotIndex].description }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </transition>
+          </div>
+
+          <button 
+            @click="nextScreenshot" 
+            class="carousel-btn carousel-btn-right"
+            :disabled="screenshotIndex === screenshots.length - 1"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+
+          <!-- Carousel Indicators -->
+          <div class="carousel-indicators">
+            <button
+              v-for="(screenshot, index) in screenshots"
+              :key="index"
+              @click="screenshotIndex = index"
+              :class="['indicator-dot', { active: index === screenshotIndex }]"
+            ></button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Community Section -->
+    <!-- Community Section with Carousel -->
     <section id="community" class="py-5 community-section text-white">
       <div class="container-fluid px-4 px-lg-5">
         <div class="text-center mb-5">
@@ -187,11 +232,56 @@
           <p class="lead">Thousands of pet parents sharing their journey</p>
         </div>
 
-        <div class="row g-4 mb-5 justify-content-center">
-          <div v-for="(pixelArt, index) in pixelArts" :key="index" class="col-4 col-sm-3 col-md-2 col-lg-1">
-            <div class="pixel-art-card">
-              <img :src="pixelArt" alt="Community member" class="img-fluid rounded-3">
-            </div>
+        <!-- Community Carousel -->
+        <div class="carousel-container position-relative mb-5">
+          <!-- Carousel Navigation -->
+          <button 
+            @click="previousCommunity" 
+            class="carousel-btn carousel-btn-left carousel-btn-community"
+            :disabled="communityIndex === 0"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+
+          <!-- Carousel Content -->
+          <div class="carousel-content">
+            <transition name="slide" mode="out-in">
+              <div :key="communityIndex" class="community-slide">
+                <div class="row justify-content-center">
+                  <div class="col-10 col-sm-8 col-md-6 col-lg-5 col-xl-4">
+                    <div class="pixel-art-card">
+                      <img 
+                        :src="pixelArts[communityIndex]" 
+                        :alt="`Community member ${communityIndex + 1}`" 
+                        class="img-fluid rounded-3"
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </transition>
+          </div>
+
+          <button 
+            @click="nextCommunity" 
+            class="carousel-btn carousel-btn-right carousel-btn-community"
+            :disabled="communityIndex === pixelArts.length - 1"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+
+          <!-- Carousel Indicators -->
+          <div class="carousel-indicators">
+            <button
+              v-for="(art, index) in pixelArts"
+              :key="index"
+              @click="communityIndex = index"
+              :class="['indicator-dot', 'indicator-dot-white', { active: index === communityIndex }]"
+            ></button>
           </div>
         </div>
 
@@ -200,7 +290,6 @@
         </div>
       </div>
     </section>
-    <!-- CLOSING TAG WAS MISSING HERE -->
   </div>
 </template>
 
@@ -218,6 +307,8 @@ export default {
       catLeftPupilY: 100,
       catRightPupilX: 120,
       catRightPupilY: 100,
+      screenshotIndex: 0,
+      communityIndex: 0,
       features: [
         {
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>`,
@@ -275,18 +366,23 @@ export default {
       screenshots: [
         {
           title: "Health Dashboard",
-          image: "https://i.postimg.cc/5NB4Y1qL/dashboard.png",
+          image: "../src/assets/dashboard.png",
           description: "Track detailed nutrition metrics and health data for all your pets in one beautiful interface."
         },
         {
           title: "Social Feed",
-          image: "https://i.postimg.cc/FzbC7f6V/home.png",
+          image: "../src/assets/social.png",
           description: "Engage with the pet community, discover recipes, and share your pet's special moments."
         },
         {
           title: "AI Assistant",
-          image: "https://i.postimg.cc/QtC8q5cC/chat.png",
+          image: "../src/assets/chatbot.png",
           description: "Get instant, personalized meal plans and nutrition advice from our smart chatbot."
+        },
+        {
+          title: "test",
+          image: "https://i.postimg.cc/QtC8q5cC/chat.png",
+          description: "GTest."
         }
       ],
       pixelArts: [
@@ -301,41 +397,55 @@ export default {
   },
   methods: {
     handleMouseMove(e) {
-      const rect = e.currentTarget.getBoundingClientRect()
-      const mouseX = e.clientX - rect.left
-      const mouseY = e.clientY - rect.top
+      // Get the pet container's position for proper eye tracking
+      const petsContainer = this.$el.querySelector('.pets-container')
+      if (!petsContainer) return
       
-      // Calculate center of the container
-      const centerX = rect.width / 2
-      const centerY = rect.height / 2
+      const rect = petsContainer.getBoundingClientRect()
+      const mouseX = e.clientX
+      const mouseY = e.clientY
+      
+      // Calculate center of the pets container
+      const centerX = rect.left + rect.width / 2
+      const centerY = rect.top + rect.height / 2
       
       // Calculate angle from center to mouse
       const angle = Math.atan2(mouseY - centerY, mouseX - centerX)
       
       // DOG EYES - positions scaled to viewBox coordinates
-      // Left eye center: 80, 85 in viewBox
       this.dogLeftPupilX = 80 + Math.cos(angle) * 4
       this.dogLeftPupilY = 85 + Math.sin(angle) * 4
-      
-      // Right eye center: 120, 85 in viewBox
       this.dogRightPupilX = 120 + Math.cos(angle) * 4
       this.dogRightPupilY = 85 + Math.sin(angle) * 4
       
       // CAT EYES - positions scaled to viewBox coordinates
-      // Left eye center: 80, 100 in viewBox
       this.catLeftPupilX = 80 + Math.cos(angle) * 5
       this.catLeftPupilY = 100 + Math.sin(angle) * 5
-      
-      // Right eye center: 120, 100 in viewBox
       this.catRightPupilX = 120 + Math.cos(angle) * 5
       this.catRightPupilY = 100 + Math.sin(angle) * 5
     },
     navigateToAuth() {
-      // Navigate to the auth/login page
       this.$router.push({ name: 'login' });
-      // Alternative ways depending on your router setup:
-      // this.$router.push('/auth');
-      // this.$router.push('/login');
+    },
+    nextScreenshot() {
+      if (this.screenshotIndex < this.screenshots.length - 1) {
+        this.screenshotIndex++
+      }
+    },
+    previousScreenshot() {
+      if (this.screenshotIndex > 0) {
+        this.screenshotIndex--
+      }
+    },
+    nextCommunity() {
+      if (this.communityIndex < this.pixelArts.length - 1) {
+        this.communityIndex++
+      }
+    },
+    previousCommunity() {
+      if (this.communityIndex > 0) {
+        this.communityIndex--
+      }
     }
   }
 }
@@ -385,6 +495,10 @@ export default {
   transition: all 0.3s ease;
 }
 
+.btn-gradient.w-100 {
+  display: block;
+}
+
 .btn-gradient:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(20, 184, 166, 0.3);
@@ -396,9 +510,38 @@ export default {
   vertical-align: middle;
 }
 
-.hero-section {
+/* SECTION BACKGROUNDS - Transparent with clear distinction */
+/* Important: Using higher specificity to override Bootstrap */
+section.hero-section {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
   padding-top: 5rem;
   padding-bottom: 5rem;
+}
+
+section#features {
+  background: rgba(240, 249, 255, 0.7) !important; /* Light blue with transparency */
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+section#how-it-works {
+  background: rgba(255, 255, 255, 0.7) !important; /* White with transparency */
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+section.screenshots-section {
+  background: rgba(250, 250, 250, 0.7) !important; /* Light gray with transparency */
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+section.community-section {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.85) 0%, rgba(37, 99, 235, 0.85) 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
 }
 
 .hero-blur {
@@ -414,6 +557,8 @@ export default {
 
 .feature-card {
   transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
 }
 
 .feature-card:hover {
@@ -451,39 +596,147 @@ export default {
   margin: 0 auto;
 }
 
+/* CAROUSEL STYLES */
+.carousel-container {
+  position: relative;
+  padding: 0 80px 60px 80px; /* Added bottom padding for indicators */
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-content {
+  flex: 1;
+  overflow: hidden;
+  padding-bottom: 20px; /* Space for card shadow */
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-btn:hover:not(:disabled) {
+  background: white;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.carousel-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.carousel-btn-community {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.carousel-btn-community:hover:not(:disabled) {
+  background: white;
+  border-color: white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.carousel-btn-community svg {
+  stroke: #2563eb;
+}
+
+.carousel-btn-left {
+  left: 10px;
+}
+
+.carousel-btn-right {
+  right: 10px;
+}
+
+.carousel-indicators {
+  position: absolute;
+  bottom: -10px; /* Position below the content */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.indicator-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.indicator-dot.active {
+  background: rgba(0, 0, 0, 0.8);
+  width: 32px;
+  border-radius: 6px;
+}
+
+.indicator-dot-white {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.indicator-dot-white.active {
+  background: rgba(255, 255, 255, 1);
+}
+
 .screenshot-card {
   transition: all 0.3s ease;
   overflow: hidden;
-}
-
-.screenshot-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
 }
 
 .screenshot-card img {
   transition: transform 0.3s ease;
 }
 
-.screenshot-card:hover img {
-  transform: scale(1.05);
+/* CAROUSEL TRANSITIONS */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.5s ease;
 }
 
-.community-section {
-  background: linear-gradient(135deg, #14b8a6 0%, #2563eb 100%);
+.slide-enter-from {
+  opacity: 0;
+  transform: translateX(50px);
+}
+
+.slide-leave-to {
+  opacity: 0;
+  transform: translateX(-50px);
 }
 
 .pixel-art-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
-  padding: 1rem;
+  padding: 2rem;
   border-radius: 1rem;
   transition: all 0.3s ease;
 }
 
 .pixel-art-card:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
 }
 
 .cta-content {
@@ -504,5 +757,33 @@ export default {
 
 .nav-link:hover {
   color: #14b8a6 !important;
+}
+
+/* RESPONSIVE ADJUSTMENTS */
+@media (max-width: 768px) {
+  .carousel-container {
+    padding: 0 60px;
+  }
+  
+  .carousel-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .carousel-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .carousel-container {
+    padding: 0 50px;
+  }
+  
+  .carousel-btn {
+    width: 35px;
+    height: 35px;
+  }
 }
 </style>
