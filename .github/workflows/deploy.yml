@@ -46,4 +46,4 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
       - name: Add SPA fallback
-        run: cp dist/index.html dist/404.html
+        run: if [ -f dist/index.html ]; then cp dist/index.html dist/404.html; else echo 'dist/index.html not found'; fi
