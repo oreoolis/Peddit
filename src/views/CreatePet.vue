@@ -12,6 +12,7 @@ import BreedSelect from '@/components/molecules/create-edit-pet/BreedSelect.vue'
 import MealPlanSelect from '@/components/molecules/create-edit-pet/MealPlanSelect.vue';
 import dogImage from '@/assets/Pixel Art/dog (1).png';
 import catImage from '@/assets/Pixel Art/cat (5).png';
+import ToastStatus from '@/components/molecules/ToastStatus.vue';
 
 const petStore = usePetStore();
 const authStore = useAuthStore();
@@ -80,7 +81,7 @@ const handleSubmit = async () => {
   if (!form.value.name || !form.value.kind) {
     alert('Please fill in required fields');
     return;
-  }
+  } 
 
   const result = await petStore.createPet(authStore.userId, { ...form.value, photo_url: null });
 
@@ -100,6 +101,9 @@ const handleSubmit = async () => {
     setTimeout(() => {
       showSuccess.value = false;
     }, 3000)
+  } else if (res.error.code === '22003') {
+    toastStore.showToast("Error creating pet!", 5000);
+    showSuccess.value = false;
   }
 }
 
@@ -144,6 +148,7 @@ onMounted(async () => {
 
 <template>
   <div class="container-fluid">
+    <ToastStatus :showOpSuccess="toastStore.showOpSuccess" :message="toastStore.message" />
     <form @submit.prevent="handleSubmit" class="pet-form">
       <!-- Pet Species Selector -->
       <div class="pet-selector mt-4 mb-5">
