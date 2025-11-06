@@ -45,3 +45,5 @@ jobs:
       - name: Peddit Deployment
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Add SPA fallback
+        run: cp dist/index.html dist/404.html
