@@ -317,7 +317,7 @@ export default {
         },
         {
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"></path><line x1="6" y1="17" x2="18" y2="17"></line></svg>`,
-          title: "Recipe Sharing",
+          title: "Recipe Finding",
           description: "Discover and share healthy meal plans created by the community. Find the perfect diet for your furry friend."
         },
         {
@@ -332,8 +332,8 @@ export default {
         },
         {
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`,
-          title: "Local Services",
-          description: "Find nearby pet stores and vet clinics with real-time availability and ratings from the community."
+          title: "Location Finding",
+          description: "Find nearby pet stores and vet clinics with our map, updated with real-time availability and ratings from the community."
         },
         {
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,
@@ -354,35 +354,45 @@ export default {
         },
         {
           number: 3,
-          title: "Connect & Share",
-          description: "Join the community, share recipes and pet moments"
+          title: "Track Progress",
+          description: "Monitor your pet's health and nutrition journey"
         },
         {
           number: 4,
-          title: "Track Progress",
-          description: "Monitor your pet's health and nutrition journey"
-        }
+          title: "Connect & Share",
+          description: "Join the community, share recipes and pet moments through posts"
+        },
       ],
       screenshots: [
         {
-          title: "Health Dashboard",
+          title: "Pet Health Dashboard",
           image: "../src/assets/dashboard.png",
           description: "Track detailed nutrition metrics and health data for all your pets in one beautiful interface."
         },
         {
-          title: "Social Feed",
+          title: "Recipe Finding",
+          image: "../src/assets/recipe.png",
+          description: "Find trending recipes for dogs and cats, created by pet owners."
+        },
+        {
+          title: "Social Community",
           image: "../src/assets/social.png",
           description: "Engage with the pet community, discover recipes, and share your pet's special moments."
         },
         {
-          title: "AI Assistant",
+          title: "Smart Chatbot",
           image: "../src/assets/chatbot.png",
           description: "Get instant, personalized meal plans and nutrition advice from our smart chatbot."
         },
         {
-          title: "test",
-          image: "https://i.postimg.cc/QtC8q5cC/chat.png",
-          description: "GTest."
+          title: "Location Finding",
+          image: "../src/assets/location.png",
+          description: "Find pet stores and vet clinics near you, sorted by rating, distance and opening hours."
+        },
+        {
+          title: "Nutrition Tracking",
+          image: "../src/assets/nutrition.png",
+          description: "Check your pets' daily nutrition targets in detail to ensure that they are happy and healthy."
         }
       ],
       pixelArts: [
