@@ -11,7 +11,6 @@ Peddit is a full-stack web app for pet owners to:
 - Create pet profiles, track health, and analyse nutrition
 =======
 - Create pet profiles, track health, and analyze nutrition of pets
->>>>>>> 2f292e840c31da171b9bf294f3b54cfc853078d9
 - Build and share recipes and meals
 - Post socially and interact with the community
 - Find nearby pet shops and clinics with Google Maps
