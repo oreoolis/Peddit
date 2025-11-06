@@ -65,7 +65,7 @@ onMounted(async () => {
     const checkForModal = () => {
         try {
             // look for common modal/backdrop markers
-            const hasBackdrop = !!document.querySelector('.modal-backdrop, .modal, [role="dialog"]');
+            const hasBackdrop = !!document.querySelector('.modal-backdrop, .modal, [role="dialog"], .peddit-chat-panel');
             if (hasBackdrop) {
                 document.body.classList.add('has-modal');
             } else {
