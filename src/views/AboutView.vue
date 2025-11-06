@@ -13,7 +13,7 @@
               Join the ultimate social platform for pet owners. Manage health, discover recipes, and connect with a community that cares.
             </p>
             <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
-              <button class="btn btn-gradient btn-lg">
+              <button @click="navigateToAuth" class="btn btn-gradient btn-lg">
                 Get Started Here!
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ms-2">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
@@ -196,54 +196,11 @@
         </div>
 
         <div class="text-center">
-          <button class="btn btn-light btn-lg px-5 py-3">Join the Community Today</button>
+          <button @click="navigateToAuth" class="btn btn-light btn-lg px-5 py-3">Join the Community Today</button>
         </div>
       </div>
     </section>
-
-    <!-- Final CTA -->
-    <section class="py-5 bg-white">
-      <div class="container-fluid px-4 px-lg-5">
-        <div class="cta-content">
-          <h2 class="display-4 fw-bold mb-4">Ready to Give Your Pet the Best Care?</h2>
-          <p class="lead text-muted mb-4">
-            Join thousands of pet parents who trust Peddit for their pets' health and happiness.
-          </p>
-          <button class="btn btn-gradient btn-lg px-5 py-3">
-            Get Started Free
-            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ms-2">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-            </svg>
-          </button>
-          <p class="text-muted mt-3">No credit card required • Free forever</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-5">
-      <div class="container-fluid px-4 px-lg-5">
-        <div class="text-center">
-          <div class="d-flex align-items-center justify-content-center mb-3">
-            <div class="brand-icon me-2">
-              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                <rect width="40" height="40" rx="8" fill="url(#gradient2)"/>
-                <path d="M28 14.5C28 11.5 25.5 9 22.5 9L20 11.5L17.5 9C14.5 9 12 11.5 12 14.5C12 20 20 27 20 27C20 27 28 20 28 14.5Z" fill="white"/>
-                <defs>
-                  <linearGradient id="gradient2" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stop-color="#14b8a6"/>
-                    <stop offset="100%" stop-color="#2563eb"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <span class="fs-4 fw-bold">Peddit</span>
-          </div>
-          <p class="text-muted mb-4">Your pet's health and happiness, all in one place.</p>
-          <p class="text-muted">&copy; 2025 Peddit. Made with ❤️ for pets everywhere.</p>
-        </div>
-      </div>
-    </footer>
+    <!-- CLOSING TAG WAS MISSING HERE -->
   </div>
 </template>
 
@@ -372,6 +329,13 @@ export default {
       // Right eye center: 120, 100 in viewBox
       this.catRightPupilX = 120 + Math.cos(angle) * 5
       this.catRightPupilY = 100 + Math.sin(angle) * 5
+    },
+    navigateToAuth() {
+      // Navigate to the auth/login page
+      this.$router.push({ name: 'login' });
+      // Alternative ways depending on your router setup:
+      // this.$router.push('/auth');
+      // this.$router.push('/login');
     }
   }
 }
