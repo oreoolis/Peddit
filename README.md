@@ -28,14 +28,6 @@ Peddit is a full-stack web app for pet owners to:
 - Maps: Nearby pet shops and vet clinics with sorting/filters
 - AI Chatbot: OpenRouter proxy via Vercel Edge function, streaming replies
 
-## Screenshots
-- Dashboard: `src/assets/dashboard.png`
-- Nutrition: `src/assets/nutrition.png`
-- Recipes: `src/assets/recipe.png`
-- Social: `src/assets/social.png`
-- Maps: `src/assets/location.png`
-- Chatbot: `src/assets/chatbot.png`
-
 ## Feature Highlights
 
 ### Authentication
