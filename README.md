@@ -7,9 +7,7 @@ Your pet social network and nutrition dashboard.
 ![Vue](https://img.shields.io/badge/Vue-3.x-42b883?logo=vue.js&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?logo=vite&logoColor=white) ![Pinia](https://img.shields.io/badge/Pinia-3.x-f7d336) ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.x-7952B3?logo=bootstrap&logoColor=white) ![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20DB-3FCF8E?logo=supabase&logoColor=white) ![Vercel](https://img.shields.io/badge/Vercel-Edge%20Functions-000000?logo=vercel) ![Node](https://img.shields.io/badge/Node-%E2%89%A520-339933?logo=node.js&logoColor=white)
 
 Peddit is a full-stack web app for pet owners to:
-<<<<<<< HEAD
 - Create pet profiles, track health, and analyse nutrition
-=======
 - Create pet profiles, track health, and analyze nutrition of pets
 - Build and share recipes and meals
 - Post socially and interact with the community
