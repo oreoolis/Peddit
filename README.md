@@ -40,6 +40,22 @@ Example embeds:
 
 ![](src/assets/dashboard.png)
 
+## Feature Highlights
+
+### Authentication
+- Email magic link and Google OAuth via Supabase Auth.
+![](src/assets/readmepics/Login.png)
+
+### Profiles
+- Personal profile management and viewing public profiles of other users.
+![](src/assets/readmepics/Profile.png)
+![](src/assets/readmepics/Profile%20others.png)
+
+### Pet Health Dashboard
+- At-a-glance health cards and detailed nutrient breakdowns per pet.
+![](src/assets/readmepics/pet%20health%20dashboard%20closed.png)
+![](src/assets/readmepics/Pet%20health%20dashboard.png)
+
 ## Architecture
 ```mermaid
 flowchart LR
