@@ -17,13 +17,14 @@ import { supabase } from '@/lib/supabaseClient';
 import { useCommentStore } from '@/stores/commentStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useUserStore } from '@/stores/userStore';
+import personImg from '@/assets/person.jpg';
 // Dummy static Data in 
 const props = defineProps({
   Content : {type: String, default: 'This is the new Recipe that I made. Check it out!'},
   postId: {type: String, required: true},
   RecipeId: { type: String, default: '123e' },
   Username: { type: String, default: 'JohnDoe' },
-  User_Image: { type: String, default: '/src/assets/person.jpg' },
+  User_Image: { type: String, default: personImg },
   Recipe_Name: { type: String, default: 'Beef Boost' },
   Recipe_Desc: { type: String, default: 'A Yummy Treat for golden Retrievers' },
   Vote_score: { type: Number, default: 99 },

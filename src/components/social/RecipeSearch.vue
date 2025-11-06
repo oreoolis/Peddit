@@ -6,11 +6,12 @@ import Button from '@/components/atoms/button.vue';
 import ShareButton from '@/components/Organisms/social/ShareButton.vue';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import personImg from '@/assets/person.jpg';
 
 const props = defineProps({
   RecipeId: { type: String, default: '123e' },
   Username: { type: String, default: 'JohnDoe' },
-  User_Image: { type: String, default: '/src/assets/person.jpg' },
+  User_Image: { type: String, default: personImg },
   Recipe_Name: { type: String, default: 'Beef Boost' },
   Recipe_Desc: { type: String, default: 'A Yummy Treat for golden Retrievers' },
   Vote_score: { type: Number, default: 99 },

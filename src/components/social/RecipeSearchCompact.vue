@@ -2,10 +2,13 @@
 import { useRouter } from 'vue-router';
 import BaseAvatar from '@/components/atomic/BaseAvatar.vue';
 import animatedImage from '../atoms/animated/animatedImage.vue';
+import personImg from '@/assets/person.jpg';
+import dogWalk from '@/assets/Sprite/Dog/Walk.png';
+import catWalk from '@/assets/Sprite/Cat/Walk.png';
 const props = defineProps({
   RecipeId: { type: [String, Number], required: true },
   Username: { type: String, default: 'Unknown' },
-  User_Image: { type: String, default: '/src/assets/person.jpg' },
+  User_Image: { type: String, default: personImg },
   Recipe_Name: { type: String, default: 'Untitled' },
   Recipe_Desc: { type: String, default: '' },
   Vote_score: { type: Number, default: 0 },
@@ -23,8 +26,8 @@ function goToRecipe() {
 <template>
   <article class="compact-card" @click="goToRecipe" role="button" tabindex="0">
     <div class="left">
-      <animatedImage v-if="Animal_Type=='cat'" src="/src/assets/Sprite/Dog/Walk.png" :width="46" :height="46" :frameWidth="48" :frameHeight="48" :frames="6" :fps="8" />
-      <animatedImage v-else src="/src/assets/Sprite/Cat/Walk.png" :width="46" :height="46" :frameWidth="48" :frameHeight="48" :frames="6" :fps="8" />
+  <animatedImage v-if="Animal_Type=='cat'" :src="dogWalk" :width="46" :height="46" :frameWidth="48" :frameHeight="48" :frames="6" :fps="8" />
+  <animatedImage v-else :src="catWalk" :width="46" :height="46" :frameWidth="48" :frameHeight="48" :frames="6" :fps="8" />
     </div>
     <div class="body">
       <div class="title">{{ Recipe_Name }}</div>
