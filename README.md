@@ -53,7 +53,7 @@ Peddit is a full-stack web app for pet owners to:
 ![](src/assets/readmepics/Pet%20health%20dashboard.png)
 
 ### Pet Creation
-- Create pets with breeds sourced from external APIs; quick overview cards.
+- Create pets with breeds sourced from external APIs.
 ![](src/assets/readmepics/Pet%20creation.jpg)
 ![](src/assets/readmepics/pet%20creation%202.jpg)
 
