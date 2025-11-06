@@ -644,14 +644,34 @@ section.screenshots-section {
   -webkit-backdrop-filter: none !important;
 }
 
+/* COMMUNITY: gradient lives on a positioned pseudo-element */
 section.community-section {
-  background: linear-gradient(135deg, #14b8a6 0%, #2563eb 100%) !important;
-  backdrop-filter: none !important;
+  position: relative;
+  background: transparent !important;     /* move gradient off the element */
   -webkit-backdrop-filter: none !important;
-   flex: 1 0 auto;        /* grows to fill remaining height */
-  display: flow-root;         /* optional: to vertically center its contents */
-  align-items: center;   /* optional */
+  backdrop-filter: none !important;
+
+  /* keep your layout hints */
+  flex: 1 0 auto;
+  display: flow-root;
+  min-height: calc(100vh - var(--nav-bottom-height, 56px));
+  overflow: visible;
 }
+
+/* gradient layer that starts at top:0 and extends below the section */
+section.community-section::before {
+  content: "";
+  position: absolute;
+  top: 0;                /* << requested: top:0 */
+  left: 0;
+  right: 0;
+  /* extend beyond the bottom to paint under the reserved navbar space */
+  bottom: calc(-1 * (var(--nav-bottom-height, 56px) + 16px));
+  background: linear-gradient(135deg, #14b8a6 0%, #2563eb 100%);
+  z-index: -1;           /* sit behind all section content */
+  pointer-events: none;
+}
+
 
 .hero-blur {
   position: absolute;
