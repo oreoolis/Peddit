@@ -1,5 +1,8 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import personImg from '@/assets/person.jpg';
+import dogIdle from '@/assets/Sprite/Dog/Idle.png';
+import catIdle from '@/assets/Sprite/Cat/Idle.png';
 import { useAuthStore } from '@/stores/authStore';
 import { storeToRefs } from 'pinia';
 import { usePetStore } from '@/stores/petStore';
@@ -197,9 +200,9 @@ function aggregateNutritionFromRecipe(recipe) {
                   <div class=" sample-home">
                       <div class="flex-grow-1">
                         <h1 class="mb-1 brandFont ">
-                        <AnimatedImage src="/src/assets/Sprite/Dog/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />
+                        <AnimatedImage :src="dogIdle" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />
                           Welcome to Peddit!              
-                        <AnimatedImage src="/src/assets/Sprite/Cat/Idle.png" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />
+                        <AnimatedImage :src="catIdle" :frameWidth="48" :frameHeight="48" :frames="4" :fps="4" :width="64" :height="64" />
                           </h1>
                         <p class="text-muted mb-2">Discover pets, read tips and share moments with other pet lovers.</p>
                         <div class="d-flex gap-2 flex-wrap justify-content-end">
@@ -232,7 +235,7 @@ function aggregateNutritionFromRecipe(recipe) {
                           :link="post?.id ?? post?.link"
                           :title="post?.title"
                           :Name="post?.profiles?.display_name || post?.profile?.display_name || post?.author_name || 'Unknown'"
-                          :Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
+                          :Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || personImg"
                           :CommentCount="post?.comment_count"
                           :VoteScore="post?.vote_score"
                           :created_at="post?.created_at"
@@ -258,7 +261,7 @@ function aggregateNutritionFromRecipe(recipe) {
                           :key="post?.id ?? post?.link ?? post?.title"
                           :RecipeId="post?.id ?? post?.link"
                           :Username="post?.profiles?.display_name || post?.profile?.display_name || post?.author_name || 'Unknown'"
-                          :User_Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || '/src/assets/person.jpg'"
+                          :User_Image="post?.profiles?.avatar_url || post?.profile?.avatar_url || post?.avatar_url || personImg"
                           :Recipe_Name="post.recipes.recipe_name"
                           :Recipe_Desc="post.recipes.description"
                           :Comment_count="post?.comment_count"
