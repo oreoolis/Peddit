@@ -23,7 +23,7 @@ const isLoggedIn = computed(() => !!user.value);
 
 const navItems = computed(()=>{
     let items = [
-        { name: 'about', route: '/about', icon: 'Home.png', label: 'About' },
+        { name: 'about', route: '/', icon: 'Home.png', label: 'About' },
         { name: 'social', route: '/social', icon: 'Social.png', label: 'Social' },
         { name: 'meal', route: '/meal', icon: 'Burger.png', label: 'Meals' },
         { name: 'login', route: '/login', icon: 'Heart.png', label: 'Log In' },
