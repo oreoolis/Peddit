@@ -34,16 +34,21 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [
-      vue(),
-      vueDevTools(), // same as before
-    ],
+    plugins: [vue(), vueDevTools()],
     base,
-    resolve: {
-      alias: {
-        '@': fileURLToPath(new URL('./src', import.meta.url)), // same as before
-      },
+    resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+    server: {
+      proxy: proxyRoutes,
+      middlewares: [
+        (req, res, next) => {
+          // Allow external connections
+          res.setHeader('Access-Control-Allow-Origin', '*')
+          res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+          res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+          res.setHeader('Content-Security-Policy', "connect-src 'self' https://openrouter.ai data:")
+          next()
+        },
+      ],
     },
-    server: { proxy: proxyRoutes },
   }
 })
