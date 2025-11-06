@@ -338,7 +338,6 @@ onMounted(async () => {
             </NutritionalOutputCard>
 
             <!-- Form Actions -->
-            <!-- Form Actions -->
             <div class="form-actions d-flex justify-content-center mt-3">
               <Button class="bodyFont d-inline mx-2" color="secondary" type="button" @click="resetForm" label="Reset">
               </Button>
